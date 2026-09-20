@@ -7,7 +7,7 @@ import org.springframework.web.bind.annotation.*;
 @RequestMapping("/api/travelers")
 //creates REST endpoint:
     public class TravelerController {
-      private final TravelerRepository travelerRepository;
+      private final TravelerService travelerService;
 
     public TravelerController(TravelerService travelerService) {
         this.travelerService = travelerService;

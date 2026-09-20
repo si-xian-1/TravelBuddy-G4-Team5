@@ -11,17 +11,22 @@ public class User {
     public User() {
     }
 
-    public User(int userId, String username, String mobileNumber, String password) {
+    public User(int userId, String username, String mobileNumber,
+            String password, String role, boolean hasConsentLocation) {
         this.userId = userId;
         this.username = username;
         this.mobileNumber = mobileNumber;
         this.password = password;
+        this.role = role;
+        this.hasConsentLocation = hasConsentLocation;
     }
 
-    public User(String username, String mobileNumber, String password) {
+    public User(String username, String mobileNumber, String password,
+            boolean hasConsentLocation) {
         this.username = username;
         this.mobileNumber = mobileNumber;
         this.password = password;
+        this.hasConsentLocation = hasConsentLocation;
     }
 
     public int getUserId() {
