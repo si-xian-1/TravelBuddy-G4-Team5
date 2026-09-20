@@ -3,22 +3,24 @@ package com.TravelBuddy.model;
 public class User {
     private int userId;
     private String username;
-    private String email;
+    private String mobileNumber;
     private String password;
+    private String role;
+    private boolean hasConsentLocation;
 
     public User() {
     }
 
-    public User(int userId, String username, String email, String password) {
+    public User(int userId, String username, String mobileNumber, String password) {
         this.userId = userId;
         this.username = username;
-        this.email = email;
+        this.mobileNumber = mobileNumber;
         this.password = password;
     }
 
-    public User(String username, String email, String password) {
+    public User(String username, String mobileNumber, String password) {
         this.username = username;
-        this.email = email;
+        this.mobileNumber = mobileNumber;
         this.password = password;
     }
 
@@ -38,19 +40,35 @@ public class User {
         this.username = username;
     }
 
-    public String getEmail() {
-        return email;
+    public String getMobileNumber() { 
+        return mobileNumber; 
+    } 
+    
+    public void setMobileNumber(String mobileNumber) { 
+        this.mobileNumber = mobileNumber; 
     }
-
-    public void setEmail(String email) {
-        this.email = email;
-    }
-
+    
     public String getPassword() {
         return password;
     }
 
     public void setPassword(String password) {
         this.password = password;
+    }
+
+    public String getRole() {
+        return role;
+    }
+
+    public void setRole(String role) {
+        this.role = role;
+    }
+
+    public boolean isHasConsentLocation() {
+        return hasConsentLocation;
+    }
+
+    public void setHasConsentLocation(boolean hasConsentLocation) {
+        this.hasConsentLocation = hasConsentLocation;
     }
 }

@@ -6,16 +6,16 @@ import org.springframework.web.bind.annotation.*;
 @RestController
 @RequestMapping("/api/travelers")
 //creates REST endpoint:
-public class TravelerController {
+    public class TravelerController {
       private final TravelerRepository travelerRepository;
 
-    public TravelerController(TravelerRepository travelerRepository) {
-        this.travelerRepository = travelerRepository;
+    public TravelerController(TravelerService travelerService) {
+        this.travelerService = travelerService;
     }
 
-    @PostMapping
+    @PostMapping("/users")
     public String createUser(@RequestBody User user) {
-        travelerRepository.createUser(user);
+        travelerService.createUser(user);
         return "User created successfully";
     }
 }

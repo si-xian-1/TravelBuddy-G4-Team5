@@ -13,14 +13,14 @@ public class TravelerRepository {
 
     public int createUser(User user) {
         String sql = """
-                INSERT INTO users (username, email, password)
-                VALUES (?, ?, ?)
+                INSERT INTO users (username, mobileNumber, password,role, has_consent_location)
+                VALUES (?, ?, ?, 'TRAVELER', FALSE)
                 """;
 
         return jdbcTemplate.update(
                 sql,
                 user.getUsername(),
-                user.getEmail(),
+                user.getmobileNumber(),
                 user.getPassword()
         );
     }
