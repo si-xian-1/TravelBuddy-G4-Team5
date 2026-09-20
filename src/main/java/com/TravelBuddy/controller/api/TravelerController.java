@@ -1,6 +1,7 @@
 package com.TravelBuddy.controller.api;
 import com.TravelBuddy.model.User;
-import com.TravelBuddy.repository.TravelerRepository;
+import com.TravelBuddy.service.TravelerService;
+
 import org.springframework.web.bind.annotation.*;
 
 @RestController
