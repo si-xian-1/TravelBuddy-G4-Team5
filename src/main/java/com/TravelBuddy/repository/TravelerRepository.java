@@ -1,11 +1,12 @@
 package com.TravelBuddy.repository;
-import com.TravelBuddy.model.User;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Repository;
 
+import com.TravelBuddy.model.User;
+
 @Repository
 public class TravelerRepository {
-     private final JdbcTemplate jdbcTemplate;
+    private final JdbcTemplate jdbcTemplate;
 
     public TravelerRepository(JdbcTemplate jdbcTemplate) {
         this.jdbcTemplate = jdbcTemplate;
