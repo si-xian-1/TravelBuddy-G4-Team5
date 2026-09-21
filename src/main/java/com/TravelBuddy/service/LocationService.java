@@ -35,6 +35,8 @@ public class LocationService {
     }
 
     // Returns the single best matching location (first result)
+    // Need to edit in future to change it to when user click recommendation, return index number to get Coordinates or something like that
+    // getCoordinates(int index, List<LocationResponse> results)
     public LocationResponse getCoordinates(String locationName) {
         List<LocationResponse> results = searchLocations(locationName);
         return results.isEmpty() ? null : results.get(0);
