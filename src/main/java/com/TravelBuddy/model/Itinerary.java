@@ -15,7 +15,7 @@ public class Itinerary {
     public Itinerary() {
     }
 
-    public Itinerary(int itineraryId, String displayname, double latitude, double longitude, Date date, String type, int userId) {
+    public Itinerary(int itineraryId, String displayName, double latitude, double longitude, Date date, String type, int userId) {
         this.itineraryId = itineraryId;
         this.displayName = displayName;
         this.latitude = latitude;
