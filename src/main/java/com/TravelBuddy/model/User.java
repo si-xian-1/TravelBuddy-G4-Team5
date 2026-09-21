@@ -6,8 +6,8 @@ public class User {
     private String mobileNumber;
     private String password;
     private String role;
-    private boolean hasConsentLocation;
-    //emergency contact
+    private Boolean hasConsentLocation;
+    //emergency contact need to add to database
     private EmergencyContact emergencyContact;
 
     public User() {
@@ -71,7 +71,7 @@ public class User {
         this.role = role;
     }
 
-    public boolean isHasConsentLocation() {
+    public Boolean isHasConsentLocation() {
         return hasConsentLocation;
     }
 

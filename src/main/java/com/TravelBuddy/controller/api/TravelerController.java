@@ -29,10 +29,6 @@ import com.TravelBuddy.service.TravelerService;
 
     @PutMapping("/users/{userID}")
     public String updateUser(@PathVariable("userID") int userId, @RequestBody User user){
-        if (user.getUsername() == null){
-
-        }
-        if (user.get)
         if (travelerService.updateUser(userId, user) == 0){
              throw new ResponseStatusException(HttpStatus.NOT_FOUND, "Traveler not found");
         }

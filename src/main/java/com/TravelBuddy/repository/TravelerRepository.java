@@ -28,15 +28,17 @@ public class TravelerRepository {
     public int updateUser(int userId, User user){
         String sql = """
                 UPDATE users 
-                SET username = ?, 
-                mobile_number = ?, 
-                hasConsentLocation = ? 
+                SET username = COALESCE(?,username), 
+                mobile_number = COALESCE(?, mobile_number), 
+                password = COALESCE(?,password),
+                hasConsentLocation = COALESCE(?, hasConsentLocation) 
                 WHERE user_id = ?
                 """;
         return jdbcTemplate.update(
                 sql,
                 user.getUsername(),
                 user.getMobileNumber(),
+                user.getPassword(),
                 user.isHasConsentLocation(),
                 userId
             );
