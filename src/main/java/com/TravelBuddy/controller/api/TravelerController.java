@@ -1,11 +1,6 @@
 package com.TravelBuddy.controller.api;
 import org.springframework.http.HttpStatus;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.PutMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 import org.springframework.web.server.ResponseStatusException;
 
 import com.TravelBuddy.model.User;
@@ -33,5 +28,9 @@ import com.TravelBuddy.service.TravelerService;
              throw new ResponseStatusException(HttpStatus.NOT_FOUND, "Traveler not found");
         }
         return "User updated successfully";
+    }
+    @GetMapping("/users/{userID}")
+    public User getUser(@PathVariable("userID") int userId){
+        return travelerService.getUser(userId);
     }
 }

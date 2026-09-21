@@ -7,6 +7,8 @@ public class EmergencyContact {
         this.name = name;
         this.mobileNumber = mobileNumber;
     }
+    public EmergencyContact(){
+    }
     public String getName(){
         return this.name;
     }

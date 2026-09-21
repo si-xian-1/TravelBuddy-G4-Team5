@@ -1,6 +1,9 @@
 package com.TravelBuddy.model;
 
+import com.fasterxml.jackson.annotation.*;
+
 public class User {
+    public static final String PASSWORD_MASK = "........";
     private int userId;
     private String username;
     private String mobileNumber;
@@ -55,10 +58,18 @@ public class User {
         this.mobileNumber = mobileNumber; 
     }
     
+    @JsonIgnore
+    // this will be ignore when converting from java to json
     public String getPassword() {
         return password;
     }
 
+    @JsonGetter("password")
+    public String getMaskedPassword() {
+        return PASSWORD_MASK;
+    }
+
+    @JsonSetter("password")
     public void setPassword(String password) {
         this.password = password;
     }
@@ -75,8 +86,11 @@ public class User {
         return hasConsentLocation;
     }
 
-    public void setHasConsentLocation(boolean hasConsentLocation) {
+    public void setHasConsentLocation(Boolean hasConsentLocation) {
         this.hasConsentLocation = hasConsentLocation;
+    }
+    public void setEmergencyContact(EmergencyContact emergencyContact) {
+        this.emergencyContact = emergencyContact;
     }
     public void setEmergencyContact(String name, String mobileNumber){
         if (this.emergencyContact == null){
