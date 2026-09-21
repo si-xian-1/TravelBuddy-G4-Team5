@@ -21,11 +21,10 @@ public class ItineraryController {
 
     @PostMapping("/attraction")
     public ResponseEntity<String> createAttraction(
-            @RequestBody Itinerary itinerary, @RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) Date dateOfItinerary) {        
+            @RequestBody Itinerary itinerary) {        
 
         int userId = 1;                         //havent thought of how to get userId of current user
         //after user chooses recommendation then html sets display name of itinerary and calls this function
-        itinerary.setDate(dateOfItinerary);
         String status = itineraryService.createAttraction(itinerary, userId);
         if (status.equals("Success")) {
             return ResponseEntity.status(HttpStatus.CREATED)
