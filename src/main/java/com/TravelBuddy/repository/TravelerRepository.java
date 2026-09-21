@@ -31,7 +31,9 @@ public class TravelerRepository {
                 SET username = COALESCE(?,username), 
                 mobile_number = COALESCE(?, mobile_number), 
                 password = COALESCE(?,password),
-                hasConsentLocation = COALESCE(?, hasConsentLocation) 
+                hasConsentLocation = COALESCE(?, hasConsentLocation),
+                emergency_contact_name = COALESCE(?, emergency_contact_name),
+                emergency_contact_number = COALESCE(?, emergency_contact_number)
                 WHERE user_id = ?
                 """;
         return jdbcTemplate.update(
@@ -40,6 +42,8 @@ public class TravelerRepository {
                 user.getMobileNumber(),
                 user.getPassword(),
                 user.isHasConsentLocation(),
+                user.getEmergencyContact().getName(),
+                user.getEmergencyContact().getMobileNumber(),
                 userId
             );
     }
