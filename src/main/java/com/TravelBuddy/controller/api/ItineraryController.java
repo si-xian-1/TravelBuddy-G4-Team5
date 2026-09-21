@@ -2,9 +2,12 @@ package com.TravelBuddy.controller.api;
 
 import com.TravelBuddy.model.Itinerary;
 import com.TravelBuddy.service.ItineraryService;
+
+import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+import java.util.*;
 
 @RestController
 @RequestMapping("/api/itinerary")
@@ -16,24 +19,19 @@ public class ItineraryController {
         this.itineraryService = itineraryService;
     }
 
-    // Standard POST with explicit coordinates
     @PostMapping("/attraction")
-    public ResponseEntity<String> createAttraction(@RequestBody Itinerary itinerary) {
-        int userId = 1;                         //havent thought of how to get userId of current user
-        itineraryService.createAttraction(itinerary, userId);
-        return ResponseEntity.status(HttpStatus.CREATED).body("Attraction created successfully");
-    }
-
-    // New POST using place name parameter: POST /api/itinerary/attraction/by-place?placeName=Eiffel+Tower
-    @PostMapping("/attraction/by-place")
-    public ResponseEntity<String> createAttractionWithPlaceName(
-            @RequestBody Itinerary itinerary) {        
+    public ResponseEntity<String> createAttraction(
+            @RequestBody Itinerary itinerary, @RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) Date dateOfItinerary) {        
 
         int userId = 1;                         //havent thought of how to get userId of current user
-        String placeName = "";                  //get placeName from html
-        itineraryService.createAttractionWithPlaceName(itinerary, placeName, userId);
-        return ResponseEntity.status(HttpStatus.CREATED)
-                .body("Attraction created successfully for location: " + placeName);
+        //after user chooses recommendation then html sets display name of itinerary and calls this function
+        itinerary.setDate(dateOfItinerary);
+        String status = itineraryService.createAttraction(itinerary, userId);
+        if (status.equals("Success")) {
+            return ResponseEntity.status(HttpStatus.CREATED)
+                .body("Attraction created successfully for location: " + itinerary.getDisplayName());
+        }
+        return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("Attraction creation failed: location not found");
     }
 
     @PostMapping("/hotel")

@@ -18,23 +18,19 @@ public class ItineraryService {
         this.travelerRepository = travelerRepository;
     }
 
-    public int createAttractionWithPlaceName(Itinerary itinerary, String placeName, int userId) {
-        LocationResponse location = locationService.getCoordinates(placeName);
+    public String createAttraction(Itinerary itinerary, int userId) {
+        LocationResponse location = locationService.getCoordinates(itinerary.getDisplayName());
         itinerary.setUserId(userId);
 
         if (location != null) {
-            itinerary.setDisplayName(location.getDisplayName());
             itinerary.setLatitude(Double.parseDouble(location.getLat()));
             itinerary.setLongitude(Double.parseDouble(location.getLon()));
+            itineraryRepository.createAttraction(itinerary);
+            return "Success";
         }
 
-
-        return itineraryRepository.createAttraction(itinerary);
-    }
-
-    public int createAttraction(Itinerary itinerary, int userId) {
-        itinerary.setUserId(userId);
-        return itineraryRepository.createAttraction(itinerary);
+        return "Invalid location";
+        
     }
 
     public int createHotel(Itinerary itinerary) {

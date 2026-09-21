@@ -26,7 +26,7 @@ public class LocationService {
                         .path("/search")
                         .queryParam("q", query)
                         .queryParam("format", "json")
-                        .queryParam("limit", 5) // Returns up to 5 location matches
+                        .queryParam("accept-language", "en")
                         .build())
                 .retrieve()
                 .body(LocationResponse[].class);
