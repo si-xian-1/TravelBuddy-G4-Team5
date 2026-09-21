@@ -25,4 +25,20 @@ public class TravelerRepository {
                 user.isHasConsentLocation()
         );
     }
+    public int updateUser(int userId, User user){
+        String sql = """
+                UPDATE users 
+                SET username = ?, 
+                mobile_number = ?, 
+                hasConsentLocation = ? 
+                WHERE user_id = ?
+                """;
+        return jdbcTemplate.update(
+                sql,
+                user.getUsername(),
+                user.getMobileNumber(),
+                user.isHasConsentLocation(),
+                userId
+            );
+    }
 }

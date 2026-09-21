@@ -7,6 +7,8 @@ public class User {
     private String password;
     private String role;
     private boolean hasConsentLocation;
+    //emergency contact
+    private EmergencyContact emergencyContact;
 
     public User() {
     }
@@ -75,5 +77,23 @@ public class User {
 
     public void setHasConsentLocation(boolean hasConsentLocation) {
         this.hasConsentLocation = hasConsentLocation;
+    }
+    public void setEmergencyContact(String name, String mobileNumber){
+        if (this.emergencyContact == null){
+            this.emergencyContact = new EmergencyContact(name, mobileNumber);
+        }
+        else{
+            if (name != null){
+                emergencyContact.setName(name);
+
+            }
+            if (mobileNumber != null){
+                emergencyContact.setMobileNumber(mobileNumber);
+
+            }
+        }
+    }
+    public EmergencyContact getEmergencyContact(){
+        return this.emergencyContact;
     }
 }

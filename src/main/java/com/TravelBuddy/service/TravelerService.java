@@ -16,4 +16,7 @@ public class TravelerService {
     public int createUser(User user) {
         return travelerRepository.createUser(user);
     }
+    public int updateUser(int userId, User user){
+        return travelerRepository.updateUser(userId, user);
+    }
 }
