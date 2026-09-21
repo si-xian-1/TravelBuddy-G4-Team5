@@ -7,3 +7,17 @@ CREATE TABLE IF NOT EXISTS users (
     role VARCHAR(20) NOT NULL DEFAULT 'TRAVELER',
     hasConsentLocation BOOLEAN NOT NULL DEFAULT FALSE
 );
+
+CREATE TABLE IF NOT EXISTS itinerary (
+    itinerary_id INT AUTO_INCREMENT PRIMARY KEY,
+    latitude DOUBLE NOT NULL,
+    longitude DOUBLE NOT NULL,
+    date DATETIME NOT NULL,
+    type VARCHAR(50) NOT NULL,
+    user_id INT NOT NULL,
+
+    CONSTRAINT fk_itinerary_user 
+        FOREIGN KEY (user_id) 
+        REFERENCES users(user_id) 
+        ON DELETE CASCADE
+);
