@@ -11,6 +11,7 @@ public class User {
     public User() {
     }
 
+    //log in:
     public User(int userId, String username, String mobileNumber,
             String password, String role, boolean hasConsentLocation) {
         this.userId = userId;
@@ -21,6 +22,7 @@ public class User {
         this.hasConsentLocation = hasConsentLocation;
     }
 
+    //sign up:
     public User(String username, String mobileNumber, String password,
             boolean hasConsentLocation) {
         this.username = username;

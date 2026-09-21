@@ -19,4 +19,18 @@ import org.springframework.web.bind.annotation.*;
         travelerService.createUser(user);
         return "User created successfully";
     }
+
+    @PostMapping("/login")
+    public String login(@RequestBody User user) {
+    User authenticatedUser = travelerService.authenticateUser(
+            user.getUsername(),
+            user.getPassword()
+    );
+
+    if (authenticatedUser != null) {
+        return "Login successful";
+    }
+
+    return "Invalid username or password";
+}
 }

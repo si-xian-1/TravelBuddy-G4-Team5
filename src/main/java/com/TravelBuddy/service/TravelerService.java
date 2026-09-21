@@ -16,4 +16,8 @@ public class TravelerService {
     public int createUser(User user) {
         return travelerRepository.createUser(user);
     }
+
+    public User authenticateUser(String username, String password) {
+        return travelerRepository.authenticateUser(username, password);
+    }
 }
