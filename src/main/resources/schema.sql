@@ -6,6 +6,8 @@ CREATE TABLE IF NOT EXISTS users (
     password VARCHAR(255) NOT NULL,
     role VARCHAR(20) NOT NULL DEFAULT 'TRAVELER',
     has_consent_location BOOLEAN NOT NULL DEFAULT FALSE
+    emergency_contact_name VARCHAR(50) UNIQUE,
+    emergency_contact_number VARCHAR(20) UNIQUE
 );
 
 CREATE TABLE IF NOT EXISTS itinerary (

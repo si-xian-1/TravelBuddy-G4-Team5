@@ -20,4 +20,5 @@ public class TravelerService {
     public User authenticateUser(String username, String password) {
         return travelerRepository.authenticateUser(username, password);
     }
+
 }
