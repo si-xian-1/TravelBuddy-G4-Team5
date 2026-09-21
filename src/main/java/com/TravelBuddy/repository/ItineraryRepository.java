@@ -14,12 +14,13 @@ public class ItineraryRepository {
 
     public int createAttraction(Itinerary itinerary) {
         String sql = """
-                INSERT INTO itinerary (latitude, longitude, date, type, userId)
-                VALUES (?, ?, ?, 'ATTRACTION', ?)
+                INSERT INTO itinerary (display_name, latitude, longitude, date, type, user_id)
+                VALUES (?, ?, ?, ?, 'ATTRACTION', ?)
                 """;
 
         return jdbcTemplate.update(
                 sql,
+                itinerary.getDisplayName(),
                 itinerary.getLatitude(),
                 itinerary.getLongitude(),
                 itinerary.getDate(),
@@ -29,12 +30,13 @@ public class ItineraryRepository {
 
     public int createHotel(Itinerary itinerary) {
         String sql = """
-                INSERT INTO itinerary (latitude, longitude, date, type, userId)
-                VALUES (?, ?, ?, 'HOTEL', ?)
+                INSERT INTO itinerary (display_name, latitude, longitude, date, type, user_id)
+                VALUES (?, ?, ?, ?, 'HOTEL', ?)
                 """; 
 
         return jdbcTemplate.update(
                 sql,
+                itinerary.getDisplayName(),
                 itinerary.getLatitude(),
                 itinerary.getLongitude(),
                 itinerary.getDate(),
