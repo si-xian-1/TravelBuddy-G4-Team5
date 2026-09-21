@@ -5,6 +5,7 @@ import java.util.Date;
 public class Itinerary {
 
     private int itineraryId;
+    private String displayName;
     private double latitude;
     private double longitude;
     private Date date;
@@ -14,8 +15,9 @@ public class Itinerary {
     public Itinerary() {
     }
 
-    public Itinerary(int itineraryId, double latitude, double longitude, Date date, String type, int userId) {
+    public Itinerary(int itineraryId, String displayname, double latitude, double longitude, Date date, String type, int userId) {
         this.itineraryId = itineraryId;
+        this.displayName = displayName;
         this.latitude = latitude;
         this.longitude = longitude;
         this.date = date;
@@ -23,7 +25,8 @@ public class Itinerary {
         this.userId = userId;
     }
 
-    public Itinerary(double latitude, double longitude, Date date, int userId) {
+    public Itinerary(String displayName, double latitude, double longitude, Date date, int userId) {
+        this.displayName = displayName;
         this.latitude = latitude;
         this.longitude = longitude;
         this.date = date;
@@ -36,6 +39,14 @@ public class Itinerary {
 
     public void setItineraryId(int itineraryId) {
         this.itineraryId = itineraryId;
+    }
+
+    public String getDisplayName() {
+        return displayName;
+    }
+
+    public void setDisplayName(String displayName) {
+        this.displayName = displayName;
     }
 
     public double getLatitude() {

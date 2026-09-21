@@ -23,6 +23,7 @@ public class ItineraryService {
         itinerary.setUserId(userId);
 
         if (location != null) {
+            itinerary.setDisplayName(location.getDisplayName());
             itinerary.setLatitude(Double.parseDouble(location.getLat()));
             itinerary.setLongitude(Double.parseDouble(location.getLon()));
         }
