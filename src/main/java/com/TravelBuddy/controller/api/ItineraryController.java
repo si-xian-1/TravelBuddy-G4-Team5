@@ -27,10 +27,10 @@ public class ItineraryController {
     // New POST using place name parameter: POST /api/itinerary/attraction/by-place?placeName=Eiffel+Tower
     @PostMapping("/attraction/by-place")
     public ResponseEntity<String> createAttractionWithPlaceName(
-            @RequestBody Itinerary itinerary,
-            @RequestParam String placeName) {
+            @RequestBody Itinerary itinerary) {        
 
         int userId = 1;                         //havent thought of how to get userId of current user
+        String placeName = "";                  //get placeName from html
         itineraryService.createAttractionWithPlaceName(itinerary, placeName, userId);
         return ResponseEntity.status(HttpStatus.CREATED)
                 .body("Attraction created successfully for location: " + placeName);
