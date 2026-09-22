@@ -115,7 +115,7 @@ public class ItineraryRepository {
                     attraction.setAttractionName(result.getString("attraction_name"));
                     attraction.setLatitude(result.getDouble("latitude"));
                     attraction.setLongitude(result.getDouble("longitude"));
-                    attraction.setVisitDate(result.getDate("visit_date").toLocalDate());
+                    attraction.setVisitDate(result.getTimestamp("visit_date").toLocalDateTime());
                     return attraction;
                 }, itineraryId));
                 
@@ -170,7 +170,7 @@ public class ItineraryRepository {
             statement.setString(2, attraction.getAttractionName());
             statement.setDouble(3, attraction.getLatitude());
             statement.setDouble(4, attraction.getLongitude());
-            statement.setDate(5, java.sql.Date.valueOf(attraction.getVisitDate()));
+            statement.setTimestamp(5, Timestamp.valueOf(attraction.getVisitDate()));
             return statement;
         }, keyHolder);
 

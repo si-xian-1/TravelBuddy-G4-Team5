@@ -7,6 +7,7 @@ import org.springframework.stereotype.Service;
 import com.TravelBuddy.exception.InvalidInputsException;
 import com.TravelBuddy.exception.UnauthorizedUserException;
 import com.TravelBuddy.model.Attraction;
+import com.TravelBuddy.model.Flight;
 import com.TravelBuddy.model.Hotel;
 import com.TravelBuddy.model.Itinerary;
 import com.TravelBuddy.repository.ItineraryRepository;
@@ -18,25 +19,57 @@ public class ItineraryService {
     private final TravelerRepository travelerRepository;
     private final ItineraryRepository itineraryRepository;
     private final LocationService locationService;
+    private  final GdacsService gdacsService;
 
-    public ItineraryService(ItineraryRepository itineraryRepository, LocationService locationService, TravelerRepository travelerRepository) {
+    public ItineraryService(ItineraryRepository itineraryRepository, LocationService locationService, TravelerRepository travelerRepository, GdacsService gdacsService) {
         this.itineraryRepository = itineraryRepository;
-        this.locationService = locationService;
         this.travelerRepository = travelerRepository;
+        this.locationService = locationService;
+        this.gdacsService = gdacsService;
     }
 
     /**
      * 
      * @param itineraryId
      * @param userId
-     * @return user selected itinerary or unauthorized access message
+     * @return user selected itinerary with potential disaster alerts or unauthorized access message
      */
     public Itinerary getSelectedItinerary(int itineraryId, int userId) {
         // Check that user has the permission to access this selected itinerary
         checkItineraryBelongToUser(itineraryId, userId);
         
-        // If authorized, return the selected itinerary
-        return itineraryRepository.findSelectedItineraryByUserId(itineraryId, userId);
+        // If authorized, retrieve the selected itinerary
+        Itinerary itinerary = itineraryRepository.findSelectedItineraryByUserId(itineraryId, userId);
+        
+        // Disaster monitoring
+        if (itinerary != null) {
+            // Check Hotels
+            if (itinerary.getHotels() != null) {
+                for (Hotel hotel : itinerary.getHotels()) {
+                    hotel.setDisasterWarning(gdacsService.evaluateProximityAndDateFromDisasters(
+                            hotel.getLatitude(), hotel.getLongitude(), hotel.getCheckIn(), hotel.getCheckOut()));
+                }
+            }
+
+            // Check Attractions
+            if (itinerary.getAttractions() != null) {
+                for (Attraction attraction : itinerary.getAttractions()) {
+                    attraction.setDisasterWarning(gdacsService.evaluateProximityAndDateFromDisasters(
+                            attraction.getLatitude(), attraction.getLongitude(), attraction.getVisitDate(), attraction.getVisitDate()));
+                }
+            }
+
+            // Check Flights (only check arrival location)
+            if (itinerary.getFlights() != null) {
+                for (Flight flight : itinerary.getFlights()) {
+                    flight.setDisasterWarning(gdacsService.evaluateProximityAndDateFromDisasters(
+                            flight.getArrivalLatitude(), flight.getArrivalLongitude(),
+                            flight.getDepartureTime(), flight.getArrivalTime()));
+                }
+            }
+        }
+
+        return itinerary;
     }
 
     /**
@@ -113,10 +146,16 @@ public class ItineraryService {
         attraction.setLatitude(Double.parseDouble(location.getLat()));
         attraction.setLongitude(Double.parseDouble(location.getLon()));
 
+        // Execute sql to add new attraction
+        Attraction savedAttraction = itineraryRepository.createAttraction(itineraryId, attraction);
+
+        // Disaster monitoring
+        savedAttraction.setDisasterWarning(gdacsService.evaluateProximityAndDateFromDisasters(
+                savedAttraction.getLatitude(), savedAttraction.getLongitude(), 
+                savedAttraction.getVisitDate(), savedAttraction.getVisitDate()));
+
         // If attraction creation is successful
-        itineraryRepository.createAttraction(itineraryId, attraction);
-        
-        return attraction;
+        return savedAttraction;
     }
 
     /**
@@ -144,8 +183,16 @@ public class ItineraryService {
             throw new InvalidInputsException("Check-in time cannot be after check-out time.");
         }
 
+        // Execute sql to add new hotel
+        Hotel savedHotel = itineraryRepository.createHotel(itineraryId, hotel);
+
+        // Disaster monitoring
+        savedHotel.setDisasterWarning(gdacsService.evaluateProximityAndDateFromDisasters(
+                savedHotel.getLatitude(), savedHotel.getLongitude(), 
+                savedHotel.getCheckIn(), savedHotel.getCheckOut()));
+
         // If hotel creation is successful
-        return itineraryRepository.createHotel(itineraryId, hotel);
+        return savedHotel;
     }
 
     /**

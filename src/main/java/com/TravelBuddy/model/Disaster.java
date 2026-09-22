@@ -1,5 +1,6 @@
 package com.TravelBuddy.model;
 
+import java.time.LocalDateTime;
 import java.util.ArrayList;
 
 import com.TravelBuddy.model.enums.EventType;
@@ -44,9 +45,9 @@ public class Disaster {
      */
     public static class LocationCoordinates {
         @JsonProperty("coordinates")
-        private Double[] coordinates;
+        private double[] coordinates;
 
-        public Double[] getCoordinates() {
+        public double[] getCoordinates() {
             return coordinates;
         }
     }
@@ -68,10 +69,10 @@ public class Disaster {
         private String disasterCountryLocation;
 
         @JsonProperty("fromdate")
-        private String disasterStartDate;
+        private LocalDateTime disasterStartDate;
 
         @JsonProperty("todate")
-        private String disasterEndDate;
+        private LocalDateTime disasterEndDate;
 
         @JsonProperty("affectedcountries")
         private ArrayList<AffectedCountries> affectedCountries;
@@ -92,11 +93,11 @@ public class Disaster {
             return disasterCountryLocation;
         }
 
-        public String getDisasterStartDate() {
+        public LocalDateTime getDisasterStartDate() {
             return disasterStartDate;
         }
 
-        public String getDisasterEndDate() {
+        public LocalDateTime getDisasterEndDate() {
             return disasterEndDate;
         }
 
