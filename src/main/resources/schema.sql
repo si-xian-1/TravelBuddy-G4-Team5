@@ -62,7 +62,7 @@ CREATE TABLE IF NOT EXISTS attractions (
     attraction_name VARCHAR(255) NOT NULL,
     latitude DOUBLE NOT NULL,
     longitude DOUBLE NOT NULL,
-    visit_date DATE NOT NULL,
+    visit_date DATETIME NOT NULL,
 
     CONSTRAINT fk_attractions_itinerary
         FOREIGN KEY (itinerary_id)

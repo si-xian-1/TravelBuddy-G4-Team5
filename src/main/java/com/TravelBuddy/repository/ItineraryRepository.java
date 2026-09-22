@@ -79,6 +79,7 @@ public class ItineraryRepository {
                 (result, rowNum) -> {
                     Hotel hotel = new Hotel();
                     hotel.setHotelId(result.getInt("hotel_id"));
+                    hotel.setItineraryId(result.getInt("itinerary_id"));
                     hotel.setHotelName(result.getString("hotel_name"));
                     hotel.setLatitude(result.getDouble("latitude"));
                     hotel.setLongitude(result.getDouble("longitude"));
@@ -93,6 +94,7 @@ public class ItineraryRepository {
                 (result, rowNum) -> {
                     Flight flight = new Flight();
                     flight.setFlightId(result.getInt("flight_id"));
+                    flight.setItineraryId(result.getInt("itinerary_id"));
                     flight.setAirline(result.getString("airline"));
                     flight.setFlightNumber(result.getString("flight_number"));
                     flight.setDepartureAirport(result.getString("departure_airport"));
@@ -112,6 +114,7 @@ public class ItineraryRepository {
                 (result, rowNum) -> {
                     Attraction attraction = new Attraction();
                     attraction.setAttractionId(result.getInt("attraction_id"));
+                    attraction.setItineraryId(result.getInt("itinerary_id"));
                     attraction.setAttractionName(result.getString("attraction_name"));
                     attraction.setLatitude(result.getDouble("latitude"));
                     attraction.setLongitude(result.getDouble("longitude"));

@@ -20,7 +20,7 @@ public class GdacsService {
     // If disaster is 120km away from the itienarary plan, user should be alerted
     private final double danger_distance_Km = 120.0;
     // Stores all the disastes gathered
-    private List<DisasterEvents> activeDisasters;
+    private List<DisasterEvents> activeDisasters = List.of();
 
     public GdacsService(RestClient.Builder builder) {
         this.restClient = builder.build();

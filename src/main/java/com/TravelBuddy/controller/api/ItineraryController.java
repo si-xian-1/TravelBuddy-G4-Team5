@@ -40,7 +40,7 @@ public class ItineraryController {
 
         // If success, returns the selected itinerary
         // If unauthorized access, return unauthorized access message
-        return ResponseEntity.status(HttpStatus.CREATED).body(itinerary);
+        return ResponseEntity.status(HttpStatus.OK).body(itinerary);
     }
 
     /**
