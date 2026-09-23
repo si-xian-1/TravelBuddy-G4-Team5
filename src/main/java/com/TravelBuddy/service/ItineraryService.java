@@ -89,10 +89,9 @@ public class ItineraryService {
      */
     public int createItinerary(Itinerary itinerary, int userId) {
         // Validation checks and return meaningful response to user
-        //To add this method when, it is available
-        // if (travelerRepository.getUser(userId) == null) {
-        //     throw new InvalidInputsException("User does not exist.");
-        // }
+        if (travelerRepository.getUser(userId) == null) {
+            throw new InvalidInputsException("User does not exist.");
+        }
         if (itinerary == null) {
             throw new InvalidInputsException("Itinerary cannot be empty.");
         }
