@@ -75,4 +75,9 @@ public class TravelerRepository {
                 userId
             );
     }
+
+    public int deleteUser(int userId){
+        String sql = "DELETE FROM users WHERE user_id = ? AND role = 'TRAVELER'";
+        return jdbcTemplate.update(sql, userId);
+    }
 }

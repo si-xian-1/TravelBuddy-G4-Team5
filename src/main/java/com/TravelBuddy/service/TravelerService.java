@@ -41,6 +41,10 @@ public class TravelerService {
         return travelerRepository.updateUser(userId, user);
     }
 
+
+    public int deleteUser(int userId){
+        return travelerRepository.deleteUser(userId);
+    }
     private void validateUser(User user, boolean creating) {
         if (user == null) {
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "User details are required");
