@@ -29,27 +29,20 @@ public class TravelerRepository {
 
     public User authenticateUser(String username, String password) {
     String sql = """
-            SELECT user_id, username, mobile_number, password, role, has_consent_location
+            SELECT user_id, username, password,role
             FROM users
             WHERE username = ? AND password = ?
             """;
 
-    return jdbcTemplate.query(
-            sql,
-            new Object[]{username, password},
-            rs -> {
-                if (rs.next()) {
-                    User user = new User();
-                    user.setUserId(rs.getInt("user_id"));
-                    user.setUsername(rs.getString("username"));
-                    user.setMobileNumber(rs.getString("mobile_number"));
-                    user.setPassword(rs.getString("password"));
-                    user.setRole(rs.getString("role"));
-                    user.setHasConsentLocation(rs.getBoolean("has_consent_location"));
-                    return user;
-                }
-                return null;
-            }
-    );
+    List<User> users = jdbcTemplate.query(sql, (rs, rowNum) -> {
+            User user = new User();
+            user.setUserId(rs.getInt("user_id"));
+            user.setUsername(rs.getString("username"));
+            user.setPassword(rs.getString("password")); 
+            user.setRole(rs.getString("role"));
+            return user;
+        }, username);
+        
+        return users.isEmpty() ? null : users.get(0);
 }
 }
