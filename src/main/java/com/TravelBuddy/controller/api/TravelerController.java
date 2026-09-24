@@ -1,14 +1,24 @@
 package com.TravelBuddy.controller.api;
+
+import org.springframework.http.HttpStatus;
+import org.springframework.web.bind.annotation.DeleteMapping;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.PutMapping;
+import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.server.ResponseStatusException;
+
 import com.TravelBuddy.model.User;
 import com.TravelBuddy.service.TravelerService;
 
-import org.springframework.web.bind.annotation.*;
-
 @RestController
 @RequestMapping("/api/travelers")
-//creates REST endpoint:
-    public class TravelerController {
-      private final TravelerService travelerService;
+public class TravelerController {
+
+    private final TravelerService travelerService;
 
     public TravelerController(TravelerService travelerService) {
         this.travelerService = travelerService;
@@ -21,16 +31,42 @@ import org.springframework.web.bind.annotation.*;
     }
 
     @PostMapping("/login")
-    public String login(@RequestBody User user) {
-    User authenticatedUser = travelerService.authenticateUser(
-            user.getUsername(),
-            user.getPassword()
-    );
-
-    if (authenticatedUser != null) {
-        return "Login successful";
+    public User login(@RequestBody User user) {
+        return travelerService.authenticateUser(
+                user.getUsername(),
+                user.getPassword()
+        );
     }
 
-    return "Invalid username or password";
-}
+    @PutMapping("/users/{userID}")
+    public String updateUser(
+            @PathVariable("userID") int userId,
+            @RequestBody User user
+    ) {
+        if (travelerService.updateUser(userId, user) == 0) {
+            throw new ResponseStatusException(
+                    HttpStatus.NOT_FOUND,
+                    "Traveler not found"
+            );
+        }
+
+        return "User updated successfully";
+    }
+
+    @GetMapping("/users/{userID}")
+    public User getUser(@PathVariable("userID") int userId) {
+        return travelerService.getUser(userId);
+    }
+
+    @DeleteMapping("/users/{userID}")
+    public String deleteUser(@PathVariable("userID") int userId) {
+        if (travelerService.deleteUser(userId) == 0) {
+            throw new ResponseStatusException(
+                    HttpStatus.NOT_FOUND,
+                    "Traveler not found"
+            );
+        }
+
+        return "User account deleted";
+    }
 }

@@ -1,19 +1,22 @@
 package com.TravelBuddy.model;
 
+import com.fasterxml.jackson.annotation.*;
+
 public class User {
+    public static final String PASSWORD_MASK = "........";
     private int userId;
     private String username;
     private String mobileNumber;
     private String password;
     private String role;
-    private boolean hasConsentLocation;
+    private Boolean hasConsentLocation;
+    //emergency contact need to add to database
+    private EmergencyContact emergencyContact;
 
-    public User() {
-    }
 
     //log in:
     public User(int userId, String username, String mobileNumber,
-            String password, String role, boolean hasConsentLocation) {
+            String password, String role, Boolean hasConsentLocation) {
         this.userId = userId;
         this.username = username;
         this.mobileNumber = mobileNumber;
@@ -24,7 +27,7 @@ public class User {
 
     //sign up:
     public User(String username, String mobileNumber, String password,
-            boolean hasConsentLocation) {
+            Boolean hasConsentLocation) {
         this.username = username;
         this.mobileNumber = mobileNumber;
         this.password = password;
@@ -55,10 +58,18 @@ public class User {
         this.mobileNumber = mobileNumber; 
     }
     
+    @JsonIgnore
+    // this will be ignore when converting from java to json
     public String getPassword() {
         return password;
     }
 
+    @JsonGetter("password")
+    public String getMaskedPassword() {
+        return PASSWORD_MASK;
+    }
+
+    @JsonSetter("password")
     public void setPassword(String password) {
         this.password = password;
     }
@@ -71,11 +82,32 @@ public class User {
         this.role = role;
     }
 
-    public boolean isHasConsentLocation() {
+    public Boolean isHasConsentLocation() {
         return hasConsentLocation;
     }
 
-    public void setHasConsentLocation(boolean hasConsentLocation) {
+    public void setHasConsentLocation(Boolean hasConsentLocation) {
         this.hasConsentLocation = hasConsentLocation;
+    }
+    public void setEmergencyContact(EmergencyContact emergencyContact) {
+        this.emergencyContact = emergencyContact;
+    }
+    public void setEmergencyContact(String name, String mobileNumber){
+        if (this.emergencyContact == null){
+            this.emergencyContact = new EmergencyContact(name, mobileNumber);
+        }
+        else{
+            if (name != null){
+                emergencyContact.setName(name);
+
+            }
+            if (mobileNumber != null){
+                emergencyContact.setMobileNumber(mobileNumber);
+
+            }
+        }
+    }
+    public EmergencyContact getEmergencyContact(){
+        return this.emergencyContact;
     }
 }
