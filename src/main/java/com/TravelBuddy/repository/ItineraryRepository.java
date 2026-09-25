@@ -212,7 +212,7 @@ public class ItineraryRepository {
                 UPDATE itineraries
                 SET itinerary_name = COALESCE(?, itinerary_name),
                     start_date = COALESCE(?, start_date),
-                    end_date = COALESCE(?, end_date),
+                    end_date = COALESCE(?, end_date)
                 WHERE itinerary_id = ? AND user_id = ?
                 """;
 

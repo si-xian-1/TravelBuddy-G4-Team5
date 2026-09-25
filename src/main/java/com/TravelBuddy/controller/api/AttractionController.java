@@ -52,6 +52,10 @@ public class AttractionController {
 
         Attraction attraction = attractionService.getSelectedAttraction(itineraryId, userId, attractionId);
 
+        if (attraction == null) {
+            throw new ResponseStatusException(HttpStatus.NOT_FOUND, "Attraction not found");
+        }
+
         // If success, returns the selected itinerary
         // If unauthorized access, return unauthorized access message
         return ResponseEntity.status(HttpStatus.OK).body(attraction);
@@ -82,7 +86,7 @@ public class AttractionController {
      * @return Success message for successful update of attraction or error message
      */
     @PutMapping("/{attractionId}")
-    public String updateItinerary(
+    public String updateAttraction(
             @PathVariable int itineraryId,
             @PathVariable int attractionId, 
             @RequestBody Attraction attraction,
@@ -106,7 +110,7 @@ public class AttractionController {
      * @return success message for deletion of attraction or error message
      */
     @DeleteMapping("/{attractionId}")
-    public String deleteItinerary(@PathVariable int itineraryId, @PathVariable int attractionId, @RequestParam int userId) {
+    public String deleteAttraction(@PathVariable int itineraryId, @PathVariable int attractionId, @RequestParam int userId) {
         if (attractionService.deleteAttraction(itineraryId, userId, attractionId) == 0) {
             throw new ResponseStatusException(
                     HttpStatus.NOT_FOUND,

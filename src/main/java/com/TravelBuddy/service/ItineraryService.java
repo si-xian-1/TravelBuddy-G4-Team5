@@ -161,6 +161,17 @@ public class ItineraryService {
      */
     public int updateItinerary(int itineraryId, int userId, Itinerary itinerary) {
         checkItineraryBelongToUser(itineraryId, userId);
+
+        if (itinerary.getItineraryName() == null || itinerary.getItineraryName().trim().isEmpty()) {
+            throw new InvalidInputsException("Itinerary name is required.");
+        }
+        if (itinerary.getStartDate() == null || itinerary.getEndDate() == null) {
+            throw new InvalidInputsException("Start and end dates are required.");
+        }
+        if (itinerary.getStartDate().isAfter(itinerary.getEndDate())) {
+            throw new InvalidInputsException("Start date cannot be after end date.");
+        }
+
         return itineraryRepository.updateItinerary(itineraryId, userId, itinerary);
     }
 

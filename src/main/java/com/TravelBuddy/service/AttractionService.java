@@ -113,6 +113,29 @@ public class AttractionService {
      */
     public int updateAttraction(int itineraryId, int userId, int attractionId, Attraction attraction) {
         checkItineraryBelongToUser(itineraryId, userId);
+         // Validation checks and return meaningful response to user
+        if (attraction == null) {
+            throw new InvalidInputsException("Attraction cannot be empty.");
+        }
+        if (attraction.getAttractionName() == null || attraction.getAttractionName().trim().isEmpty()) {
+            throw new InvalidInputsException("Attraction name is required.");
+        }
+        if (attraction.getVisitDate() == null) {
+            throw new InvalidInputsException("Visit date is required.");
+        }
+
+        // Get the coordinates of the attraction
+        LocationResponse location = locationService.getCoordinates(attraction.getAttractionName());
+        
+        // When API is unable to find coordinates of the user selected location
+        if (location == null || location.getLat() == null || location.getLon() == null) {
+            throw new InvalidInputsException("Could not find coordinates for location: " + attraction.getAttractionName());
+        }
+
+        attraction.setItineraryId(itineraryId);
+        attraction.setLatitude(Double.parseDouble(location.getLat()));
+        attraction.setLongitude(Double.parseDouble(location.getLon()));
+        
         return attractionRepository.updateAttraction(itineraryId, attractionId, attraction);
     }
 

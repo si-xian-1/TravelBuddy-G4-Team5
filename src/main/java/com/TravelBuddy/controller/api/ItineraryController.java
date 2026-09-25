@@ -97,7 +97,7 @@ public class ItineraryController {
      */
     @PutMapping("/{itineraryId}")
     public String updateItinerary(
-            @PathVariable("itineraryId") int itineraryId,
+            @PathVariable int itineraryId,
             @RequestBody Itinerary itinerary,
             @RequestParam int userId
     ) {
@@ -120,7 +120,7 @@ public class ItineraryController {
      * @return success message for deletion of itinerary or error message
      */
     @DeleteMapping("/{itineraryId}")
-    public String deleteItinerary(@PathVariable("itineraryId") int itineraryId, @RequestParam int userId) {
+    public String deleteItinerary(@PathVariable int itineraryId, @RequestParam int userId) {
         if (itineraryService.deleteItinerary(itineraryId, userId) == 0) {
             throw new ResponseStatusException(
                     HttpStatus.NOT_FOUND,

@@ -2,6 +2,7 @@ package com.TravelBuddy.repository;
 
 import java.util.List;
 
+import org.springframework.dao.EmptyResultDataAccessException;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.jdbc.support.GeneratedKeyHolder;
 import org.springframework.jdbc.support.KeyHolder;
@@ -56,23 +57,26 @@ public class AttractionRepository {
     public Attraction findSelectedAttractionByAttractionId(int itineraryId, int attractionId) {
         String sql = """
                 SELECT attraction_id, itinerary_id, attraction_name, latitude, longitude, visit_date
-                FROM attractions WHERE itinerary_id = ?, attraction_id = ?
+                FROM attractions WHERE itinerary_id = ? AND attraction_id = ?
                 """;
 
-        return jdbcTemplate.queryForObject(
-                sql,
-                (result, rowNum) -> {
-            Attraction attraction = new Attraction();
-
-            attraction.setAttractionId(result.getInt("attraction_id"));
-            attraction.setItineraryId(result.getInt("itinerary_id"));
-            attraction.setAttractionName(result.getString("attraction_name"));
-            attraction.setLatitude(result.getDouble("latitude"));
-            attraction.setLongitude(result.getDouble("longitude"));
-            attraction.setVisitDate(result.getObject("visit_date", LocalDateTime.class));
-
-            return attraction;
-        }, itineraryId, attractionId);
+        try {
+            return jdbcTemplate.queryForObject(
+                    sql,
+                    (result, rowNum) -> {
+                        Attraction attraction = new Attraction();
+                        attraction.setAttractionId(result.getInt("attraction_id"));
+                        attraction.setItineraryId(result.getInt("itinerary_id"));
+                        attraction.setAttractionName(result.getString("attraction_name"));
+                        attraction.setLatitude(result.getDouble("latitude"));
+                        attraction.setLongitude(result.getDouble("longitude"));
+                        attraction.setVisitDate(result.getObject("visit_date", LocalDateTime.class));
+                        return attraction;
+                    }, itineraryId, attractionId);
+        } catch (EmptyResultDataAccessException e) {
+            // When no results found for attraction
+            return null; 
+        }
     }
 
     /**
@@ -108,24 +112,6 @@ public class AttractionRepository {
     }
 
     /**
-     * Ensure only user can edit their own itinerary
-     * @param itineraryId
-     * @param userId
-     * @return true or false
-     */
-    public boolean verifyItineraryAndUser(int itineraryId, int userId) {
-        String sql = "SELECT COUNT(*) FROM itineraries WHERE itinerary_id = ? AND user_id = ?";
-
-        Integer count = jdbcTemplate.queryForObject(
-                sql,
-                Integer.class,
-                itineraryId,
-                userId);
-        
-        return count != null && count > 0;
-    }
-
-    /**
      * Update attraction in an itinerary of the user
      * @param itineraryId
      * @param attractionId
@@ -138,7 +124,7 @@ public class AttractionRepository {
                 SET attraction_name = COALESCE(?, attraction_name),
                     latitude = COALESCE(?, latitude),
                     longitude = COALESCE(?, longitude),
-                    visit_date = COALESCE(?, visit_date),
+                    visit_date = COALESCE(?, visit_date)
                 WHERE attraction_id = ? AND itinerary_id = ?
                 """;
 
