@@ -1,12 +1,14 @@
 package com.TravelBuddy.service;
 
+import org.springframework.dao.DuplicateKeyException;
+import org.springframework.http.HttpStatus;
+import org.springframework.security.crypto.password.PasswordEncoder;
+import org.springframework.security.crypto.password.Pbkdf2PasswordEncoder;
+import org.springframework.stereotype.Service;
+import org.springframework.web.server.ResponseStatusException;
+
 import com.TravelBuddy.model.User;
 import com.TravelBuddy.repository.TravelerRepository;
-import org.springframework.http.HttpStatus;
-import org.springframework.stereotype.Service;
-import org.springframework.security.crypto.password.Pbkdf2PasswordEncoder;
-import org.springframework.security.crypto.password.PasswordEncoder;
-import org.springframework.web.server.ResponseStatusException;
 
 @Service
 public class TravelerService {
@@ -22,7 +24,13 @@ public class TravelerService {
     public int createUser(User user) {
         validateUser(user, true);
         user.setPassword(passwordEncoder.encode(user.getPassword()));
-        return travelerRepository.createUser(user);
+
+        try {
+            return travelerRepository.createUser(user);
+        } catch (DuplicateKeyException ex) {
+            // The unique database constraint also protects concurrent updates.
+            throw new ResponseStatusException(HttpStatus.CONFLICT, "Username is already in use", ex);
+        }
     }
 
     public User authenticateUser(String username, String rawPassword) {
@@ -59,14 +67,19 @@ public class TravelerService {
             user.setPassword(passwordEncoder.encode(user.getPassword()));
         }
 
-        return travelerRepository.updateUser(userId, user);
+        try {
+            return travelerRepository.updateUser(userId, user);
+        } catch (DuplicateKeyException ex) {
+            // The unique database constraint also protects concurrent updates.
+            throw new ResponseStatusException(HttpStatus.CONFLICT, "Username is already in use", ex);
+        }
     }
 
     public int deleteUser(int userId) {
         return travelerRepository.deleteUser(userId);
     }
 
-    private void validateUser(User user, boolean creating) {
+    private void validateUser(User user, boolean isCreation) {
         if (user == null) {
             throw new ResponseStatusException(
                     HttpStatus.BAD_REQUEST,
@@ -74,9 +87,9 @@ public class TravelerService {
             );
         }
 
-        validateText(user.getUsername(), "Username", 50, creating);
-        validateText(user.getMobileNumber(), "Mobile number", 20, creating);
-        validateText(user.getPassword(), "Password", 255, creating);
+        validateText(user.getUsername(), "Username", 50, true);
+        validateText(user.getMobileNumber(), "Mobile number", 8, true);
+        validateText(user.getPassword(), "Password", 255, isCreation);
 
         if (User.PASSWORD_MASK.equals(user.getPassword())) {
             throw new ResponseStatusException(
@@ -85,7 +98,7 @@ public class TravelerService {
             );
         }
 
-        if (creating && user.isHasConsentLocation() != true) {
+        if (user.getHasConsentLocation() != true) {
             throw new ResponseStatusException(
                     HttpStatus.BAD_REQUEST,
                     "Invalid consent location"
@@ -101,34 +114,30 @@ public class TravelerService {
         }
     }
 
-    private void validateText(
-            String value,
-            String field,
-            int maxLength,
-            boolean required
-    ) {
-        if (value == null) {
-            if (required) {
-                throw new ResponseStatusException(
+    private void validateText(String value, String field, int maxLength, boolean required) {
+        if (required && (value == null || value.isBlank())) {
+            throw new ResponseStatusException(
                         HttpStatus.BAD_REQUEST,
                         field + " is required"
                 );
-            }
-            return;
         }
 
-        if (value.isBlank()) {
-            throw new ResponseStatusException(
-                    HttpStatus.BAD_REQUEST,
-                    field + " cannot be blank"
-            );
-        }
-
-        if (value.length() > maxLength) {
+        if (value != null && value.length() > maxLength) {
             throw new ResponseStatusException(
                     HttpStatus.BAD_REQUEST,
                     field + " can be at most " + maxLength + " characters"
             );
+        }
+
+        if (field.toUpperCase().contains("MOBILE NUMBER")){
+            for (char c: value.toCharArray()){
+                if (!Character.isDigit(c)){
+                    throw new ResponseStatusException(
+                    HttpStatus.BAD_REQUEST,
+                    field + " must be numbers"
+                    );
+                }
+            }
         }
     }
 }
