@@ -58,7 +58,7 @@ public class User {
         this.role = role;
     }
 
-    public Boolean isHasConsentLocation() {
+    public Boolean getHasConsentLocation() {
         return hasConsentLocation;
     }
 

@@ -22,9 +22,15 @@ public class TravelerService {
     }
 
     public int createUser(User user) {
-        validateUser(user);
+        validateUser(user, true);
         user.setPassword(passwordEncoder.encode(user.getPassword()));
-        return travelerRepository.createUser(user);
+
+        try {
+            return travelerRepository.createUser(user);
+        } catch (DuplicateKeyException ex) {
+            // The unique database constraint also protects concurrent updates.
+            throw new ResponseStatusException(HttpStatus.CONFLICT, "Username is already in use", ex);
+        }
     }
 
     public User authenticateUser(String username, String rawPassword) {
@@ -55,11 +61,7 @@ public class TravelerService {
     }
 
     public int updateUser(int userId, User user) {
-        validateUser(user);
-
-        if (travelerRepository.isUsernameTakenByOtherUser(user.getUsername(), userId)) {
-            throw new ResponseStatusException(HttpStatus.CONFLICT, "Username is already in use");
-        }
+        validateUser(user, false);
 
         if (user.getPassword() != null) {
             user.setPassword(passwordEncoder.encode(user.getPassword()));
@@ -77,7 +79,7 @@ public class TravelerService {
         return travelerRepository.deleteUser(userId);
     }
 
-    private void validateUser(User user) {
+    private void validateUser(User user, boolean isCreation) {
         if (user == null) {
             throw new ResponseStatusException(
                     HttpStatus.BAD_REQUEST,
@@ -87,7 +89,7 @@ public class TravelerService {
 
         validateText(user.getUsername(), "Username", 50, true);
         validateText(user.getMobileNumber(), "Mobile number", 8, true);
-        validateText(user.getPassword(), "Password", 255, true);
+        validateText(user.getPassword(), "Password", 255, isCreation);
 
         if (User.PASSWORD_MASK.equals(user.getPassword())) {
             throw new ResponseStatusException(
@@ -96,7 +98,7 @@ public class TravelerService {
             );
         }
 
-        if (user.isHasConsentLocation() != true) {
+        if (user.getHasConsentLocation() != true) {
             throw new ResponseStatusException(
                     HttpStatus.BAD_REQUEST,
                     "Invalid consent location"
@@ -114,13 +116,10 @@ public class TravelerService {
 
     private void validateText(String value, String field, int maxLength, boolean required) {
         if (required && (value == null || value.isBlank())) {
-            if (required) {
-                throw new ResponseStatusException(
+            throw new ResponseStatusException(
                         HttpStatus.BAD_REQUEST,
                         field + " is required"
                 );
-            }
-            return;
         }
 
         if (value != null && value.length() > maxLength) {

@@ -76,7 +76,7 @@ public class TravelerRepository {
                 user.getUsername(),
                 user.getMobileNumber(),
                 user.getPassword(),
-                user.isHasConsentLocation()
+                user.getHasConsentLocation()
         );
     }
 
@@ -106,7 +106,7 @@ public class TravelerRepository {
                 user.getUsername(),
                 user.getMobileNumber(),
                 user.getPassword(),
-                user.isHasConsentLocation(),
+                user.getHasConsentLocation(),
                 user.getEmergencyContactName(),
                 user.getEmergencyContactMobileNumber(),
                 userId
