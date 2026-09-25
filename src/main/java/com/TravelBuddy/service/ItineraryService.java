@@ -19,7 +19,7 @@ public class ItineraryService {
     private final TravelerRepository travelerRepository;
     private final ItineraryRepository itineraryRepository;
     private final LocationService locationService;
-    private  final GdacsService gdacsService;
+    private final GdacsService gdacsService;
 
     public ItineraryService(ItineraryRepository itineraryRepository, LocationService locationService, TravelerRepository travelerRepository, GdacsService gdacsService) {
         this.itineraryRepository = itineraryRepository;
@@ -159,48 +159,11 @@ public class ItineraryService {
     }
 
     /**
-     * Validate hotel inputs before adding into database
-     * @param itineraryId
-     * @param userId
-     * @param hotel
-     * @return Validation messages or the newly created hotel if successful
-     */
-    public Hotel createHotel(int itineraryId, int userId, Hotel hotel) {
-        // Check that user has the permission to add hotel for this selected itinerary
-        checkItineraryBelongToUser(itineraryId, userId);
-
-        // Validation checks and return meaningful response to user
-        if (hotel == null) {
-            throw new InvalidInputsException("Hotel cannot be empty.");
-        }
-        if (hotel.getHotelName() == null || hotel.getHotelName().trim().isEmpty()) {
-            throw new InvalidInputsException("Hotel name is required.");
-        }
-        if (hotel.getCheckIn() == null || hotel.getCheckOut() == null) {
-            throw new InvalidInputsException("Check-in and check-out dates are required.");
-        }
-        if (hotel.getCheckIn().isAfter(hotel.getCheckOut())) {
-            throw new InvalidInputsException("Check-in time cannot be after check-out time.");
-        }
-
-        // Execute sql to add new hotel
-        Hotel savedHotel = itineraryRepository.createHotel(itineraryId, hotel);
-
-        // Disaster monitoring
-        savedHotel.setDisasterWarning(gdacsService.evaluateProximityAndDateFromDisasters(
-                savedHotel.getLatitude(), savedHotel.getLongitude(), 
-                savedHotel.getCheckIn(), savedHotel.getCheckOut()));
-
-        // If hotel creation is successful
-        return savedHotel;
-    }
-
-    /**
      * Verify that user is able to edit the specific itinerary
      * @param itineraryId
      * @param userId
      */
-    private void checkItineraryBelongToUser(int itineraryId, int userId) {
+    void checkItineraryBelongToUser(int itineraryId, int userId) {
         if (!itineraryRepository.verifyItineraryAndUser(itineraryId, userId)) {
             // Throw error that user is unauthorized to edit itinerary info
             throw new UnauthorizedUserException("You are not allowed to access this itinerary!");
