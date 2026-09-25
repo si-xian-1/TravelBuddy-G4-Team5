@@ -1,0 +1,28 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Your profile · TravelBuddy</title>
+  <link rel="stylesheet" href="/css/profile.css" th:href="@{/css/profile.css}">
+  <script defer src="/js/profile.js" th:src="@{/js/profile.js}"></script>
+</head>
+<body th:attr="data-api-base=@{/api/travelers/users}">
+<header><a class="brand" href="/" th:href="@{/}"><span class="brand-icon" aria-hidden="true">↗</span>TravelBuddy<span class="brand-dot">.</span></a><span class="nav-label">Your account <span aria-hidden="true">/</span> <strong>Profile</strong></span></header>
+<main>
+  <div class="intro"><span class="eyebrow">MADE FOR YOUR NEXT CHAPTER</span><h1>A little about you.</h1><p>Keep your details up to date, wherever you’re headed.</p></div>
+  <form id="lookup" class="lookup"><label for="traveler-id">Traveler ID</label><input id="traveler-id" type="number" min="1" step="1" required placeholder="e.g. 1"><button type="submit" class="secondary">View profile <span aria-hidden="true">→</span></button></form>
+  <div id="status" role="status" aria-live="polite" tabindex="-1"></div>
+  <div class="layout">
+    <aside class="profile-card"><div class="avatar" id="avatar" aria-hidden="true">TB</div><span class="badge">TRAVELER</span><h2 id="profile-name">Your profile</h2><p id="profile-mobile">Load your details to get started.</p><div class="divider"></div><dl><dt>Account</dt><dd id="profile-id">—</dd><dt>Location sharing</dt><dd id="profile-consent">—</dd></dl><div class="travel-note"><span aria-hidden="true">✳</span><h3>Ready for what’s next.</h3><p>A few small details make every journey feel more like you.</p></div></aside>
+    <form id="profile-form"><fieldset id="profile-fields" disabled>
+      <section class="panel"><div class="section-title"><span class="section-number">01</span><div><h2>Personal details</h2><p>The basics that make this account yours.</p></div></div><div class="fields"><label>Username<input id="username" name="username" maxlength="50" autocomplete="username" required></label><label>Mobile number<input id="mobile" name="mobileNumber" type="tel" maxlength="20" autocomplete="tel" required></label></div></section>
+      <section class="panel"><div class="section-title"><span class="section-number">02</span><div><h2>Emergency contact</h2><p>Someone to reach when you need a helping hand.</p></div></div><div class="fields"><label>Contact name<input id="contact-name" maxlength="50" autocomplete="off"></label><label>Contact mobile number<input id="contact-mobile" type="tel" maxlength="8" autocomplete="off"><small>Up to 8 characters.</small></label></div></section>
+      <section class="panel"><div class="section-title"><span class="section-number">03</span><div><h2>Privacy & security</h2><p>You’re in control of what you share.</p></div></div><label class="consent"><input id="consent" type="checkbox"><span><strong>Allow location sharing</strong><small>Let TravelBuddy use your location for your travel experience.</small></span></label><div class="fields password-fields"><label>New password<input id="password" type="password" maxlength="255" autocomplete="new-password" placeholder="Leave blank to keep your password"></label><label>Confirm new password<input id="confirm-password" type="password" maxlength="255" autocomplete="new-password"></label></div><p class="hint">Your current password is hidden: <span class="password-mask">........</span></p></section>
+      <div class="actions"><span id="save-note">Make yourself at home.</span><button id="cancel" type="button" class="secondary">Discard changes</button><button id="save" type="submit" class="primary">Save changes <span aria-hidden="true">↗</span></button></div>
+    </fieldset></form>
+  </div>
+  <footer>TravelBuddy <span>Good journeys start with you.</span></footer>
+</main>
+</body>
+</html>

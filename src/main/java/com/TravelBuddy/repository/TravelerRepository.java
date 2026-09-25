@@ -80,6 +80,15 @@ public class TravelerRepository {
         );
     }
 
+    public boolean isUsernameTakenByOtherUser(String username, int userId) {
+        String sql = """
+                SELECT COUNT(*) FROM users
+                WHERE username = ? AND user_id <> ?
+                """;
+        Integer count = jdbcTemplate.queryForObject(sql, Integer.class, username, userId);
+        return count != null && count > 0;
+    }
+
     public int updateUser(int userId, User user) {
         String sql = """
                 UPDATE users

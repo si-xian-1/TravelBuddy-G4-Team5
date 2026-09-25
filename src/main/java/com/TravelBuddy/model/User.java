@@ -7,6 +7,7 @@ public class User {
     private int userId;
     private String username;
     private String mobileNumber;
+    @JsonProperty(access = JsonProperty.Access.WRITE_ONLY)
     private String password;
     private String role;
     private Boolean hasConsentLocation;
@@ -41,18 +42,10 @@ public class User {
         this.mobileNumber = mobileNumber; 
     }
     
-    @JsonIgnore
-    // this will be ignore when converting from java to json
     public String getPassword() {
         return password;
     }
 
-    @JsonGetter("password")
-    public String getMaskedPassword() {
-        return PASSWORD_MASK;
-    }
-
-    @JsonSetter("password")
     public void setPassword(String password) {
         this.password = password;
     }

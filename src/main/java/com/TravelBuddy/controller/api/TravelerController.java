@@ -38,7 +38,7 @@ public class TravelerController {
         );
     }
 
-    @PutMapping("/users/{userID}")
+    @PutMapping("/{userID}")
     public String updateUser(
             @PathVariable("userID") int userId,
             @RequestBody User user
@@ -53,12 +53,12 @@ public class TravelerController {
         return "User updated successfully";
     }
 
-    @GetMapping("/users/{userID}")
+    @GetMapping("/{userID}")
     public User getUser(@PathVariable("userID") int userId) {
         return travelerService.getUser(userId);
     }
 
-    @DeleteMapping("/users/{userID}")
+    @DeleteMapping("/{userID}")
     public String deleteUser(@PathVariable("userID") int userId) {
         if (travelerService.deleteUser(userId) == 0) {
             throw new ResponseStatusException(
