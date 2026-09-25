@@ -17,10 +17,12 @@ import com.TravelBuddy.model.Itinerary;
 public class ItineraryRepository {
     private final JdbcTemplate jdbcTemplate;
     private final HotelRepository hotelRepository;
+    private final AttractionRepository attractionRepository;
 
-    public ItineraryRepository(JdbcTemplate jdbcTemplate, HotelRepository hotelRepository) {
+    public ItineraryRepository(JdbcTemplate jdbcTemplate, HotelRepository hotelRepository, AttractionRepository attractionRepository) {
         this.jdbcTemplate = jdbcTemplate;
         this.hotelRepository = hotelRepository;
+        this.attractionRepository = attractionRepository;
     }
 
     /**
@@ -97,19 +99,8 @@ public class ItineraryRepository {
                     return flight;
                 }, itineraryId));
 
-        String attractions_sql = "SELECT * FROM attractions WHERE itinerary_id = ?";
-        // Get attractions related to this specific itinerary
-        itinerary.setAttractions(jdbcTemplate.query(attractions_sql,
-                (result, rowNum) -> {
-                    Attraction attraction = new Attraction();
-                    attraction.setAttractionId(result.getInt("attraction_id"));
-                    attraction.setItineraryId(result.getInt("itinerary_id"));
-                    attraction.setAttractionName(result.getString("attraction_name"));
-                    attraction.setLatitude(result.getDouble("latitude"));
-                    attraction.setLongitude(result.getDouble("longitude"));
-                    attraction.setVisitDate(result.getTimestamp("visit_date").toLocalDateTime());
-                    return attraction;
-                }, itineraryId));
+
+        itinerary.setAttractions(attractionRepository.findAllAttractionsByItineraryId(itineraryId));
                 
         return itinerary;
     }

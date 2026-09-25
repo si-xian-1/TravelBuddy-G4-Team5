@@ -56,6 +56,10 @@ public class HotelService {
         if (location == null || location.getLat() == null || location.getLon() == null) {
             throw new InvalidInputsException("Could not find coordinates for location: " + hotel.getHotelName());
         }
+        
+        hotel.setItineraryId(itineraryId);
+        hotel.setLatitude(Double.parseDouble(location.getLat()));
+        hotel.setLongitude(Double.parseDouble(location.getLon()));
 
         // Execute sql to add new hotel
         Hotel savedHotel = hotelRepository.createHotel(itineraryId, hotel);
