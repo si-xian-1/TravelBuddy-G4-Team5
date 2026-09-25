@@ -14,24 +14,8 @@ public class User {
     private EmergencyContact emergencyContact;
 
 
-    //log in:
-    public User(int userId, String username, String mobileNumber,
-            String password, String role, Boolean hasConsentLocation) {
-        this.userId = userId;
-        this.username = username;
-        this.mobileNumber = mobileNumber;
-        this.password = password;
-        this.role = role;
-        this.hasConsentLocation = hasConsentLocation;
-    }
+    public User() {
 
-    //sign up:
-    public User(String username, String mobileNumber, String password,
-            Boolean hasConsentLocation) {
-        this.username = username;
-        this.mobileNumber = mobileNumber;
-        this.password = password;
-        this.hasConsentLocation = hasConsentLocation;
     }
 
     public int getUserId() {
