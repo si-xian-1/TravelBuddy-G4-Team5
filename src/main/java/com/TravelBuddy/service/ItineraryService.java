@@ -4,27 +4,19 @@ import java.util.List;
 
 import org.springframework.stereotype.Service;
 
-import com.TravelBuddy.exception.InvalidInputsException;
-import com.TravelBuddy.exception.UnauthorizedUserException;
-import com.TravelBuddy.model.Attraction;
-import com.TravelBuddy.model.Flight;
-import com.TravelBuddy.model.Hotel;
-import com.TravelBuddy.model.Itinerary;
-import com.TravelBuddy.repository.ItineraryRepository;
-import com.TravelBuddy.model.LocationResponse;
-import com.TravelBuddy.repository.TravelerRepository;
+import com.TravelBuddy.exception.*;
+import com.TravelBuddy.model.*;
+import com.TravelBuddy.repository.*;
 
 @Service
 public class ItineraryService {
     private final TravelerRepository travelerRepository;
     private final ItineraryRepository itineraryRepository;
-    private final LocationService locationService;
     private  final GdacsService gdacsService;
 
-    public ItineraryService(ItineraryRepository itineraryRepository, LocationService locationService, TravelerRepository travelerRepository, GdacsService gdacsService) {
+    public ItineraryService(ItineraryRepository itineraryRepository, TravelerRepository travelerRepository, GdacsService gdacsService) {
         this.itineraryRepository = itineraryRepository;
         this.travelerRepository = travelerRepository;
-        this.locationService = locationService;
         this.gdacsService = gdacsService;
     }
 
@@ -112,52 +104,6 @@ public class ItineraryService {
     }
 
     /**
-     * Validate attraction before adding into database
-     * @param itineraryId
-     * @param userId
-     * @param attraction
-     * @return Validation messages or the newly created attraction if successful
-     */
-    public Attraction createAttraction(int itineraryId, int userId, Attraction attraction) {
-        // Check that user has the permission to add attraction for this selected itinerary
-        checkItineraryBelongToUser(itineraryId, userId);
-
-        // Validation checks and return meaningful response to user
-        if (attraction == null) {
-            throw new InvalidInputsException("Attraction cannot be empty.");
-        }
-        if (attraction.getAttractionName() == null || attraction.getAttractionName().trim().isEmpty()) {
-            throw new InvalidInputsException("Attraction name is required.");
-        }
-        if (attraction.getVisitDate() == null) {
-            throw new InvalidInputsException("Visit date is required.");
-        }
-
-        // Get the coordinates of the attraction
-        LocationResponse location = locationService.getCoordinates(attraction.getAttractionName());
-        
-        // When API is unable to find coordinates of the user selected location
-        if (location == null || location.getLat() == null || location.getLon() == null) {
-            throw new InvalidInputsException("Could not find coordinates for location: " + attraction.getAttractionName());
-        }
-
-        attraction.setItineraryId(itineraryId);
-        attraction.setLatitude(Double.parseDouble(location.getLat()));
-        attraction.setLongitude(Double.parseDouble(location.getLon()));
-
-        // Execute sql to add new attraction
-        Attraction savedAttraction = itineraryRepository.createAttraction(itineraryId, attraction);
-
-        // Disaster monitoring
-        savedAttraction.setDisasterWarning(gdacsService.evaluateProximityAndDateFromDisasters(
-                savedAttraction.getLatitude(), savedAttraction.getLongitude(), 
-                savedAttraction.getVisitDate(), savedAttraction.getVisitDate()));
-
-        // If attraction creation is successful
-        return savedAttraction;
-    }
-
-    /**
      * Validate hotel inputs before adding into database
      * @param itineraryId
      * @param userId
@@ -204,5 +150,28 @@ public class ItineraryService {
             // Throw error that user is unauthorized to edit itinerary info
             throw new UnauthorizedUserException("You are not allowed to access this itinerary!");
         }
+    }
+
+    /**
+     * Update an itinerary of the user
+     * @param itineraryId
+     * @param userId
+     * @param itinerary
+     * @return number of rows updated in itineraries
+     */
+    public int updateItinerary(int itineraryId, int userId, Itinerary itinerary) {
+        checkItineraryBelongToUser(itineraryId, userId);
+        return itineraryRepository.updateItinerary(itineraryId, userId, itinerary);
+    }
+
+    /**
+     * Delete an itinerary of the user
+     * @param itineraryId
+     * @param userId
+     * @return number of rows updated in itineraries
+     */
+    public int deleteItinerary(int itineraryId, int userId) {
+        checkItineraryBelongToUser(itineraryId, userId);
+        return itineraryRepository.deleteItinerary(itineraryId, userId);
     }
 }

@@ -8,10 +8,7 @@ import org.springframework.jdbc.support.GeneratedKeyHolder;
 import org.springframework.jdbc.support.KeyHolder;
 import org.springframework.stereotype.Repository;
 
-import com.TravelBuddy.model.Attraction;
-import com.TravelBuddy.model.Flight;
-import com.TravelBuddy.model.Hotel;
-import com.TravelBuddy.model.Itinerary;
+import com.TravelBuddy.model.*;
 
 @Repository
 public class ItineraryRepository {
@@ -153,38 +150,6 @@ public class ItineraryRepository {
     }
 
     /**
-     * Add attractions to visit into the itinerary
-     * 
-     * @param itineraryId
-     * @param attraction
-     * @return newly created attraction details
-     */
-    public Attraction createAttraction(int itineraryId, Attraction attraction) {
-        String sql = """
-                INSERT INTO attractions (itinerary_id, attraction_name, latitude, longitude, visit_date)
-                VALUES (?, ?, ?, ?, ?)
-                """;
-
-        KeyHolder keyHolder = new GeneratedKeyHolder();
-
-        jdbcTemplate.update(connection -> {
-            var statement = connection.prepareStatement(sql, new String[] { "attraction_id" });
-            statement.setInt(1, itineraryId);
-            statement.setString(2, attraction.getAttractionName());
-            statement.setDouble(3, attraction.getLatitude());
-            statement.setDouble(4, attraction.getLongitude());
-            statement.setTimestamp(5, Timestamp.valueOf(attraction.getVisitDate()));
-            return statement;
-        }, keyHolder);
-
-        // Retrieve attraction id of the newly created attraction from database
-        attraction.setAttractionId(keyHolder.getKey().intValue());
-        attraction.setItineraryId(itineraryId);
-        
-        return attraction;
-    }
-
-    /**
      * Add hotel stay location into the itinerary
      * 
      * @param itineraryId
@@ -233,5 +198,42 @@ public class ItineraryRepository {
                 userId);
         
         return count != null && count > 0;
+    }
+
+    /**
+     * Update an itinerary of the user
+     * @param itineraryId
+     * @param userId
+     * @param itinerary
+     * @return number of rows updated in itineraries
+     */
+    public int updateItinerary(int itineraryId, int userId, Itinerary itinerary) {
+        String sql = """
+                UPDATE itineraries
+                SET itinerary_name = COALESCE(?, itinerary_name),
+                    start_date = COALESCE(?, start_date),
+                    end_date = COALESCE(?, end_date),
+                WHERE itinerary_id = ? AND user_id = ?
+                """;
+
+        return jdbcTemplate.update(
+                sql,
+                itinerary.getItineraryName(),
+                itinerary.getStartDate(),
+                itinerary.getEndDate(),
+                itineraryId,
+                userId
+        );
+    }
+
+    /**
+     * Delete an itinerary of the user
+     * @param itineraryId
+     * @param userId
+     * @return number of rows updated in itineraries
+     */
+    public int deleteItinerary(int itineraryId, int userId) {
+        String sql = "DELETE FROM itineraries WHERE itinerary_id = ? AND user_id = ?";
+        return jdbcTemplate.update(sql, itineraryId, userId);
     }
 }
