@@ -142,38 +142,6 @@ public class ItineraryRepository {
     }
 
     /**
-     * Add attractions to visit into the itinerary
-     * 
-     * @param itineraryId
-     * @param attraction
-     * @return newly created attraction details
-     */
-    public Attraction createAttraction(int itineraryId, Attraction attraction) {
-        String sql = """
-                INSERT INTO attractions (itinerary_id, attraction_name, latitude, longitude, visit_date)
-                VALUES (?, ?, ?, ?, ?)
-                """;
-
-        KeyHolder keyHolder = new GeneratedKeyHolder();
-
-        jdbcTemplate.update(connection -> {
-            var statement = connection.prepareStatement(sql, new String[] { "attraction_id" });
-            statement.setInt(1, itineraryId);
-            statement.setString(2, attraction.getAttractionName());
-            statement.setDouble(3, attraction.getLatitude());
-            statement.setDouble(4, attraction.getLongitude());
-            statement.setTimestamp(5, Timestamp.valueOf(attraction.getVisitDate()));
-            return statement;
-        }, keyHolder);
-
-        // Retrieve attraction id of the newly created attraction from database
-        attraction.setAttractionId(keyHolder.getKey().intValue());
-        attraction.setItineraryId(itineraryId);
-        
-        return attraction;
-    }
-
-    /**
      * Ensure only user can edit their own itinerary
      * @param itineraryId
      * @param userId

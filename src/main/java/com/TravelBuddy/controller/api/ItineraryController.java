@@ -75,24 +75,4 @@ public class ItineraryController {
         // If unauthorized access, return unauthorized access message
         return ResponseEntity.status(HttpStatus.CREATED).body("Successfully created itinerary id:" + addedItinerary);
     }
-
-    /**
-     * 
-     * @param itineraryId
-     * @param userId
-     * @param attraction
-     * @return Status code whether attraction is successfully created and results or unauthorized access
-     */
-    @PostMapping("/{itineraryId}/attractions")
-    public ResponseEntity<Attraction> createAttraction(
-            @PathVariable int itineraryId, @RequestParam int userId, @RequestBody Attraction attraction) {        
-
-        //after user chooses recommendation then html sets display name of itinerary and calls this function
-        Attraction addedAttraction = itineraryService.createAttraction(itineraryId, userId, attraction);
-
-        // If success, returns the newly created attraction
-        // If invalid inputs, returns the validation message
-        // If unauthorized access, return unauthorized access message
-        return ResponseEntity.status(HttpStatus.CREATED).body(addedAttraction);
-    }
 }
