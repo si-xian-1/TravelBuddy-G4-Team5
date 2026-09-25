@@ -1,7 +1,6 @@
 package com.TravelBuddy.service;
 
 import com.TravelBuddy.model.User;
-import com.TravelBuddy.model.EmergencyContact;
 import com.TravelBuddy.repository.TravelerRepository;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
@@ -86,29 +85,19 @@ public class TravelerService {
             );
         }
 
-        if (creating && user.isHasConsentLocation() == null) {
+        if (creating && user.isHasConsentLocation() != true) {
             throw new ResponseStatusException(
                     HttpStatus.BAD_REQUEST,
                     "Invalid consent location"
             );
         }
 
-        EmergencyContact contact = user.getEmergencyContact();
-
-        if (contact != null) {
-            validateText(
-                    contact.getName(),
-                    "Emergency contact name",
-                    50,
-                    false
-            );
-
-            validateText(
-                    contact.getMobileNumber(),
-                    "Emergency contact mobile number",
-                    8,
-                    false
-            );
+        if (user.getEmergencyContactName() != null && !user.getEmergencyContactName().isEmpty()) {
+            validateText(user.getEmergencyContactName(), "Emergency contact name", 50, false);
+        }
+        
+        if (user.getEmergencyContactMobileNumber() != null && !user.getEmergencyContactMobileNumber().isEmpty()) {
+            validateText(user.getEmergencyContactMobileNumber(), "Emergency contact mobile number", 8, false);
         }
     }
 

@@ -29,16 +29,11 @@ public class TravelerRepository {
                     User user = new User();
                     user.setUserId(rs.getInt("user_id"));
                     user.setUsername(rs.getString("username"));
-                    user.setMobileNumber(rs.getString("mobileNumber"));
+                    user.setMobileNumber(rs.getString("mobile_number"));
                     user.setRole(rs.getString("role"));
-                    user.setHasConsentLocation(rs.getBoolean("hasConsentLocation"));
-
-                    String contactName = rs.getString("emergency_contact_name");
-                    String contactNumber = rs.getString("emergency_contact_number");
-
-                    if (contactName != null || contactNumber != null) {
-                        user.setEmergencyContact(contactName, contactNumber);
-                    }
+                    user.setHasConsentLocation(rs.getBoolean("has_consent_location"));
+                    user.setEmergencyContactName(rs.getString("emergency_contact_name"));
+                    user.setEmergencyContactMobileNumber(rs.getString("emergency_contact_number"));
 
                     return user;
                 },
@@ -92,8 +87,8 @@ public class TravelerRepository {
                     mobile_number = COALESCE(?, mobile_number),
                     password = COALESCE(?, password),
                     has_consent_location = COALESCE(?, has_consent_location),
-                    emergency_contact_name = COALESCE(?, emergency_contact_name),
-                    emergency_contact_number = COALESCE(?, emergency_contact_number)
+                    emergency_contact_name = ?,
+                    emergency_contact_number = ?
                 WHERE user_id = ? AND role = 'TRAVELER'
                 """;
 
@@ -103,12 +98,8 @@ public class TravelerRepository {
                 user.getMobileNumber(),
                 user.getPassword(),
                 user.isHasConsentLocation(),
-                user.getEmergencyContact() == null
-                        ? null
-                        : user.getEmergencyContact().getName(),
-                user.getEmergencyContact() == null
-                        ? null
-                        : user.getEmergencyContact().getMobileNumber(),
+                user.getEmergencyContactName(),
+                user.getEmergencyContactMobileNumber(),
                 userId
         );
     }

@@ -10,9 +10,8 @@ public class User {
     private String password;
     private String role;
     private Boolean hasConsentLocation;
-    //emergency contact need to add to database
-    private EmergencyContact emergencyContact;
-
+    private String emergencyContactName;
+    private String emergencyContactNumber;
 
     public User() {
 
@@ -73,25 +72,20 @@ public class User {
     public void setHasConsentLocation(Boolean hasConsentLocation) {
         this.hasConsentLocation = hasConsentLocation;
     }
-    public void setEmergencyContact(EmergencyContact emergencyContact) {
-        this.emergencyContact = emergencyContact;
-    }
-    public void setEmergencyContact(String name, String mobileNumber){
-        if (this.emergencyContact == null){
-            this.emergencyContact = new EmergencyContact(name, mobileNumber);
-        }
-        else{
-            if (name != null){
-                emergencyContact.setName(name);
 
-            }
-            if (mobileNumber != null){
-                emergencyContact.setMobileNumber(mobileNumber);
-
-            }
-        }
+    public String getEmergencyContactName() {
+        return emergencyContactName;
     }
-    public EmergencyContact getEmergencyContact(){
-        return this.emergencyContact;
+
+    public void setEmergencyContactName(String emergencyContactName) {
+        this.emergencyContactName = emergencyContactName;
+    }
+
+    public String getEmergencyContactMobileNumber() {
+        return emergencyContactNumber;
+    }
+
+    public void setEmergencyContactMobileNumber(String emergencyContactNumber) {
+        this.emergencyContactNumber = emergencyContactNumber;
     }
 }

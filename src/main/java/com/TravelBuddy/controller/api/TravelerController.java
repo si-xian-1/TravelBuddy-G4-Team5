@@ -24,7 +24,7 @@ public class TravelerController {
         this.travelerService = travelerService;
     }
 
-    @PostMapping("/users")
+    @PostMapping("/signup")
     public String createUser(@RequestBody User user) {
         travelerService.createUser(user);
         return "User created successfully";

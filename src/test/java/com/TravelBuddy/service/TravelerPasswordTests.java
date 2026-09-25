@@ -14,8 +14,18 @@ class TravelerPasswordTests {
 
     @Test
     void creationStoresSaltedHash() {
-        User first = new User("Alice", "91234567", "example-password", false);
-        User second = new User("Bob", "91234568", "example-password", false);
+        User first = new User();
+        first.setUsername("Alice");
+        first.setMobileNumber("91234567");
+        first.setPassword("example-password");
+        first.setHasConsentLocation(false);
+
+        User second = new User();
+        second.setUsername("Bob");
+        second.setMobileNumber("91234568");
+        second.setPassword("example-password");
+        second.setHasConsentLocation(false);
+
         service.createUser(first);
         service.createUser(second);
         assertNotEquals("example-password", first.getPassword());
