@@ -20,6 +20,8 @@ public class HotelService {
         this.locationService = locationService;
         this.gdacsService = gdacsService;
     }
+
+    // get selected itinerary?
     
     /**
      * Validate hotel inputs before adding into database
@@ -45,6 +47,8 @@ public class HotelService {
         if (hotel.getCheckIn().isAfter(hotel.getCheckOut())) {
             throw new InvalidInputsException("Check-in time cannot be after check-out time.");
         }
+
+        // haven't integrated with locationService?
 
         // Execute sql to add new hotel
         Hotel savedHotel = hotelRepository.createHotel(itineraryId, hotel);
