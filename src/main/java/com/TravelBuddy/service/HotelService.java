@@ -4,6 +4,7 @@ import org.springframework.stereotype.Service;
 
 import com.TravelBuddy.exception.InvalidInputsException;
 import com.TravelBuddy.model.Hotel;
+import com.TravelBuddy.model.LocationResponse;
 import com.TravelBuddy.repository.HotelRepository;
 import com.TravelBuddy.repository.TravelerRepository;
 
@@ -48,7 +49,13 @@ public class HotelService {
             throw new InvalidInputsException("Check-in time cannot be after check-out time.");
         }
 
-        // haven't integrated with locationService?
+        // Get the coordinates of the hotel
+        LocationResponse location = locationService.getCoordinates(hotel.getHotelName());
+        
+        // When API is unable to find coordinates of the user selected location
+        if (location == null || location.getLat() == null || location.getLon() == null) {
+            throw new InvalidInputsException("Could not find coordinates for location: " + hotel.getHotelName());
+        }
 
         // Execute sql to add new hotel
         Hotel savedHotel = hotelRepository.createHotel(itineraryId, hotel);
