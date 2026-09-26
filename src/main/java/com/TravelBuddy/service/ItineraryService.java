@@ -4,27 +4,19 @@ import java.util.List;
 
 import org.springframework.stereotype.Service;
 
-import com.TravelBuddy.exception.InvalidInputsException;
-import com.TravelBuddy.exception.UnauthorizedUserException;
-import com.TravelBuddy.model.Attraction;
-import com.TravelBuddy.model.Flight;
-import com.TravelBuddy.model.Hotel;
-import com.TravelBuddy.model.Itinerary;
-import com.TravelBuddy.repository.ItineraryRepository;
-import com.TravelBuddy.model.LocationResponse;
-import com.TravelBuddy.repository.TravelerRepository;
+import com.TravelBuddy.exception.*;
+import com.TravelBuddy.model.*;
+import com.TravelBuddy.repository.*;
 
 @Service
 public class ItineraryService {
     private final TravelerRepository travelerRepository;
     private final ItineraryRepository itineraryRepository;
-    private final LocationService locationService;
-    private final GdacsService gdacsService;
+    private  final GdacsService gdacsService;
 
-    public ItineraryService(ItineraryRepository itineraryRepository, LocationService locationService, TravelerRepository travelerRepository, GdacsService gdacsService) {
+    public ItineraryService(ItineraryRepository itineraryRepository, TravelerRepository travelerRepository, GdacsService gdacsService) {
         this.itineraryRepository = itineraryRepository;
         this.travelerRepository = travelerRepository;
-        this.locationService = locationService;
         this.gdacsService = gdacsService;
     }
 
@@ -89,10 +81,9 @@ public class ItineraryService {
      */
     public int createItinerary(Itinerary itinerary, int userId) {
         // Validation checks and return meaningful response to user
-        //To add this method when, it is available
-        // if (travelerRepository.getUser(userId) == null) {
-        //     throw new InvalidInputsException("User does not exist.");
-        // }
+        if (travelerRepository.getUser(userId) == null) {
+            throw new InvalidInputsException("User does not exist.");
+        }
         if (itinerary == null) {
             throw new InvalidInputsException("Itinerary cannot be empty.");
         }
@@ -122,5 +113,39 @@ public class ItineraryService {
             // Throw error that user is unauthorized to edit itinerary info
             throw new UnauthorizedUserException("You are not allowed to access this itinerary!");
         }
+    }
+
+    /**
+     * Update an itinerary of the user
+     * @param itineraryId
+     * @param userId
+     * @param itinerary
+     * @return number of rows updated in itineraries
+     */
+    public int updateItinerary(int itineraryId, int userId, Itinerary itinerary) {
+        checkItineraryBelongToUser(itineraryId, userId);
+
+        if (itinerary.getItineraryName() == null || itinerary.getItineraryName().trim().isEmpty()) {
+            throw new InvalidInputsException("Itinerary name is required.");
+        }
+        if (itinerary.getStartDate() == null || itinerary.getEndDate() == null) {
+            throw new InvalidInputsException("Start and end dates are required.");
+        }
+        if (itinerary.getStartDate().isAfter(itinerary.getEndDate())) {
+            throw new InvalidInputsException("Start date cannot be after end date.");
+        }
+
+        return itineraryRepository.updateItinerary(itineraryId, userId, itinerary);
+    }
+
+    /**
+     * Delete an itinerary of the user
+     * @param itineraryId
+     * @param userId
+     * @return number of rows updated in itineraries
+     */
+    public int deleteItinerary(int itineraryId, int userId) {
+        checkItineraryBelongToUser(itineraryId, userId);
+        return itineraryRepository.deleteItinerary(itineraryId, userId);
     }
 }

@@ -1,16 +1,19 @@
 package com.TravelBuddy.repository;
 
-import java.sql.Timestamp;
 import java.util.List;
 
+import org.springframework.dao.EmptyResultDataAccessException;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.jdbc.support.GeneratedKeyHolder;
 import org.springframework.jdbc.support.KeyHolder;
-import org.springframework.stereotype.Repository;
 
 import com.TravelBuddy.model.Attraction;
 
-@Repository 
+import java.sql.Timestamp;
+import java.time.LocalDateTime;
+import org.springframework.stereotype.Repository;
+
+@Repository
 public class AttractionRepository {
     private final JdbcTemplate jdbcTemplate;
 
@@ -19,16 +22,16 @@ public class AttractionRepository {
     }
 
     /**
-     * Get all attraction in an itinerary
+     * Get all attractions belonging to an itinerary of the user
      * @param itineraryId
-     * @return all attraction
+     * @return all attractions without the detailed information
      */
     public List<Attraction> findAllAttractionsByItineraryId(int itineraryId) {
         String sql = """
                 SELECT attraction_id, itinerary_id, attraction_name, latitude, longitude, visit_date
                 FROM attractions WHERE itinerary_id = ?
                 """;
-        
+
         return jdbcTemplate.query(
                 sql,
                 (result, rowNum) -> {
@@ -39,36 +42,43 @@ public class AttractionRepository {
             attraction.setAttractionName(result.getString("attraction_name"));
             attraction.setLatitude(result.getDouble("latitude"));
             attraction.setLongitude(result.getDouble("longitude"));
-            attraction.setVisitDate(result.getTimestamp("visit_date").toLocalDateTime());
+            attraction.setVisitDate(result.getObject("visit_date", LocalDateTime.class));
 
             return attraction;
         }, itineraryId);
     }
 
     /**
-     * Get a detailed specific attraction based on itinerary id and selected attraction to view
+     * Find specfic attraction belonging to an itinerary of the user
+     * @param itineraryId
+     * @param attractionId
+     * @return attraction matching attractionId
      */
-    public Attraction findSelectedAttractionByItineraryId(int attractionId, int itineraryId) {
+    public Attraction findSelectedAttractionByAttractionId(int itineraryId, int attractionId) {
         String sql = """
                 SELECT attraction_id, itinerary_id, attraction_name, latitude, longitude, visit_date
-                FROM attractions WHERE attraction_id = ? AND itinerary_id = ?
+                FROM attractions WHERE itinerary_id = ? AND attraction_id = ?
                 """;
 
-        return jdbcTemplate.queryForObject(
-                sql,
-                (result, rowNum) -> {
-            Attraction attraction = new Attraction();
-            attraction.setAttractionId(result.getInt("attraction_id"));
-            attraction.setItineraryId(result.getInt("itinerary_id"));
-            attraction.setAttractionName(result.getString("attraction_name"));
-            attraction.setLatitude(result.getDouble("latitude"));
-            attraction.setLongitude(result.getDouble("longitude"));
-            attraction.setVisitDate(result.getTimestamp("visit_date").toLocalDateTime());
-
-            return attraction;
-        }, itineraryId);
+        try {
+            return jdbcTemplate.queryForObject(
+                    sql,
+                    (result, rowNum) -> {
+                        Attraction attraction = new Attraction();
+                        attraction.setAttractionId(result.getInt("attraction_id"));
+                        attraction.setItineraryId(result.getInt("itinerary_id"));
+                        attraction.setAttractionName(result.getString("attraction_name"));
+                        attraction.setLatitude(result.getDouble("latitude"));
+                        attraction.setLongitude(result.getDouble("longitude"));
+                        attraction.setVisitDate(result.getObject("visit_date", LocalDateTime.class));
+                        return attraction;
+                    }, itineraryId, attractionId);
+        } catch (EmptyResultDataAccessException e) {
+            // When no results found for attraction
+            return null; 
+        }
     }
-    
+
     /**
      * Add attractions to visit into the itinerary
      * 
@@ -101,4 +111,42 @@ public class AttractionRepository {
         return attraction;
     }
 
+    /**
+     * Update attraction in an itinerary of the user
+     * @param itineraryId
+     * @param attractionId
+     * @param attraction
+     * @return number of updated rows in attractions
+     */
+    public int updateAttraction(int itineraryId, int attractionId, Attraction attraction) {
+        String sql = """
+                UPDATE attractions
+                SET attraction_name = COALESCE(?, attraction_name),
+                    latitude = COALESCE(?, latitude),
+                    longitude = COALESCE(?, longitude),
+                    visit_date = COALESCE(?, visit_date)
+                WHERE attraction_id = ? AND itinerary_id = ?
+                """;
+
+        return jdbcTemplate.update(
+                sql,
+                attraction.getAttractionName(),
+                attraction.getLatitude(),
+                attraction.getLongitude(),
+                attraction.getVisitDate(),
+                attractionId,
+                itineraryId
+        );
+    }
+
+    /**
+     * Delete attraction in an itinerary of the user
+     * @param itineraryId
+     * @param attractionId
+     * @return number of updated rows in attractions
+     */
+    public int deleteAttraction(int itineraryId, int attractionId) {
+        String sql = "DELETE FROM attractions WHERE attraction_id = ? AND itinerary_id = ?";
+        return jdbcTemplate.update(sql, attractionId, itineraryId);
+    }
 }

@@ -1,18 +1,16 @@
 package com.TravelBuddy.controller.api;
 
+import java.util.List;
+
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestParam;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
+import org.springframework.web.server.ResponseStatusException;
 
 import com.TravelBuddy.model.Attraction;
 import com.TravelBuddy.service.AttractionService;
 
-@RestController 
+@RestController
 @RequestMapping("/api/itinerary/{itineraryId}/attractions")
 public class AttractionController {
     private final AttractionService attractionService;
@@ -39,5 +37,87 @@ public class AttractionController {
         // If invalid inputs, returns the validation message
         // If unauthorized access, return unauthorized access message
         return ResponseEntity.status(HttpStatus.CREATED).body(addedAttraction);
+    }
+
+    /**
+     * 
+     * @param itineraryId
+     * @param userId
+     * @param attractionId
+     * @return Status code of user selected attraction or unauthorized access
+     */
+    @GetMapping("/{attractionId}")
+    public ResponseEntity<Attraction> getSelectedAttraction(
+            @PathVariable int itineraryId, @RequestParam int userId, @PathVariable int attractionId) {
+
+        Attraction attraction = attractionService.getSelectedAttraction(itineraryId, userId, attractionId);
+
+        if (attraction == null) {
+            throw new ResponseStatusException(HttpStatus.NOT_FOUND, "Attraction not found");
+        }
+
+        // If success, returns the selected itinerary
+        // If unauthorized access, return unauthorized access message
+        return ResponseEntity.status(HttpStatus.OK).body(attraction);
+    }
+
+    /**
+     * 
+     * @param itineraryId
+     * @param userId
+     * @return List of all attractions belonging to the user
+     */
+    @GetMapping("/all/{userId}")
+    public ResponseEntity<List<Attraction>> getAllAttraction(
+            @PathVariable int itineraryId, @PathVariable int userId) {
+
+        List<Attraction> attractions = attractionService.getAllAttraction(itineraryId, userId);
+
+        // If success, returns all itinerary
+        return ResponseEntity.status(HttpStatus.OK).body(attractions);
+    }
+
+    /**
+     * 
+     * @param itineraryId
+     * @param attractionId
+     * @param attraction
+     * @param userId
+     * @return Success message for successful update of attraction or error message
+     */
+    @PutMapping("/{attractionId}")
+    public String updateAttraction(
+            @PathVariable int itineraryId,
+            @PathVariable int attractionId, 
+            @RequestBody Attraction attraction,
+            @RequestParam int userId
+    ) {
+        if (attractionService.updateAttraction(itineraryId, userId, attractionId, attraction) == 0) {
+            throw new ResponseStatusException(
+                    HttpStatus.NOT_FOUND,
+                    "Attraction not found"
+            );
+        }
+
+        return "Attraction updated successfully";
+    }
+
+    /**
+     * 
+     * @param itineraryId
+     * @param attractionId
+     * @param userId
+     * @return success message for deletion of attraction or error message
+     */
+    @DeleteMapping("/{attractionId}")
+    public String deleteAttraction(@PathVariable int itineraryId, @PathVariable int attractionId, @RequestParam int userId) {
+        if (attractionService.deleteAttraction(itineraryId, userId, attractionId) == 0) {
+            throw new ResponseStatusException(
+                    HttpStatus.NOT_FOUND,
+                    "Attraction not found"
+            );
+        }
+
+        return "Attraction deleted";
     }
 }

@@ -1,32 +1,21 @@
 package com.TravelBuddy.model;
 
+import com.fasterxml.jackson.annotation.*;
+
 public class User {
+    public static final String PASSWORD_MASK = "........";
     private int userId;
     private String username;
     private String mobileNumber;
+    @JsonProperty(access = JsonProperty.Access.WRITE_ONLY)
     private String password;
     private String role;
-    private boolean hasConsentLocation;
+    private Boolean hasConsentLocation;
+    private String emergencyContactName;
+    private String emergencyContactNumber;
 
     public User() {
-    }
 
-    public User(int userId, String username, String mobileNumber,
-            String password, String role, boolean hasConsentLocation) {
-        this.userId = userId;
-        this.username = username;
-        this.mobileNumber = mobileNumber;
-        this.password = password;
-        this.role = role;
-        this.hasConsentLocation = hasConsentLocation;
-    }
-
-    public User(String username, String mobileNumber, String password,
-            boolean hasConsentLocation) {
-        this.username = username;
-        this.mobileNumber = mobileNumber;
-        this.password = password;
-        this.hasConsentLocation = hasConsentLocation;
     }
 
     public int getUserId() {
@@ -69,11 +58,27 @@ public class User {
         this.role = role;
     }
 
-    public boolean isHasConsentLocation() {
+    public Boolean getHasConsentLocation() {
         return hasConsentLocation;
     }
 
-    public void setHasConsentLocation(boolean hasConsentLocation) {
+    public void setHasConsentLocation(Boolean hasConsentLocation) {
         this.hasConsentLocation = hasConsentLocation;
+    }
+
+    public String getEmergencyContactName() {
+        return emergencyContactName;
+    }
+
+    public void setEmergencyContactName(String emergencyContactName) {
+        this.emergencyContactName = emergencyContactName;
+    }
+
+    public String getEmergencyContactMobileNumber() {
+        return emergencyContactNumber;
+    }
+
+    public void setEmergencyContactMobileNumber(String emergencyContactNumber) {
+        this.emergencyContactNumber = emergencyContactNumber;
     }
 }
