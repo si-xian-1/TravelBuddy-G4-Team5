@@ -1,6 +1,5 @@
 package com.TravelBuddy.repository;
 
-import java.sql.Timestamp;
 import java.util.List;
 
 import org.springframework.jdbc.core.JdbcTemplate;

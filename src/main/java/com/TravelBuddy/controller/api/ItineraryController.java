@@ -4,9 +4,7 @@ import java.util.List;
 
 import org.springframework.http.*;
 import org.springframework.web.bind.annotation.*;
-import org.springframework.web.server.ResponseStatusException;
 
-import com.TravelBuddy.model.Hotel;
 import com.TravelBuddy.model.Itinerary;
 import com.TravelBuddy.service.ItineraryService;
 

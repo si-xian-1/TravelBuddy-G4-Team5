@@ -6,7 +6,6 @@ import com.TravelBuddy.exception.InvalidInputsException;
 import com.TravelBuddy.model.Hotel;
 import com.TravelBuddy.model.LocationResponse;
 import com.TravelBuddy.repository.HotelRepository;
-import com.TravelBuddy.repository.TravelerRepository;
 
 @Service 
 public class HotelService {
