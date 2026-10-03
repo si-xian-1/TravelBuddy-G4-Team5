@@ -1,6 +1,5 @@
 package com.TravelBuddy.repository;
 
-import java.sql.Timestamp;
 import java.util.List;
 
 import org.springframework.jdbc.core.JdbcTemplate;
@@ -13,9 +12,13 @@ import com.TravelBuddy.model.*;
 @Repository
 public class ItineraryRepository {
     private final JdbcTemplate jdbcTemplate;
+    private final HotelRepository hotelRepository;
+    private final AttractionRepository attractionRepository;
 
-    public ItineraryRepository(JdbcTemplate jdbcTemplate) {
+    public ItineraryRepository(JdbcTemplate jdbcTemplate, HotelRepository hotelRepository, AttractionRepository attractionRepository) {
         this.jdbcTemplate = jdbcTemplate;
+        this.hotelRepository = hotelRepository;
+        this.attractionRepository = attractionRepository;
     }
 
     /**
@@ -70,20 +73,7 @@ public class ItineraryRepository {
             return value;
         }, itineraryId, userId);
 
-        String hotel_sql = "SELECT * FROM hotels WHERE itinerary_id = ?";
-        // Get hotels related to this specific itinerary
-        itinerary.setHotels(jdbcTemplate.query(hotel_sql,
-                (result, rowNum) -> {
-                    Hotel hotel = new Hotel();
-                    hotel.setHotelId(result.getInt("hotel_id"));
-                    hotel.setItineraryId(result.getInt("itinerary_id"));
-                    hotel.setHotelName(result.getString("hotel_name"));
-                    hotel.setLatitude(result.getDouble("latitude"));
-                    hotel.setLongitude(result.getDouble("longitude"));
-                    hotel.setCheckIn(result.getTimestamp("check_in").toLocalDateTime());
-                    hotel.setCheckOut(result.getTimestamp("check_out").toLocalDateTime());
-                    return hotel;
-                }, itineraryId));
+        itinerary.setHotels(hotelRepository.findAllHotelsByItineraryId(itineraryId));
 
         String flight_sql = "SELECT * FROM flights WHERE itinerary_id = ?";
         // Get flights related to this specific itinerary
@@ -105,19 +95,8 @@ public class ItineraryRepository {
                     return flight;
                 }, itineraryId));
 
-        String attractions_sql = "SELECT * FROM attractions WHERE itinerary_id = ?";
-        // Get attractions related to this specific itinerary
-        itinerary.setAttractions(jdbcTemplate.query(attractions_sql,
-                (result, rowNum) -> {
-                    Attraction attraction = new Attraction();
-                    attraction.setAttractionId(result.getInt("attraction_id"));
-                    attraction.setItineraryId(result.getInt("itinerary_id"));
-                    attraction.setAttractionName(result.getString("attraction_name"));
-                    attraction.setLatitude(result.getDouble("latitude"));
-                    attraction.setLongitude(result.getDouble("longitude"));
-                    attraction.setVisitDate(result.getTimestamp("visit_date").toLocalDateTime());
-                    return attraction;
-                }, itineraryId));
+
+        itinerary.setAttractions(attractionRepository.findAllAttractionsByItineraryId(itineraryId));
                 
         return itinerary;
     }
@@ -147,39 +126,6 @@ public class ItineraryRepository {
 
         // Return the newly created itinerary id
         return keyHolder.getKey().intValue();
-    }
-
-    /**
-     * Add hotel stay location into the itinerary
-     * 
-     * @param itineraryId
-     * @param hotel
-     * @return newly created hotel stay details
-     */
-    public Hotel createHotel(int itineraryId, Hotel hotel) {
-        String sql = """
-                INSERT INTO hotels (itinerary_id, hotel_name, latitude, longitude, check_in, check_out)
-                VALUES (?, ?, ?, ?, ?, ?)
-                """;
-
-        KeyHolder keyHolder = new GeneratedKeyHolder();
-
-        jdbcTemplate.update(connection -> {
-            var statement = connection.prepareStatement(sql, new String[] { "hotel_id" });
-            statement.setInt(1, itineraryId);
-            statement.setString(2, hotel.getHotelName());
-            statement.setDouble(3, hotel.getLatitude());
-            statement.setDouble(4, hotel.getLongitude());
-            statement.setTimestamp(5, Timestamp.valueOf(hotel.getCheckIn()));
-            statement.setTimestamp(6, Timestamp.valueOf(hotel.getCheckOut()));
-            return statement;
-        }, keyHolder);
-
-        // Retrieve hotel id of the newly created hotel from database
-        hotel.setHotelId(keyHolder.getKey().intValue());
-        hotel.setItineraryId(itineraryId);
-        
-        return hotel;
     }
 
     /**
