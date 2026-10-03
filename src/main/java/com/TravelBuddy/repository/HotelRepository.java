@@ -3,6 +3,7 @@ package com.TravelBuddy.repository;
 import java.sql.Timestamp;
 import java.util.List;
 
+import org.springframework.dao.EmptyResultDataAccessException;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.jdbc.support.GeneratedKeyHolder;
 import org.springframework.jdbc.support.KeyHolder;
@@ -55,20 +56,25 @@ public class HotelRepository {
                 FROM hotels WHERE hotel_id = ? AND itinerary_id = ?
                 """;
 
-        return jdbcTemplate.queryForObject(
-                sql,
-                (result, rowNum) -> {
-            Hotel hotel = new Hotel();
-            hotel.setHotelId(result.getInt("hotel_id"));
-            hotel.setItineraryId(result.getInt("itinerary_id"));
-            hotel.setHotelName(result.getString("hotel_name"));
-            hotel.setLatitude(result.getDouble("latitude"));
-            hotel.setLongitude(result.getDouble("longitude"));
-            hotel.setCheckIn(result.getTimestamp("check_in").toLocalDateTime());
-            hotel.setCheckOut(result.getTimestamp("check_out").toLocalDateTime());
+        try {
+            return jdbcTemplate.queryForObject(
+                    sql,
+                    (result, rowNum) -> {
+                Hotel hotel = new Hotel();
+                hotel.setHotelId(result.getInt("hotel_id"));
+                hotel.setItineraryId(result.getInt("itinerary_id"));
+                hotel.setHotelName(result.getString("hotel_name"));
+                hotel.setLatitude(result.getDouble("latitude"));
+                hotel.setLongitude(result.getDouble("longitude"));
+                hotel.setCheckIn(result.getTimestamp("check_in").toLocalDateTime());
+                hotel.setCheckOut(result.getTimestamp("check_out").toLocalDateTime());
 
-            return hotel;
-        }, itineraryId);
+                return hotel;
+            }, itineraryId, hotelId);
+        } catch (EmptyResultDataAccessException e) {
+            // When no results found for hotel
+            return null; 
+        }
     }
     
     /**
@@ -104,8 +110,4 @@ public class HotelRepository {
         return hotel;
 
     }
-    
-    /**
-     * verifyHotelAndUser?
-     */
 }

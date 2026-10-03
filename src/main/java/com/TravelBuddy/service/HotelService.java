@@ -1,5 +1,7 @@
 package com.TravelBuddy.service;
 
+import java.util.List;
+
 import org.springframework.stereotype.Service;
 
 import com.TravelBuddy.exception.InvalidInputsException;
@@ -72,4 +74,25 @@ public class HotelService {
         return savedHotel;
     }
 
+    /**
+     * Get all hotels belonging to an itinerary of the user
+     * @param userId
+     * @return all hotels belonging to user
+     */
+    public List<Hotel> getAllHotel(int itineraryId, int userId) {
+        itineraryService.checkItineraryBelongToUser(itineraryId, userId);
+        return hotelRepository.findAllHotelsByItineraryId(itineraryId);
+    }
+
+    /**
+     * Get selected hotel belonging to an itinerary of the user
+     * @param itineraryId
+     * @param userId
+     * @param hotelId
+     * @return selected 
+     */
+    public Hotel getSelectedHotel(int itineraryId, int userId, int hotelId) {
+        itineraryService.checkItineraryBelongToUser(itineraryId, userId);
+        return hotelRepository.findSelectedHotelByItineraryId(itineraryId, hotelId);
+    }
 }
