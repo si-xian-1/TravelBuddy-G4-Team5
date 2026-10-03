@@ -22,8 +22,6 @@ public class HotelService {
         this.locationService = locationService;
         this.gdacsService = gdacsService;
     }
-
-    // get selected itinerary?
     
     /**
      * Validate hotel inputs before adding into database
