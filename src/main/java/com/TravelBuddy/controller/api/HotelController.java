@@ -13,7 +13,6 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.server.ResponseStatusException;
 
-import com.TravelBuddy.model.Attraction;
 import com.TravelBuddy.model.Hotel;
 import com.TravelBuddy.service.HotelService;
 

@@ -3,12 +3,20 @@ package com.TravelBuddy.controller.view;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.GetMapping;
 
-
-@Controller 
+@Controller
 public class AuthViewController {
     // Render the login page aka landing page
     @GetMapping("/")
     public String Login() {
         return "login";
     }
+
+    /**
+     * Render sign up page
+     */
+    @GetMapping("/signup")
+    public String SignUp() {
+        return "signup";
+    }
+
 }
