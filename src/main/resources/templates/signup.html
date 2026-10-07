@@ -1,0 +1,180 @@
+<!DOCTYPE html>
+
+<html lang="en" xmlns:th="https://www.thymeleaf.org/">
+
+<head>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+    <meta name="description" content="">
+    <meta name="author" content="">
+
+    <title>TravelBuddy - Sign Up</title>
+
+    <!-- Custom fonts for this template-->
+    <link th:href="@{/vendor/fontawesome-free/css/all.min.css}" rel="stylesheet" type="text/css">
+    <link
+        href="https://fonts.googleapis.com/css?family=Nunito:200,200i,300,300i,400,400i,600,600i,700,700i,800,800i,900,900i"
+        rel="stylesheet">
+
+    <!--Template custom styling-->
+    <link th:href="@{/css/sb-admin-2.min.css}" rel="stylesheet">
+
+    <!--Own custom styling to overwrite template styling-->
+    <link th:href="@{/css/custom.css}" rel="stylesheet">
+</head>
+
+<body class="bg-gradient-primary">
+
+    <div class="container">
+
+        <div class="card o-hidden border-0 shadow-lg my-5">
+            <div class="card-body p-0">
+                <div class="row">
+                    <div class="col-lg-5 d-none d-lg-block bg-register-image"></div>
+                    <div class="col-lg-7">
+                        <div class="p-5">
+
+                            <div class="text-center">
+                                <h1 class="h4 text-gray-900 mb-4">Sign up for an account</h1>
+                                <p>Travel safe with our AI powered buddy, looking out for your safety!</p>
+                            </div>
+
+                            <!--Sign up form-->
+                            <form class="user" id="signupForm">
+                                <!-- Username field -->
+                                <div class="form-group">
+                                    <input type="text" class="form-control form-control-user" id="username"
+                                        placeholder="Username">
+                                    <!-- Error message for username -->
+                                    <div class="invalid-feedback" id="usernameErrMsg"></div>
+                                </div>
+
+                                <!-- Mobile number field -->
+                                <div class="form-group">
+                                    <input type="text" class="form-control form-control-user" id="mobileNumber"
+                                        placeholder="Mobile number">
+                                    <!-- Error message for mobile number -->
+                                    <div class="invalid-feedback" id="mobileNumberErrMsg"></div>
+                                </div>
+
+                                <!-- Password field -->
+                                <div class="form-group">
+                                    <input type="password" class="form-control form-control-user" id="password"
+                                        placeholder="Password">
+                                    <!-- Error message for password -->
+                                    <div class="invalid-feedback" id="passwordErrMsg"></div>
+                                </div>
+
+                                <!-- Consent location sharing field -->
+                                <div class="form-group form-check ml-2 mb-3">
+                                    <input type="checkbox" class="form-check-input" id="hasConsentLocation">
+                                    <label class="form-check-label small text-gray-900" for="hasConsentLocation">
+                                        I consent to location sharing with travelbudddy
+                                    </label>
+                                    <!-- Error message for location sharing consent -->
+                                    <div class="invalid-feedback" id="hasConsentLocationErrMsg"></div>
+                                </div>
+
+                                <!-- Form submit button -->
+                                <button type="button" id="signupBtn" class="btn btn-primary btn-user btn-block">
+                                    Sign up
+                                </button>
+
+                                <hr>
+
+                            </form>
+
+                            <!--Redirect to login page-->
+                            <div class="text-center">
+                                <a class="small" th:href="@{/}">Already have an account? Login!</a>
+                            </div>
+
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+    </div>
+
+    <!-- Dealing with sigup up form validation -->
+    <script>
+        // When sign up button is clicked, calls sign up API and validate inputs
+        document.getElementById("signupBtn").addEventListener("click", async function (event) {
+            // Prevents reload or page refresh
+            event.preventDefault();
+
+            // Clears any previous error messages displayed
+            document.querySelectorAll('.form-control, .form-check-input').forEach(el => {
+                el.classList.remove('is-invalid');
+            });
+
+            // Get user inputs
+            const travelerSignUpDetails = {
+                username: document.getElementById("username").value.trim(),
+                mobileNumber: document.getElementById("mobileNumber").value.trim(),
+                password: document.getElementById("password").value,
+                hasConsentLocation: document.getElementById("hasConsentLocation").checked
+            };
+
+            try {
+                // Call sign up API
+                const response = await fetch('/api/travelers/signup', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(travelerSignUpDetails)
+                });
+
+                if (response.ok) {
+                    // When sign up successful, redirect to login page
+                    window.location.href = '/';
+                } else {
+                    // When user inputs has some errors, display error message
+                    const errData = await response.json();
+                    // Get error message returned from the backend
+                    const message = errData.message || "Validation failed";
+                    const fieldNames = message.toLowerCase();
+
+                    // Display the error message inline with the input boxes
+                    if (fieldNames.includes("username")) {
+                        setFieldError("username", message);
+                    } else if (fieldNames.includes("mobile")) {
+                        setFieldError("mobileNumber", message);
+                    } else if (fieldNames.includes("password")) {
+                        setFieldError("password", message);
+                    } else if (fieldNames.includes("consent")) {
+                        setFieldError("hasConsentLocation", message);
+                    }
+                }
+            } catch (err) {
+                // Log the error for other issues
+                console.error("Unable to complete sign up:", err);
+            }
+        });
+
+        // Show the error message
+        function setFieldError(fieldId, message) {
+            const inputElement = document.getElementById(fieldId);
+            inputElement.classList.add('is-invalid');
+
+            const feedbackElement = document.getElementById(fieldId + 'ErrMsg');
+            if (feedbackElement) {
+                feedbackElement.textContent = message;
+            }
+        }
+    </script>
+
+    <!-- Bootstrap core JavaScript-->
+    <script th:src="@{/vendor/jquery/jquery.min.js}"></script>
+    <script th:src="@{/vendor/bootstrap/js/bootstrap.bundle.min.js}"></script>
+
+    <!-- Core plugin JavaScript-->
+    <script th:src="@{vendor/jquery-easing/jquery.easing.min.js}"></script>
+
+    <!-- Custom scripts for all pages-->
+    <script th:src="@{/js/sb-admin-2.min.js}"></script>
+
+</body>
+
+</html>

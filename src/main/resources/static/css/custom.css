@@ -1,0 +1,11 @@
+/*
+To add own customized styling to overwrite existing styling
+*/
+
+/* For sign up page */
+.bg-register-image {
+  background-image: url("../img/signup.jpg") !important;
+  background-position: center !important;
+  background-size: contain !important;
+  background-repeat: no-repeat;
+}
