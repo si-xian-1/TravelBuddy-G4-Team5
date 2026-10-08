@@ -14,6 +14,8 @@ import org.springframework.web.server.ResponseStatusException;
 import com.TravelBuddy.model.User;
 import com.TravelBuddy.service.TravelerService;
 
+import jakarta.validation.Valid;
+
 @RestController
 @RequestMapping("/api/travelers")
 public class TravelerController {
@@ -25,7 +27,7 @@ public class TravelerController {
     }
 
     @PostMapping("/signup")
-    public String createUser(@RequestBody User user) {
+    public String createUser(@Valid @RequestBody User user) {
         travelerService.createUser(user);
         return "User created successfully";
     }
@@ -41,7 +43,7 @@ public class TravelerController {
     @PutMapping("/{userID}")
     public String updateUser(
             @PathVariable("userID") int userId,
-            @RequestBody User user
+            @Valid @RequestBody User user
     ) {
         if (travelerService.updateUser(userId, user) == 0) {
             throw new ResponseStatusException(

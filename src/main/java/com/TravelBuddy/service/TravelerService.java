@@ -22,7 +22,11 @@ public class TravelerService {
     }
 
     public int createUser(User user) {
-        validateUser(user, true);
+        // Implement password validation to ensure user entered a password. Password length check is implemented in model
+        if (user.getPassword() == null || user.getPassword().isBlank()) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Password is required");
+        }
+
         user.setPassword(passwordEncoder.encode(user.getPassword()));
 
         try {
@@ -61,9 +65,13 @@ public class TravelerService {
     }
 
     public int updateUser(int userId, User user) {
-        validateUser(user, false);
+        // Prevent mask from overwriting actual password if passed during update
+        if (User.PASSWORD_MASK.equals(user.getPassword())) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Invalid password");
+        }
 
-        if (user.getPassword() != null) {
+        // Executes when user update their password
+        if (user.getPassword() != null && !user.getPassword().isBlank()) {
             user.setPassword(passwordEncoder.encode(user.getPassword()));
         }
 
@@ -77,67 +85,5 @@ public class TravelerService {
 
     public int deleteUser(int userId) {
         return travelerRepository.deleteUser(userId);
-    }
-
-    private void validateUser(User user, boolean isCreation) {
-        if (user == null) {
-            throw new ResponseStatusException(
-                    HttpStatus.BAD_REQUEST,
-                    "User details are required"
-            );
-        }
-
-        validateText(user.getUsername(), "Username", 50, true);
-        validateText(user.getMobileNumber(), "Mobile number", 8, true);
-        validateText(user.getPassword(), "Password", 255, isCreation);
-
-        if (User.PASSWORD_MASK.equals(user.getPassword())) {
-            throw new ResponseStatusException(
-                    HttpStatus.BAD_REQUEST,
-                    "Invalid password"
-            );
-        }
-
-        if (user.getHasConsentLocation() != true) {
-            throw new ResponseStatusException(
-                    HttpStatus.BAD_REQUEST,
-                    "Invalid consent location"
-            );
-        }
-
-        if (user.getEmergencyContactName() != null && !user.getEmergencyContactName().isEmpty()) {
-            validateText(user.getEmergencyContactName(), "Emergency contact name", 50, false);
-        }
-        
-        if (user.getEmergencyContactMobileNumber() != null && !user.getEmergencyContactMobileNumber().isEmpty()) {
-            validateText(user.getEmergencyContactMobileNumber(), "Emergency contact mobile number", 8, false);
-        }
-    }
-
-    private void validateText(String value, String field, int maxLength, boolean required) {
-        if (required && (value == null || value.isBlank())) {
-            throw new ResponseStatusException(
-                        HttpStatus.BAD_REQUEST,
-                        field + " is required"
-                );
-        }
-
-        if (value != null && value.length() > maxLength) {
-            throw new ResponseStatusException(
-                    HttpStatus.BAD_REQUEST,
-                    field + " can be at most " + maxLength + " characters"
-            );
-        }
-
-        if (field.toUpperCase().contains("MOBILE NUMBER")){
-            for (char c: value.toCharArray()){
-                if (!Character.isDigit(c)){
-                    throw new ResponseStatusException(
-                    HttpStatus.BAD_REQUEST,
-                    field + " must be numbers"
-                    );
-                }
-            }
-        }
     }
 }

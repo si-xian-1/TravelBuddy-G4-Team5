@@ -2,16 +2,44 @@ package com.TravelBuddy.model;
 
 import com.fasterxml.jackson.annotation.*;
 
+import jakarta.validation.constraints.AssertTrue;
+import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.NotNull;
+import jakarta.validation.constraints.Pattern;
+import jakarta.validation.constraints.Size;
+
+/**
+ * Validation checking used for create and update traveler
+ * User
+ */
 public class User {
     public static final String PASSWORD_MASK = "........";
     private int userId;
+
+    @NotBlank(message = "Username is required")
+    @Size(max = 50, message = "Username can be at most 50 characters")
     private String username;
+
+    @NotBlank(message = "Mobile number is required")
+    @Size(max = 8, message = "Mobile number can be at most 8 characters")
+    @Pattern(regexp = "^\\d+$", message = "Mobile number should only contain numbers")
     private String mobileNumber;
+    
     @JsonProperty(access = JsonProperty.Access.WRITE_ONLY)
+    @Size(max = 255, message = "Password can be at most 255 characters")
     private String password;
     private String role;
+
+    /* Ensure location must be checked */
+    @NotNull(message = "Invalid consent location")
+    @AssertTrue(message = "Invalid consent location")
     private Boolean hasConsentLocation;
+
+    @Size(max = 50, message = "Emergency contact name can be at most 50 characters")
     private String emergencyContactName;
+
+    @Size(max = 8, message = "Emergency contact mobile number can be at most 8 characters")
+    @Pattern(regexp = "^\\d*$", message = "Emergency contact mobile number should only contain numbers")
     private String emergencyContactNumber;
 
     public User() {
