@@ -1,0 +1,228 @@
+
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+
+    <title>TravelBuddy - Add Hotel</title>
+
+    <link th:href="@{/vendor/fontawesome-free/css/all.min.css}"
+          rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css?family=Nunito:400,600,700,800"
+          rel="stylesheet">
+    <link th:href="@{/css/sb-admin-2.min.css}" rel="stylesheet">
+    <link th:href="@{/css/custom.css}" rel="stylesheet">
+</head>
+
+<body class="bg-gradient-primary">
+
+<div class="container">
+    <div class="row justify-content-center">
+        <div class="col-xl-8 col-lg-9 col-md-10">
+
+            <div class="card shadow-lg border-0 my-5">
+                <div class="card-body p-4 p-md-5">
+
+                    <div class="text-center mb-4">
+                        <h1 class="h4 text-gray-900 mb-2">Add a Hotel</h1>
+                        <p class="text-muted">
+                            Add your accommodation to this itinerary.
+                        </p>
+                    </div>
+
+                    <div id="formError"
+                         class="alert alert-danger d-none"
+                         role="alert"></div>
+
+                    <div id="formSuccess"
+                         class="alert alert-success d-none"
+                         role="alert"></div>
+
+                    <form id="hotelForm"
+                          th:data-itinerary-id="${itineraryId}"
+                          th:data-user-id="${userId}">
+
+                        <div class="form-group">
+                            <label for="hotelName">Hotel name or address</label>
+                            <input type="text"
+                                   class="form-control"
+                                   id="hotelName"
+                                   name="hotelName"
+                                   placeholder="Enter hotel name or address"
+                                   maxlength="255"
+                                   required>
+                            <div class="invalid-feedback">
+                                Please enter a hotel name or address.
+                            </div>
+                        </div>
+
+                        <div class="form-group">
+                            <label for="checkIn">Check-in date and time</label>
+                            <input type="datetime-local"
+                                   class="form-control"
+                                   id="checkIn"
+                                   name="checkIn"
+                                   required>
+                            <div class="invalid-feedback">
+                                Please select your check-in date and time.
+                            </div>
+                        </div>
+
+                        <div class="form-group">
+                            <label for="checkOut">Check-out date and time</label>
+                            <input type="datetime-local"
+                                   class="form-control"
+                                   id="checkOut"
+                                   name="checkOut"
+                                   required>
+                            <div class="invalid-feedback">
+                                Please select a check-out time after check-in.
+                            </div>
+                        </div>
+
+                        <button type="submit"
+                                id="createHotelBtn"
+                                class="btn btn-primary btn-block">
+                            <i class="fas fa-hotel mr-2"></i>
+                            Create Hotel
+                        </button>
+
+                        <!--TODO: Replace this destination with actual
+                             detailed-itinerary route. -->
+                        <a class="btn btn-light btn-block mt-2"
+                           th:href="@{/itinerary/{id}(id=${itineraryId}, userId=${userId})}">
+                            Cancel
+                        </a>
+                    </form>
+
+                </div>
+            </div>
+
+        </div>
+    </div>
+</div>
+
+<script th:src="@{/vendor/jquery/jquery.min.js}"></script>
+<script th:src="@{/vendor/bootstrap/js/bootstrap.bundle.min.js}"></script>
+<script th:src="@{/vendor/jquery-easing/jquery.easing.min.js}"></script>
+<script th:src="@{/js/sb-admin-2.min.js}"></script>
+
+<script>
+    const hotelForm = document.getElementById("hotelForm");
+    const createHotelBtn = document.getElementById("createHotelBtn");
+    const formError = document.getElementById("formError");
+    const formSuccess = document.getElementById("formSuccess");
+    const checkInInput = document.getElementById("checkIn");
+    const checkOutInput = document.getElementById("checkOut");
+
+    // The earliest valid check-out must be after check-in.
+    checkInInput.addEventListener("change", function () {
+        checkOutInput.min = checkInInput.value;
+
+        if (checkOutInput.value &&
+            checkOutInput.value <= checkInInput.value) {
+            checkOutInput.value = "";
+        }
+    });
+
+    hotelForm.addEventListener("submit", async function (event) {
+        event.preventDefault();
+
+        formError.classList.add("d-none");
+        formSuccess.classList.add("d-none");
+
+        if (!hotelForm.checkValidity()) {
+            hotelForm.classList.add("was-validated");
+            return;
+        }
+
+        const checkIn = checkInInput.value;
+        const checkOut = checkOutInput.value;
+
+        if (checkOut <= checkIn) {
+            checkOutInput.setCustomValidity(
+                "Check-out must be after check-in."
+            );
+            hotelForm.classList.add("was-validated");
+            checkOutInput.reportValidity();
+            return;
+        }
+
+        checkOutInput.setCustomValidity("");
+
+        const itineraryId = hotelForm.dataset.itineraryId;
+        const userId = hotelForm.dataset.userId;
+
+        const hotel = {
+            hotelName: document.getElementById("hotelName").value.trim(),
+            checkIn: checkIn,
+            checkOut: checkOut
+        };
+
+        if (!hotel.hotelName) {
+            document.getElementById("hotelName").setCustomValidity(
+                "Please enter a hotel name."
+            );
+            hotelForm.classList.add("was-validated");
+            document.getElementById("hotelName").reportValidity();
+            return;
+        }
+
+        createHotelBtn.disabled = true;
+        createHotelBtn.textContent = "Creating hotel...";
+
+        try {
+            const response = await fetch(
+                `/api/itinerary/${itineraryId}/hotels/?userId=${encodeURIComponent(userId)}`,
+                {
+                    method: "POST",
+                    headers: {
+                        "Content-Type": "application/json"
+                    },
+                    body: JSON.stringify(hotel)
+                }
+            );
+
+            if (response.ok) {
+                formSuccess.textContent = "Hotel created successfully.";
+                formSuccess.classList.remove("d-none");
+
+                // TODO: Replace with your confirmed itinerary detail URL.
+                window.location.href =
+                    `/itinerary/${encodeURIComponent(itineraryId)}?userId=${encodeURIComponent(userId)}`;
+                return;
+            }
+
+            let message = "Unable to create hotel. Please check your details.";
+
+            try {
+                const errorData = await response.json();
+                message = errorData.message || message;
+            } catch (ignored) {
+                // Keep the default message if the response isn't JSON.
+            }
+
+            formError.textContent = message;
+            formError.classList.remove("d-none");
+
+        } catch (error) {
+            console.error("Unable to create hotel:", error);
+            formError.textContent =
+                "Unable to connect to the server. Please try again.";
+            formError.classList.remove("d-none");
+        } finally {
+            createHotelBtn.disabled = false;
+            createHotelBtn.innerHTML =
+                '<i class="fas fa-hotel mr-2"></i>Create Hotel';
+        }
+    });
+
+    document.getElementById("hotelName").addEventListener("input", function () {
+        this.setCustomValidity("");
+    });
+</script>
+
+</body>
+</html>
