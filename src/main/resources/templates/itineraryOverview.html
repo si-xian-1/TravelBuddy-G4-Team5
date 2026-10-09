@@ -24,8 +24,6 @@
     <link th:href="@{/css/custom.css}" rel="stylesheet">
 </head>
 
-
-
 <body id="page-top">
 
     <!-- Page Wrapper -->
@@ -42,14 +40,136 @@
                 <!-- Begin Page Content -->
                 <div class="container-fluid">
 
-                    <!-- Page Heading -->
                     <div class="d-sm-flex align-items-center justify-content-between mb-4">
-                        <h1 class="h3 mb-0 text-gray-800">My itineraries</h1>
+                        <h1 class="h3 mb-0 text-gray-800">My Itineraries</h1>
+                        <!--Create itinerary button to add new itinerary-->
+                        <button type="button" id="createItineraryBtn" class="btn btn-primary shadow-sm">
+                            <i class="fas fa-plus fa-sm text-white-50 mr-2"></i> Create Itinerary
+                        </button>
                     </div>
+
+                    <!-- Success Alert Banner shown after successful create/edit/delete itinerary (Hidden by default) -->
+                    <div id="successAlert" class="alert alert-success alert-dismissible fade show d-none" role="alert">
+                        <span id="successAlertMessage"></span>
+                        <button type="button" class="close" data-dismiss="alert" aria-label="Close">
+                            <span aria-hidden="true">x</span>
+                        </button>
+                    </div>
+
+                    <!-- Itinerary Cards Grid -->
+                    <div class="row" id="showItinerary"></div>
+
+                    <!-- Itinerary card is hidden unless user has existing itinerary records -->
+                    <template id="itineraryCard">
+                        <!-- Start of itinerary card display -->
+                        <div class="col-xl-4 col-md-6 mb-4" data-card-id="">
+                            <div class="card border-left-primary shadow h-100 card-hover">
+
+                                <!-- Itinerary card details -->
+                                <a class="card-body text-decoration-none itinerary-details">
+                                    <div class="row no-gutters align-items-center">
+                                        <div class="col mr-2">
+                                            <!-- Itinerary Name -->
+                                            <div class="h5 mb-2 font-weight-bold text-gray-900 itinerary-name"></div>
+
+                                            <!-- Itinerary start date -->
+                                            <p class="text-muted small mb-1">
+                                                <i class="fas fa-calendar-alt mr-1 text-primary"></i>
+                                                <strong>Start:</strong> <span class="itinerary-start-date"></span>
+                                            </p>
+
+                                            <!-- Itinerary end date -->
+                                            <p class="text-muted small mb-0">
+                                                <i class="fas fa-calendar-check mr-1 text-success"></i>
+                                                <strong>End:</strong> <span class="itinerary-end-date"></span>
+                                            </p>
+
+                                        </div>
+                                        <!-- Card icon -->
+                                        <div class="col-auto">
+                                            <i class="fas fa-plane-departure fa-2x text-gray-300"></i>
+                                        </div>
+                                    </div>
+                                </a>
+
+                                <!-- Itinerary card action (Edit and Delete) -->
+                                <div class="card-footer bg-white d-flex justify-content-between py-2">
+                                    <button type="button" class="btn btn-sm btn-outline-primary edit-itinerary-btn">
+                                        <i class="fas fa-edit"></i> Edit
+                                    </button>
+                                    <!-- Delete Button triggers a JavaScript function passing the trip ID -->
+                                    <button type="button" class="btn btn-sm btn-outline-danger delete-itinerary-btn">
+                                        <i class="fas fa-trash"></i> Delete
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                        <!-- End of itinerary card display -->
+                    </template>
                 </div>
             </div>
         </div>
     </div>
+
+    <!-- Pop up create/edit modal when create/edit button is clicked. Input fields changes dynamically based on whether create or edit mode. (Hidden by default) -->
+    <div class="modal fade" id="itineraryModal" tabindex="-1" role="dialog" aria-hidden="true">
+        <div class="modal-dialog" role="document">
+            <div class="modal-content">
+
+                <div class="modal-header">
+                    <h5 class="modal-title" id="itineraryModalTitle">Create Itinerary</h5>
+                    <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                        <span aria-hidden="true">x</span>
+                    </button>
+                </div>
+
+                <!-- Start of create or edit itinerary form fields -->
+                <form id="itineraryForm">
+                    <div class="modal-body">
+                        <div id="itineraryModalErrorAlert" class="alert alert-danger d-none" role="alert"></div>
+
+                        <!-- Track if in edit or create mode (no id = create, have id = edit)-->
+                        <input type="hidden" id="itineraryId">
+
+                        <!-- Itinerary name -->
+                        <div class="form-group">
+                            <label>Itinerary Name</label>
+                            <input type="text" class="form-control" id="itineraryName">
+                            <div id="itineraryNameError" class="invalid-feedback"></div>
+                        </div>
+
+                        <!-- Itinerary start date -->
+                        <div class="form-group">
+                            <label>Start Date</label>
+                            <input type="date" class="form-control" id="itineraryStartDate">
+                            <div id="itineraryStartDateError" class="invalid-feedback"></div>
+                        </div>
+
+                        <!-- Itinerary end date -->
+                        <div class="form-group">
+                            <label>End Date</label>
+                            <input type="date" class="form-control" id="itineraryEndDate">
+                            <div id="itineraryEndDateError" class="invalid-feedback"></div>
+                        </div>
+                    </div>
+
+                    <!-- Action buttons -->
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-secondary" data-dismiss="modal">Cancel</button>
+                        <button type="submit" class="btn btn-primary" id="saveItineraryBtn">Save</button>
+                    </div>
+                </form>
+                <!-- End of create or edit itinerary form fields -->
+
+            </div>
+        </div>
+    </div>
+
+    <!-- Pop up delete confirmation modal when delete button is clicked -->
+    <div th:replace="~{fragments/deleteModal :: deleteModal}"></div>
+
+    <!-- Custom script for itinerary management -->
+    <script th:src="@{/js/itineraryOverview.js}"></script>
 
     <!-- Bootstrap core JavaScript-->
     <script th:src="@{/vendor/jquery/jquery.min.js}"></script>

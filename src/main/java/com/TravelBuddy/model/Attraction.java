@@ -11,7 +11,7 @@ import lombok.*;
 @NoArgsConstructor
 @EqualsAndHashCode
 public class Attraction {
-    private int attractionId;
+    private Integer attractionId;
     private String attractionName;
     private double latitude;
     private double longitude;

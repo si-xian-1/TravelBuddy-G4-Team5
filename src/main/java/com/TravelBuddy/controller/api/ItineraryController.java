@@ -8,6 +8,8 @@ import org.springframework.web.bind.annotation.*;
 import com.TravelBuddy.model.Itinerary;
 import com.TravelBuddy.service.ItineraryService;
 
+import jakarta.validation.Valid;
+
 @RestController
 @RequestMapping("/api/itinerary")
 public class ItineraryController {
@@ -57,7 +59,7 @@ public class ItineraryController {
      */
     @PostMapping("/")
     public ResponseEntity<String> createItinerary(
-            @RequestParam int userId, @RequestBody Itinerary itinerary) {
+            @RequestParam int userId, @Valid @RequestBody Itinerary itinerary) {
         
         int addedItinerary = itineraryService.createItinerary(itinerary, userId);
         
@@ -65,5 +67,43 @@ public class ItineraryController {
         // If invalid inputs, returns the validation message
         // If unauthorized access, return unauthorized access message
         return ResponseEntity.status(HttpStatus.CREATED).body("Successfully created itinerary id:" + addedItinerary);
+    }
+
+    /**
+     * Update an existing itinerary of the user
+     * @param itineraryId
+     * @param userId
+     * @param itinerary
+     * @return status of the update
+     */
+    @PutMapping("/{itineraryId}")
+    public ResponseEntity<String> updateItinerary(
+            @PathVariable int itineraryId,
+            @RequestParam int userId,
+            @Valid @RequestBody Itinerary itinerary
+    ) {
+        // Check if any update was made
+        int rowsUpdated = itineraryService.updateItinerary(itineraryId, userId, itinerary);
+        
+        if (rowsUpdated > 0) {
+            return ResponseEntity.status(HttpStatus.OK).body("Successfully updated itinerary id: " + itineraryId);
+        } else {
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body("Itinerary not found or could not be updated.");
+        }
+    }
+
+    /**
+     * 
+     * @param itineraryId
+     * @param userId
+     * @return success message for deletion of itinerary or error message
+     */
+    @DeleteMapping("/{itineraryId}")
+    public ResponseEntity<String> deleteItinerary(@PathVariable int itineraryId, @RequestParam int userId) {
+        if (itineraryService.deleteItinerary(itineraryId, userId) == 0) {
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body("Itinerary not found or could not be updated.");
+        }
+
+        return ResponseEntity.status(HttpStatus.OK).body("Successfully deleted itinerary");
     }
 }

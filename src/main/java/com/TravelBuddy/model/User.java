@@ -14,7 +14,7 @@ import jakarta.validation.constraints.Size;
  */
 public class User {
     public static final String PASSWORD_MASK = "........";
-    private int userId;
+    private Integer userId;
 
     @NotBlank(message = "Username is required")
     @Size(max = 50, message = "Username can be at most 50 characters")
