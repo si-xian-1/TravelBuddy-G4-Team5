@@ -11,8 +11,9 @@ import org.springframework.stereotype.Repository;
 
 import com.TravelBuddy.model.Hotel;
 
-@Repository 
+@Repository
 public class HotelRepository {
+
     private final JdbcTemplate jdbcTemplate;
 
     public HotelRepository(JdbcTemplate jdbcTemplate) {
@@ -21,6 +22,7 @@ public class HotelRepository {
 
     /**
      * Get all hotel in an itinerary
+     *
      * @param itineraryId
      * @return all hotel
      */
@@ -29,26 +31,27 @@ public class HotelRepository {
                 SELECT hotel_id, itinerary_id, hotel_name, latitude, longitude, check_in, check_out
                 FROM hotels WHERE itinerary_id = ?
                 """;
-        
+
         return jdbcTemplate.query(
                 sql,
                 (result, rowNum) -> {
-            Hotel hotel = new Hotel();
+                    Hotel hotel = new Hotel();
 
-            hotel.setHotelId(result.getInt("hotel_id"));
-            hotel.setItineraryId(result.getInt("itinerary_id"));
-            hotel.setHotelName(result.getString("hotel_name"));
-            hotel.setLatitude(result.getDouble("latitude"));
-            hotel.setLongitude(result.getDouble("longitude"));
-            hotel.setCheckIn(result.getTimestamp("check_in").toLocalDateTime());
-            hotel.setCheckOut(result.getTimestamp("check_out").toLocalDateTime());
+                    hotel.setHotelId(result.getInt("hotel_id"));
+                    hotel.setItineraryId(result.getInt("itinerary_id"));
+                    hotel.setHotelName(result.getString("hotel_name"));
+                    hotel.setLatitude(result.getDouble("latitude"));
+                    hotel.setLongitude(result.getDouble("longitude"));
+                    hotel.setCheckIn(result.getTimestamp("check_in").toLocalDateTime());
+                    hotel.setCheckOut(result.getTimestamp("check_out").toLocalDateTime());
 
-            return hotel;
-        }, itineraryId);
+                    return hotel;
+                }, itineraryId);
     }
 
     /**
-     * Get a detailed specific hotel based on itinerary id and selected hotel to view
+     * Get a detailed specific hotel based on itinerary id and selected hotel to
+     * view
      */
     public Hotel findSelectedHotelByItineraryId(int hotelId, int itineraryId) {
         String sql = """
@@ -60,26 +63,26 @@ public class HotelRepository {
             return jdbcTemplate.queryForObject(
                     sql,
                     (result, rowNum) -> {
-                Hotel hotel = new Hotel();
-                hotel.setHotelId(result.getInt("hotel_id"));
-                hotel.setItineraryId(result.getInt("itinerary_id"));
-                hotel.setHotelName(result.getString("hotel_name"));
-                hotel.setLatitude(result.getDouble("latitude"));
-                hotel.setLongitude(result.getDouble("longitude"));
-                hotel.setCheckIn(result.getTimestamp("check_in").toLocalDateTime());
-                hotel.setCheckOut(result.getTimestamp("check_out").toLocalDateTime());
+                        Hotel hotel = new Hotel();
+                        hotel.setHotelId(result.getInt("hotel_id"));
+                        hotel.setItineraryId(result.getInt("itinerary_id"));
+                        hotel.setHotelName(result.getString("hotel_name"));
+                        hotel.setLatitude(result.getDouble("latitude"));
+                        hotel.setLongitude(result.getDouble("longitude"));
+                        hotel.setCheckIn(result.getTimestamp("check_in").toLocalDateTime());
+                        hotel.setCheckOut(result.getTimestamp("check_out").toLocalDateTime());
 
-                return hotel;
-            }, itineraryId, hotelId);
+                        return hotel;
+                    }, hotelId, itineraryId);
         } catch (EmptyResultDataAccessException e) {
             // When no results found for hotel
-            return null; 
+            return null;
         }
     }
-    
+
     /**
      * Add hotel stay location into the itinerary
-     * 
+     *
      * @param itineraryId
      * @param hotel
      * @return newly created hotel stay details
@@ -93,7 +96,7 @@ public class HotelRepository {
         KeyHolder keyHolder = new GeneratedKeyHolder();
 
         jdbcTemplate.update(connection -> {
-            var statement = connection.prepareStatement(sql, new String[] { "hotel_id" });
+            var statement = connection.prepareStatement(sql, new String[]{"hotel_id"});
             statement.setInt(1, itineraryId);
             statement.setString(2, hotel.getHotelName());
             statement.setDouble(3, hotel.getLatitude());
@@ -106,8 +109,54 @@ public class HotelRepository {
         // Retrieve hotel id of the newly created hotel from database
         hotel.setHotelId(keyHolder.getKey().intValue());
         hotel.setItineraryId(itineraryId);
-        
+
         return hotel;
 
+    }
+
+    /**
+     * Update a hotel belonging to a specific itinerary.
+     *
+     * @param itineraryId the itinerary containing the hotel
+     * @param hotel the updated hotel details
+     * @return number of rows affected
+     */
+    public int updateHotel(int itineraryId, Hotel hotel) {
+        String sql = """
+            UPDATE hotels
+            SET hotel_name = ?,
+                latitude = ?,
+                longitude = ?,
+                check_in = ?,
+                check_out = ?
+            WHERE hotel_id = ? AND itinerary_id = ?
+            """;
+
+        return jdbcTemplate.update(
+                sql,
+                hotel.getHotelName(),
+                hotel.getLatitude(),
+                hotel.getLongitude(),
+                Timestamp.valueOf(hotel.getCheckIn()),
+                Timestamp.valueOf(hotel.getCheckOut()),
+                hotel.getHotelId(),
+                itineraryId
+        );
+    }
+
+    /**
+     * Delete a hotel belonging to a specific itinerary.
+     *
+     * @param hotelId the hotel to delete
+     * @param itineraryId the itinerary containing the hotel
+     * @return number of rows deleted
+     */
+    public int deleteHotel(int hotelId, int itineraryId) {
+        String sql = """
+            DELETE FROM hotels
+            WHERE hotel_id = ? AND itinerary_id = ?
+            """;
+
+        return jdbcTemplate.update(sql, hotelId, itineraryId);
     }
 }

@@ -11,6 +11,8 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.PutMapping;
+import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.server.ResponseStatusException;
 
 import com.TravelBuddy.model.Hotel;
@@ -19,6 +21,7 @@ import com.TravelBuddy.service.HotelService;
 @RestController
 @RequestMapping("/api/itinerary/{itineraryId}/hotels")
 public class HotelController {
+
     private final HotelService hotelService;
 
     public HotelController(HotelService hotelService) {
@@ -26,18 +29,19 @@ public class HotelController {
     }
 
     /**
-     * 
+     *
      * @param itineraryId
      * @param userId
      * @param hotel
-     * @return Status code whether hotel is successfully created and results or unauthorized access
+     * @return Status code whether hotel is successfully created and results or
+     * unauthorized access
      */
     @PostMapping("/")
     public ResponseEntity<Hotel> createHotel(
             @PathVariable int itineraryId, @RequestParam int userId, @RequestBody Hotel hotel) {
-        
+
         Hotel addedHotel = hotelService.createHotel(itineraryId, userId, hotel);
-        
+
         // If success, returns the newly created hotel
         // If invalid inputs, returns the validation message
         // If unauthorized access, return unauthorized access message
@@ -45,7 +49,7 @@ public class HotelController {
     }
 
     /**
-     * 
+     *
      * @param itineraryId
      * @param userId
      * @param hotelId
@@ -67,7 +71,7 @@ public class HotelController {
     }
 
     /**
-     * 
+     *
      * @param itineraryId
      * @param userId
      * @return List of all hotels belonging to the user
@@ -80,5 +84,28 @@ public class HotelController {
 
         // If success, returns all itinerary
         return ResponseEntity.status(HttpStatus.OK).body(hotels);
+    }
+
+    /**
+     * Update a hotel belonging to the specified itinerary.
+     */
+    @PutMapping("/{hotelId}")
+    public ResponseEntity<Hotel> updateHotel(@PathVariable int itineraryId,@PathVariable int hotelId,
+            @RequestParam int userId,@RequestBody Hotel hotel) {
+
+        Hotel updatedHotel = hotelService.updateHotel(itineraryId, userId, hotelId, hotel);
+
+        return ResponseEntity.ok(updatedHotel);
+    }
+
+    /**
+     * Delete a hotel belonging to the specified itinerary.
+     */
+    @DeleteMapping("/{hotelId}")
+    public ResponseEntity<Void> deleteHotel(@PathVariable int itineraryId, @PathVariable int hotelId, @RequestParam int userId) {
+
+        hotelService.deleteHotel(itineraryId, userId, hotelId);
+
+        return ResponseEntity.noContent().build();
     }
 }
