@@ -20,5 +20,5 @@ public class Attraction {
     private String disasterWarning;
 
     // Foreign key to link to respective itinerary it belongs to
-    private int itineraryId;
+    private Integer itineraryId;
 }

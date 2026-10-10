@@ -10,6 +10,14 @@ To add own customized styling to overwrite existing styling
   background-repeat: no-repeat;
 }
 
+/* For login page */
+.bg-login-image {
+  background-image: url("../img/login.jpg") !important;
+  background-position: center !important;
+  background-size: contain !important;
+  background-repeat: no-repeat;
+}
+
 /* Custom hover effect for cards to pop up for clickable cards */
 .card-hover {
     transition: transform 0.2s ease-in-out, box-shadow 0.2s ease-in-out;

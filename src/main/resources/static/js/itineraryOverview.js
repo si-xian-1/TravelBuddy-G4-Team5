@@ -8,10 +8,8 @@
 
 /**
  * Retrieve all itinerary record and set up create button
- */
+*/
 document.addEventListener("DOMContentLoaded", async function () {
-    const userId = 1; // Temporary test ID until login is implemented
-
     // When create itinerary button is clicked, show create pop up modal for user to add new itinerary record
     document.getElementById('createItineraryBtn').addEventListener('click', function () {
         // Clear the hidden ID to indicate create mode
@@ -33,7 +31,9 @@ document.addEventListener("DOMContentLoaded", async function () {
 
     // Load all itinerary that belongs to user and display
     try {
-        const response = await fetch(`/api/itinerary/all/${userId}`);
+        const response = await fetch(`/api/itinerary/all`, {
+            credentials: 'same-origin'
+        });
 
         if (response.ok) {
             const itineraries = await response.json();
@@ -58,7 +58,6 @@ document.getElementById('itineraryForm').addEventListener('submit', async functi
     const isEditing = itineraryId !== "";
 
     // Retrieve user input values
-    const userId = 1;
     const name = document.getElementById('itineraryName').value;
     const startDate = document.getElementById('itineraryStartDate').value;
     const endDate = document.getElementById('itineraryEndDate').value;
@@ -70,14 +69,13 @@ document.getElementById('itineraryForm').addEventListener('submit', async functi
 
     // Set up json ready data to send to API
     const itineraryData = {
-        userId: userId,
         itineraryName: name,
         startDate: startDate,
         endDate: endDate
     };
 
     // Set up the corresponding API to call and method
-    const url = isEditing ? `/api/itinerary/${itineraryId}?userId=${userId}` : `/api/itinerary/?userId=${userId}`;
+    const url = isEditing ? `/api/itinerary/${itineraryId}` : `/api/itinerary/`;
     const method = isEditing ? 'PUT' : 'POST';
 
     try {
@@ -86,6 +84,7 @@ document.getElementById('itineraryForm').addEventListener('submit', async functi
             headers: {
                 'Content-Type': 'application/json'
             },
+            credentials: 'same-origin',
             body: JSON.stringify(itineraryData)
         });
 
@@ -199,7 +198,9 @@ function renderItineraries(itineraries) {
 
             try {
                 // Call GET by itineraryId method to retrieve this selected itinerary record
-                const response = await fetch(`/api/itinerary/${itinerary.itineraryId}?userId=1`);
+                const response = await fetch(`/api/itinerary/${itinerary.itineraryId}`, {
+                    credentials: 'same-origin'
+                });
 
                 // Check response received
                 if (response.ok) {
@@ -256,8 +257,9 @@ document.getElementById('confirmDeleteModalBtn').addEventListener('click', async
 
     try {
         // Call DELETE by itineraryId method to delete this specific itinerary record
-        const response = await fetch(`/api/itinerary/${currentDeleteId}?userId=${1}`, {
-            method: 'DELETE'
+        const response = await fetch(`/api/itinerary/${currentDeleteId}`, {
+            method: 'DELETE',
+            credentials: 'same-origin'
         });
 
         if (response.ok) {

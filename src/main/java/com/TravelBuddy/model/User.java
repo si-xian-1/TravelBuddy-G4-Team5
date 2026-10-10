@@ -1,10 +1,16 @@
 package com.TravelBuddy.model;
 
+import java.util.Arrays;
+import java.util.Collection;
+
+import org.springframework.security.core.GrantedAuthority;
+import org.springframework.security.core.authority.SimpleGrantedAuthority;
+import org.springframework.security.core.userdetails.UserDetails;
+
 import com.fasterxml.jackson.annotation.*;
 
 import jakarta.validation.constraints.AssertTrue;
 import jakarta.validation.constraints.NotBlank;
-import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Pattern;
 import jakarta.validation.constraints.Size;
 
@@ -12,7 +18,7 @@ import jakarta.validation.constraints.Size;
  * Validation checking used for create and update traveler
  * User
  */
-public class User {
+public class User implements UserDetails {
     public static final String PASSWORD_MASK = "........";
     private Integer userId;
 
@@ -20,7 +26,6 @@ public class User {
     @Size(max = 50, message = "Username can be at most 50 characters")
     private String username;
 
-    @NotBlank(message = "Mobile number is required")
     @Size(max = 8, message = "Mobile number can be at most 8 characters")
     @Pattern(regexp = "^\\d+$", message = "Mobile number should only contain numbers")
     private String mobileNumber;
@@ -31,7 +36,6 @@ public class User {
     private String role;
 
     /* Ensure location must be checked */
-    @NotNull(message = "Invalid consent location")
     @AssertTrue(message = "Invalid consent location")
     private Boolean hasConsentLocation;
 
@@ -108,5 +112,42 @@ public class User {
 
     public void setEmergencyContactMobileNumber(String emergencyContactNumber) {
         this.emergencyContactNumber = emergencyContactNumber;
+    }
+
+    /* Return a collection of authorities (roles) granted to the user.
+    */
+    @JsonIgnore
+    @Override
+    public Collection<? extends GrantedAuthority> getAuthorities() {
+        String authority = "ROLE_" + role;
+        return Arrays.asList(new SimpleGrantedAuthority(authority));
+    }
+
+    /*
+    The various is___Expired() methods return a boolean to indicate whether
+    or not the user’s account is enabled or expired.
+    */
+    @JsonIgnore
+    @Override
+    public boolean isAccountNonExpired() {
+        return true;
+    }
+
+    @JsonIgnore
+    @Override
+    public boolean isAccountNonLocked() {
+        return true;
+    }
+
+    @JsonIgnore
+    @Override
+    public boolean isCredentialsNonExpired() {
+        return true;
+    }
+
+    @JsonIgnore
+    @Override
+    public boolean isEnabled() {
+        return true;
     }
 }

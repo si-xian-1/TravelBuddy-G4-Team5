@@ -17,6 +17,7 @@ document.getElementById("signupForm").addEventListener("submit", async function 
     const travelerSignUpDetails = {username, mobileNumber, password, hasConsentLocation: hasConsentLocation.checked};
 
     try {
+        // Call POST method to register this user
         const response = await fetch('/api/travelers/signup', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
@@ -25,7 +26,8 @@ document.getElementById("signupForm").addEventListener("submit", async function 
 
         if (response.ok) {
             // When sign up successful, redirect to login page
-            window.location.href = '/';
+            window.location.href = '/login';
+            return;
         } else {
             // When user inputs has some errors, display error message from backend
             const errData = await response.json();

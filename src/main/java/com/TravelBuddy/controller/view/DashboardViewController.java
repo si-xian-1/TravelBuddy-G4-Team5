@@ -1,14 +1,16 @@
 package com.TravelBuddy.controller.view;
 
 import org.springframework.stereotype.Controller;
+import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
 
 @Controller
 public class DashboardViewController {
     /**
      * Render view dashboard page
      */
-    @GetMapping("/home")
+    @GetMapping("/")
     public String Dashboard() {
         return "index";
     }
@@ -17,8 +19,17 @@ public class DashboardViewController {
      * Render view all itineraries page
      */
     @GetMapping("/allItineraries")
-    public String AllItineraries() {
+    public String allItineraries() {
         return "itineraryOverview";
+    }
+
+    /**
+     * Render detailed itinerary page and pass in itineraryId for retrival of itinerary details
+     */
+    @GetMapping("/itinerary/view/{itineraryId}")
+    public String detailedItinerary(@PathVariable("itineraryId") Integer itineraryId, Model model) {
+        model.addAttribute("itineraryId", itineraryId);
+        return "detailedItinerary";
     }
 
     /**

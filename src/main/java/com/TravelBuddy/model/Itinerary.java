@@ -28,7 +28,7 @@ public class Itinerary {
 
     @NotNull(message = "End date is required")
     private LocalDate endDate;
-    private int userId;
+    private Integer userId;
 
     // Mapped all the related hotels, flights and attractions to this itinerary
     // Prevent fields from showing in request body of itinerary creation
