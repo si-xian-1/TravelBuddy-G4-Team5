@@ -81,20 +81,12 @@ public class ItineraryService {
      */
     public int createItinerary(Itinerary itinerary, int userId) {
         // Validation checks and return meaningful response to user
-        if (travelerRepository.getUser(userId) == null) {
-            throw new InvalidInputsException("User does not exist.");
-        }
-        if (itinerary == null) {
-            throw new InvalidInputsException("Itinerary cannot be empty.");
-        }
-        if (itinerary.getItineraryName() == null || itinerary.getItineraryName().trim().isEmpty()) {
-            throw new InvalidInputsException("Itinerary name is required.");
-        }
-        if (itinerary.getStartDate() == null || itinerary.getEndDate() == null) {
-            throw new InvalidInputsException("Start and end dates are required.");
-        }
         if (itinerary.getStartDate().isAfter(itinerary.getEndDate())) {
             throw new InvalidInputsException("Start date cannot be after end date.");
+        }
+
+        if (travelerRepository.getUser(userId) == null) {
+            throw new InvalidInputsException("User does not exist.");
         }
 
         itinerary.setUserId(userId);
@@ -123,17 +115,11 @@ public class ItineraryService {
      * @return number of rows updated in itineraries
      */
     public int updateItinerary(int itineraryId, int userId, Itinerary itinerary) {
-        checkItineraryBelongToUser(itineraryId, userId);
-
-        if (itinerary.getItineraryName() == null || itinerary.getItineraryName().trim().isEmpty()) {
-            throw new InvalidInputsException("Itinerary name is required.");
-        }
-        if (itinerary.getStartDate() == null || itinerary.getEndDate() == null) {
-            throw new InvalidInputsException("Start and end dates are required.");
-        }
         if (itinerary.getStartDate().isAfter(itinerary.getEndDate())) {
             throw new InvalidInputsException("Start date cannot be after end date.");
         }
+
+        checkItineraryBelongToUser(itineraryId, userId);
 
         return itineraryRepository.updateItinerary(itineraryId, userId, itinerary);
     }

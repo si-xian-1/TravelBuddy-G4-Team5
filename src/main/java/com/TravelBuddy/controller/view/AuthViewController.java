@@ -5,8 +5,10 @@ import org.springframework.web.bind.annotation.GetMapping;
 
 @Controller
 public class AuthViewController {
-    // Render the login page aka landing page
-    @GetMapping("/")
+    /**
+     * Render the login page aka landing page
+     */
+    @GetMapping("/login")
     public String Login() {
         return "login";
     }

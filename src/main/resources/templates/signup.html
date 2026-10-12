@@ -77,7 +77,7 @@
                                 </div>
 
                                 <!-- Form submit button -->
-                                <button type="button" id="signupBtn" class="btn btn-primary btn-user btn-block">
+                                <button type="submit" id="signupBtn" class="btn btn-primary btn-user btn-block">
                                     Sign up
                                 </button>
 
@@ -99,71 +99,7 @@
     </div>
 
     <!-- Dealing with sigup up form validation -->
-    <script>
-        // When sign up button is clicked, calls sign up API and validate inputs
-        document.getElementById("signupBtn").addEventListener("click", async function (event) {
-            // Prevents reload or page refresh
-            event.preventDefault();
-
-            // Clears any previous error messages displayed
-            document.querySelectorAll('.form-control, .form-check-input').forEach(el => {
-                el.classList.remove('is-invalid');
-            });
-
-            // Get user inputs
-            const travelerSignUpDetails = {
-                username: document.getElementById("username").value.trim(),
-                mobileNumber: document.getElementById("mobileNumber").value.trim(),
-                password: document.getElementById("password").value,
-                hasConsentLocation: document.getElementById("hasConsentLocation").checked
-            };
-
-            try {
-                // Call sign up API
-                const response = await fetch('/api/travelers/signup', {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify(travelerSignUpDetails)
-                });
-
-                if (response.ok) {
-                    // When sign up successful, redirect to login page
-                    window.location.href = '/';
-                } else {
-                    // When user inputs has some errors, display error message
-                    const errData = await response.json();
-                    // Get error message returned from the backend
-                    const message = errData.message || "Validation failed";
-                    const fieldNames = message.toLowerCase();
-
-                    // Display the error message inline with the input boxes
-                    if (fieldNames.includes("username")) {
-                        setFieldError("username", message);
-                    } else if (fieldNames.includes("mobile")) {
-                        setFieldError("mobileNumber", message);
-                    } else if (fieldNames.includes("password")) {
-                        setFieldError("password", message);
-                    } else if (fieldNames.includes("consent")) {
-                        setFieldError("hasConsentLocation", message);
-                    }
-                }
-            } catch (err) {
-                // Log the error for other issues
-                console.error("Unable to complete sign up:", err);
-            }
-        });
-
-        // Show the error message
-        function setFieldError(fieldId, message) {
-            const inputElement = document.getElementById(fieldId);
-            inputElement.classList.add('is-invalid');
-
-            const feedbackElement = document.getElementById(fieldId + 'ErrMsg');
-            if (feedbackElement) {
-                feedbackElement.textContent = message;
-            }
-        }
-    </script>
+    <script th:src="@{/js/signup.js}"></script>
 
     <!-- Bootstrap core JavaScript-->
     <script th:src="@{/vendor/jquery/jquery.min.js}"></script>
