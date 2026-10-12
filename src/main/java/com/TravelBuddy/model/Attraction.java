@@ -11,7 +11,7 @@ import lombok.*;
 @NoArgsConstructor
 @EqualsAndHashCode
 public class Attraction {
-    private int attractionId;
+    private Integer attractionId;
     private String attractionName;
     private double latitude;
     private double longitude;
@@ -20,5 +20,5 @@ public class Attraction {
     private String disasterWarning;
 
     // Foreign key to link to respective itinerary it belongs to
-    private int itineraryId;
+    private Integer itineraryId;
 }

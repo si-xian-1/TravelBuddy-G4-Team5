@@ -11,7 +11,7 @@ import lombok.*;
 @NoArgsConstructor
 @EqualsAndHashCode
 public class Flight {
-    private int flightId;
+    private Integer flightId;
     private String airline;
     private String flightNumber;
     private String departureAirport;
@@ -26,5 +26,5 @@ public class Flight {
     private String disasterWarning;
 
     // Foreign key to link to respective itinerary it belongs to
-    private int itineraryId;
+    private Integer itineraryId;
 }
