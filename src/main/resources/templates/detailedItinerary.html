@@ -45,67 +45,149 @@
                     <!-- Page Heading -->
                     <div class="d-sm-flex align-items-center justify-content-between mb-4">
                         <h1 class="h3 mb-0 text-gray-800">Itinerary Details</h1>
-                        <a class="btn btn-primary shadow-sm"
-                            th:href="@{/itinerary/view/{id}/attractions/new(id=${itineraryId})}">
-                            <i class="fas fa-plus fa-sm text-white-50 mr-2"></i> Add Attraction
+                        <a class="btn btn-secondary shadow-sm" th:href="@{/allItineraries}">
+                            <i class="fas fa-arrow-left fa-sm mr-2"></i> Back to my itineraries
                         </a>
                     </div>
 
-                    <div class="card shadow mb-4">
-                        <div class="card-header py-3">
-                            <h6 class="m-0 font-weight-bold text-primary">Attractions</h6>
-                        </div>
-                        <div class="card-body">
-                            <div id="attractionsError" class="alert alert-danger d-none" role="alert">
-                                Unable to load attractions for this itinerary.
-                            </div>
-                            <p id="attractionsLoading" class="text-muted mb-0">Loading attractions...</p>
-                            <p id="noAttractions" class="text-muted mb-0 d-none">
-                                No attractions have been added to this itinerary yet.
-                            </p>
-                            <div id="attractionsList" class="row"></div>
-                        </div>
-                    </div>
+                    <!-- Start of accordian to show hide flights, hotels and attractions to prevent infinite scrolling -->
+                    <div class="accordion" id="itineraryAccordion">
 
+                        <!-- 1. ATTRACTIONS COLLAPSIBLE -->
+                        <div class="card shadow mb-4">
+                            <!-- Card Header - Acts as the collapse toggle -->
+                            <a href="#collapseAttractions" class="d-block card-header py-3" data-toggle="collapse"
+                                role="button" aria-expanded="true" aria-controls="collapseAttractions">
+                                <h6 class="m-0 font-weight-bold text-primary">
+                                    <i class="fas fa-map-marker-alt mr-2"></i>Attractions
+                                </h6>
+                            </a>
+                            <!-- Card Content - 'show' class makes it open by default -->
+                            <div class="collapse show" id="collapseAttractions" data-parent="#itineraryAccordion">
+                                <div class="card-body">
+                                    <!-- Action bar inside the body to prevent HTML nesting issues in the header -->
+                                    <div class="d-flex justify-content-end mb-3">
+                                        <a class="btn btn-primary btn-sm shadow-sm"
+                                            th:href="@{/itinerary/view/{id}/attractions/new(id=${itineraryId})}">
+                                            <i class="fas fa-plus fa-sm text-white-50 mr-2"></i> Add Attraction
+                                        </a>
+                                    </div>
+
+                                    <div id="attractionsError" class="alert alert-danger d-none" role="alert">
+                                        Unable to load attractions for this itinerary.
+                                    </div>
+                                    <p id="attractionsLoading" class="text-muted mb-0">Loading attractions...</p>
+                                    <p id="noAttractions" class="text-muted mb-0 d-none">
+                                        No attraction have been added to this itinerary yet.
+                                    </p>
+
+                                    <!-- The 'row' class enables the grid for the template cards -->
+                                    <div class="row" id="attractionsList"></div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- 2. HOTELS COLLAPSIBLE -->
+                        <div class="card shadow mb-4">
+                            <a href="#collapseHotels" class="d-block card-header py-3 collapsed" data-toggle="collapse"
+                                role="button" aria-expanded="false" aria-controls="collapseHotels">
+                                <h6 class="m-0 font-weight-bold text-info">
+                                    <i class="fas fa-bed mr-2"></i>Hotel
+                                </h6>
+                            </a>
+                            <!-- Notice 'show' is removed so it starts collapsed -->
+                            <div class="collapse" id="collapseHotels" data-parent="#itineraryAccordion">
+                                <div class="card-body">
+                                    <div class="d-flex justify-content-end mb-3">
+                                        <a class="btn btn-info btn-sm shadow-sm" href="#">
+                                            <i class="fas fa-plus fa-sm text-white-50 mr-2"></i> Add Hotel
+                                        </a>
+                                    </div>
+                                    <p id="noHotels" class="text-muted mb-0">
+                                        No hotel have been added to this itinerary yet.
+                                    </p>
+                                    <div class="row" id="hotelsList"></div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Start show flight accordion -->
+                        <div class="card shadow mb-4">
+                            <a href="#collapseFlights" class="d-block card-header py-3 collapsed" data-toggle="collapse"
+                                role="button" aria-expanded="false" aria-controls="collapseFlights">
+                                <h6 class="m-0 font-weight-bold text-success">
+                                    <i class="fas fa-plane mr-2"></i>Flight
+                                </h6>
+                            </a>
+                            <div class="collapse" id="collapseFlights" data-parent="#itineraryAccordion">
+                                <div class="card-body">
+                                    <div class="d-flex justify-content-end mb-3">
+                                        <a class="btn btn-success btn-sm shadow-sm" href="#">
+                                            <i class="fas fa-plus fa-sm text-white-50 mr-2"></i> Add Flight
+                                        </a>
+                                    </div>
+                                    <p id="noFlights" class="text-muted mb-0">
+                                        No flight have been added to this itinerary yet.
+                                    </p>
+                                    <div class="row" id="flightsList"></div>
+                                </div>
+                            </div>
+                        </div>
+                        <!-- End show flight accordion -->
+
+                    </div>
+                    <!-- End of accordion -->
+
+                    <!-- Refactored Grid Template -->
                     <template id="attractionCard">
-                        <div class="col-lg-6 mb-3">
+                        <!-- The col-md-6 col-xl-4 classes dictate width: 1 card on mobile, 2 on tablets, 3 on large screens -->
+                        <div class="col-md-6 col-xl-4 mb-4">
                             <div class="card border-left-primary shadow h-100 attraction-card">
                                 <div class="card-body">
                                     <div class="attraction-details">
-                                        <h5 class="attraction-name font-weight-bold text-gray-900"></h5>
-                                        <p class="mb-2">
-                                            <strong>Visit:</strong>
+                                        <h5 class="attraction-name font-weight-bold text-gray-900 mb-3"></h5>
+                                        <p class="mb-2 text-sm">
+                                            <i class="far fa-calendar-alt text-muted mr-2"></i>
                                             <span class="attraction-visit-date"></span>
                                         </p>
-                                        <p class="mb-3 text-muted small">
-                                            <strong>Coordinates:</strong>
-                                            <span class="attraction-coordinates"></span>
+                                        <p class="mb-3 text-sm">
+                                            <i class="fas fa-map-pin text-muted mr-2"></i>
+                                            <span class="attraction-coordinates text-muted"></span>
                                         </p>
-                                        <button type="button" class="btn btn-sm btn-outline-primary edit-attraction">
-                                            <i class="fas fa-edit"></i> Edit
-                                        </button>
-                                        <button type="button" class="btn btn-sm btn-outline-danger delete-attraction">
-                                            <i class="fas fa-trash"></i> Delete
-                                        </button>
+
+                                        <div class="mt-3 pt-3 border-top">
+                                            <button type="button"
+                                                class="btn btn-sm btn-outline-primary edit-attraction mr-1">
+                                                <i class="fas fa-edit"></i> Edit
+                                            </button>
+                                            <button type="button"
+                                                class="btn btn-sm btn-outline-danger delete-attraction">
+                                                <i class="fas fa-trash"></i>
+                                            </button>
+                                        </div>
                                     </div>
-                                    <div class="alert alert-danger d-none attraction-edit-error" role="alert"></div>
+
+                                    <div class="alert alert-danger d-none attraction-edit-error mt-2 text-sm"
+                                        role="alert"></div>
+
                                     <form class="attraction-edit-form d-none">
-                                        <div class="form-group">
-                                            <label class="attraction-name-label">Attraction name or location</label>
-                                            <input type="text" class="form-control edit-attraction-name"
+                                        <div class="form-group mb-2">
+                                            <label class="text-xs font-weight-bold text-uppercase mb-1">Name</label>
+                                            <input type="text" class="form-control form-control-sm edit-attraction-name"
                                                 maxlength="255" required>
                                         </div>
-                                        <div class="form-group">
-                                            <label class="attraction-date-label">Visit date and time</label>
-                                            <input type="datetime-local" class="form-control edit-attraction-date"
-                                                required>
+                                        <div class="form-group mb-3">
+                                            <label class="text-xs font-weight-bold text-uppercase mb-1">Visit
+                                                Date</label>
+                                            <input type="datetime-local"
+                                                class="form-control form-control-sm edit-attraction-date" required>
                                         </div>
-                                        <button type="submit" class="btn btn-sm btn-primary save-attraction">
-                                            Save
-                                        </button>
-                                        <button type="button" class="btn btn-sm btn-secondary cancel-attraction-edit">
-                                            Cancel
-                                        </button>
+                                        <div>
+                                            <button type="submit"
+                                                class="btn btn-sm btn-primary save-attraction">Save</button>
+                                            <button type="button"
+                                                class="btn btn-sm btn-light cancel-attraction-edit border">Cancel</button>
+                                        </div>
                                     </form>
                                 </div>
                             </div>
