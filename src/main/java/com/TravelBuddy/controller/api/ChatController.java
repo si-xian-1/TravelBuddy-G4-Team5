@@ -1,6 +1,7 @@
 package com.TravelBuddy.controller.api;
 
-import com.TravelBuddy.service.SabreService;
+import com.TravelBuddy.service.SabreFlightService;
+import com.TravelBuddy.service.SabreHotelService;
 import org.springframework.ai.chat.client.ChatClient;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestParam;
@@ -10,21 +11,24 @@ import org.springframework.web.bind.annotation.RestController;
 public class ChatController {
 
     private final ChatClient chatClient;
-    private final SabreService sabreService;
+    private final SabreFlightService sabreFlightService;
+    private final SabreHotelService sabreHotelService;
 
-    // Inject both ChatClient.Builder and SabreService
-    public ChatController(ChatClient.Builder chatClientBuilder, SabreService sabreService) {
+    public ChatController(ChatClient.Builder chatClientBuilder, 
+                          SabreFlightService sabreFlightService, 
+                          SabreHotelService sabreHotelService) {
         this.chatClient = chatClientBuilder.build();
-        this.sabreService = sabreService;
+        this.sabreFlightService = sabreFlightService;
+        this.sabreHotelService = sabreHotelService;
     }
 
     @GetMapping("/chat/travel-assistance")
     public String getTravelAssistance(
-            @RequestParam(defaultValue = "My flight from TPE to SIN on 2026-10-20 was disrupted. What alternative flights are available?") String prompt) {
+            @RequestParam(defaultValue = "I am stranded in Taipei from 2026-10-20 to 2026-10-22 due to a typhoon. Can you recommend safe hotels?") String prompt) {
 
         return this.chatClient.prompt()
                 .user(prompt)
-                .tools(sabreService) // <--- Pass the service bean directly!
+                .tools(sabreFlightService, sabreHotelService)
                 .call()
                 .content();
     }

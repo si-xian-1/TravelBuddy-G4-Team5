@@ -14,7 +14,7 @@ import java.util.List;
 import java.util.Map;
 
 @Service
-public class SabreService {
+public class SabreFlightService {
 
     private final RestClient restClient;
 
@@ -27,7 +27,7 @@ public class SabreService {
     @Value("${sabre.base-url}")
     private String baseUrl;
 
-    public SabreService() {
+    public SabreFlightService() {
         this.restClient = RestClient.create();
     }
 
