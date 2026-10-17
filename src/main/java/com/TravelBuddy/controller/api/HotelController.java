@@ -73,7 +73,7 @@ public class HotelController {
      * @param currentUser
      * @return List of all hotels belonging to the user
      */
-    @GetMapping("/all/{userId}")
+    @GetMapping("/all")
     public ResponseEntity<List<Hotel>> getAllHotel(
             @PathVariable int itineraryId, @AuthenticationPrincipal User currentUser) {
 

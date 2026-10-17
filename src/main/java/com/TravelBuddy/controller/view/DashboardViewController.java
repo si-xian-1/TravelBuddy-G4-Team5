@@ -42,6 +42,24 @@ public class DashboardViewController {
     }
 
     /**
+     * Render the form for adding a hotel to an itinerary
+     */
+    @GetMapping("/itinerary/view/{itineraryId}/hotels/new")
+    public String newHotel(@PathVariable("itineraryId") Integer itineraryId, Model model) {
+        model.addAttribute("itineraryId", itineraryId);
+        return "newHotel";
+    }
+
+    /**
+     * Render the form for adding a flight to an itinerary
+     */
+    @GetMapping("/itinerary/view/{itineraryId}/flights/new")
+    public String newFlight(@PathVariable("itineraryId") Integer itineraryId, Model model) {
+        model.addAttribute("itineraryId", itineraryId);
+        return "newFlight";
+    }
+
+    /**
      * Render profile page
      */
     @GetMapping("/myProfile")

@@ -59,11 +59,6 @@ public class AttractionService {
         // Execute sql to add new attraction
         Attraction savedAttraction = attractionRepository.createAttraction(itineraryId, attraction);
 
-        // Disaster monitoring
-        savedAttraction.setDisasterWarning(gdacsService.evaluateProximityAndDateFromDisasters(
-                savedAttraction.getLatitude(), savedAttraction.getLongitude(), 
-                savedAttraction.getVisitDate(), savedAttraction.getVisitDate()));
-
         // If attraction creation is successful
         return savedAttraction;
     }
@@ -87,7 +82,20 @@ public class AttractionService {
      */
     public List<Attraction> getAllAttraction(int itineraryId, int userId) {
         checkItineraryBelongToUser(itineraryId, userId);
-        return attractionRepository.findAllAttractionsByItineraryId(itineraryId);
+
+        // Execute sql to add get attraction
+        List<Attraction> attractions = attractionRepository.findAllAttractionsByItineraryId(itineraryId);
+
+        // Disaster monitoring
+        for (Attraction attraction : attractions) {
+            String warning = gdacsService.evaluateProximityAndDateFromDisasters(
+                    attraction.getLatitude(), attraction.getLongitude(), 
+                    attraction.getVisitDate(), attraction.getVisitDate());
+            
+            attraction.setDisasterWarning(warning);
+        }
+
+        return attractions;
     }
 
     /**
