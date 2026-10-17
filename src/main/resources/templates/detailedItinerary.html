@@ -40,16 +40,83 @@
                 <div th:replace="~{fragments/topbar :: topbar}"></div>
 
                 <!-- Begin Page Content -->
-                <div class="container-fluid">
+                <div class="container-fluid" id="itineraryDetails" th:data-itinerary-id="${itineraryId}">
 
                     <!-- Page Heading -->
                     <div class="d-sm-flex align-items-center justify-content-between mb-4">
                         <h1 class="h3 mb-0 text-gray-800">Itinerary Details</h1>
+                        <a class="btn btn-primary shadow-sm"
+                            th:href="@{/itinerary/view/{id}/attractions/new(id=${itineraryId})}">
+                            <i class="fas fa-plus fa-sm text-white-50 mr-2"></i> Add Attraction
+                        </a>
                     </div>
+
+                    <div class="card shadow mb-4">
+                        <div class="card-header py-3">
+                            <h6 class="m-0 font-weight-bold text-primary">Attractions</h6>
+                        </div>
+                        <div class="card-body">
+                            <div id="attractionsError" class="alert alert-danger d-none" role="alert">
+                                Unable to load attractions for this itinerary.
+                            </div>
+                            <p id="attractionsLoading" class="text-muted mb-0">Loading attractions...</p>
+                            <p id="noAttractions" class="text-muted mb-0 d-none">
+                                No attractions have been added to this itinerary yet.
+                            </p>
+                            <div id="attractionsList" class="row"></div>
+                        </div>
+                    </div>
+
+                    <template id="attractionCard">
+                        <div class="col-lg-6 mb-3">
+                            <div class="card border-left-primary shadow h-100 attraction-card">
+                                <div class="card-body">
+                                    <div class="attraction-details">
+                                        <h5 class="attraction-name font-weight-bold text-gray-900"></h5>
+                                        <p class="mb-2">
+                                            <strong>Visit:</strong>
+                                            <span class="attraction-visit-date"></span>
+                                        </p>
+                                        <p class="mb-3 text-muted small">
+                                            <strong>Coordinates:</strong>
+                                            <span class="attraction-coordinates"></span>
+                                        </p>
+                                        <button type="button" class="btn btn-sm btn-outline-primary edit-attraction">
+                                            <i class="fas fa-edit"></i> Edit
+                                        </button>
+                                        <button type="button" class="btn btn-sm btn-outline-danger delete-attraction">
+                                            <i class="fas fa-trash"></i> Delete
+                                        </button>
+                                    </div>
+                                    <div class="alert alert-danger d-none attraction-edit-error" role="alert"></div>
+                                    <form class="attraction-edit-form d-none">
+                                        <div class="form-group">
+                                            <label class="attraction-name-label">Attraction name or location</label>
+                                            <input type="text" class="form-control edit-attraction-name"
+                                                maxlength="255" required>
+                                        </div>
+                                        <div class="form-group">
+                                            <label class="attraction-date-label">Visit date and time</label>
+                                            <input type="datetime-local" class="form-control edit-attraction-date"
+                                                required>
+                                        </div>
+                                        <button type="submit" class="btn btn-sm btn-primary save-attraction">
+                                            Save
+                                        </button>
+                                        <button type="button" class="btn btn-sm btn-secondary cancel-attraction-edit">
+                                            Cancel
+                                        </button>
+                                    </form>
+                                </div>
+                            </div>
+                        </div>
+                    </template>
                 </div>
             </div>
         </div>
     </div>
+
+    <div th:replace="~{fragments/deleteModal :: deleteModal}"></div>
 
     <!-- Bootstrap core JavaScript-->
     <script th:src="@{/vendor/jquery/jquery.min.js}"></script>
@@ -57,6 +124,8 @@
 
     <!-- Core plugin JavaScript-->
     <script th:src="@{vendor/jquery-easing/jquery.easing.min.js}"></script>
+
+    <script th:src="@{/js/detailedItinerary.js}"></script>
 
     <!-- Custom scripts for all pages-->
     <script th:src="@{/js/sb-admin-2.min.js}"></script>

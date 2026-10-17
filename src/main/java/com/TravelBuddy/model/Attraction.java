@@ -13,8 +13,8 @@ import lombok.*;
 public class Attraction {
     private Integer attractionId;
     private String attractionName;
-    private double latitude;
-    private double longitude;
+    private Double latitude;
+    private Double longitude;
     private LocalDateTime visitDate;
     // Not saved in database, to show real-time disaster alerts
     private String disasterWarning;

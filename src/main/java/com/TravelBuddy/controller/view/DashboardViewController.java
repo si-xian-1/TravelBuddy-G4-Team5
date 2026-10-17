@@ -33,6 +33,15 @@ public class DashboardViewController {
     }
 
     /**
+     * Render the form for adding an attraction to an itinerary
+     */
+    @GetMapping("/itinerary/view/{itineraryId}/attractions/new")
+    public String newAttraction(@PathVariable("itineraryId") Integer itineraryId, Model model) {
+        model.addAttribute("itineraryId", itineraryId);
+        return "newAttraction";
+    }
+
+    /**
      * Render profile page
      */
     @GetMapping("/myProfile")
