@@ -2,9 +2,7 @@ package com.TravelBuddy.service;
 
 import java.util.List;
 
-import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
-import org.springframework.web.server.ResponseStatusException;
 
 import com.TravelBuddy.exception.InvalidInputsException;
 import com.TravelBuddy.model.Flight;
@@ -38,18 +36,6 @@ public class FlightService {
         itineraryService.checkItineraryBelongToUser(itineraryId, userId);
         
         // Validation checks and return meaningful response to user
-        if (flight == null) {
-            throw new InvalidInputsException("Flight details cannot be empty.");
-        }
-        if (flight.getDepartureAirport() == null || flight.getDepartureAirport().isBlank()) {
-            throw new InvalidInputsException("Departure airport is required.");
-        }
-        if (flight.getArrivalAirport() == null || flight.getArrivalAirport().isBlank()) {
-            throw new InvalidInputsException("Arrival airport is required.");
-        }
-        if (flight.getDepartureTime() == null || flight.getArrivalTime() == null) {
-            throw new InvalidInputsException("Departure and arrival times are required.");
-        }
         if (!flight.getArrivalTime().isAfter(flight.getDepartureTime())) {
             throw new InvalidInputsException("Arrival time must be after departure time.");
         }
@@ -95,7 +81,17 @@ public class FlightService {
      */
     public List<Flight> getAllFlights(int itineraryId, int userId) {
         itineraryService.checkItineraryBelongToUser(itineraryId, userId);
-        return flightRepository.findAllFlightsByItineraryId(itineraryId);
+
+        List<Flight> flights = flightRepository.findAllFlightsByItineraryId(itineraryId);
+
+        // Disaster warning
+        for (Flight flight : flights) {
+            flight.setDisasterWarning(gdacsService.evaluateProximityAndDateFromDisasters(
+                    flight.getArrivalLatitude(), flight.getArrivalLongitude(),
+                    flight.getDepartureTime(), flight.getArrivalTime()));
+        }
+
+        return flights;
     }
 
     /**
@@ -108,51 +104,32 @@ public class FlightService {
      */
     public Flight getSelectedFlight(int itineraryId, int userId, int flightId) {
         itineraryService.checkItineraryBelongToUser(itineraryId, userId);
-        return flightRepository.findSelectedFlightByItineraryId(flightId, itineraryId);
+
+        Flight flight = flightRepository.findSelectedFlightByItineraryId(flightId, itineraryId);
+        
+        if (flight == null) {
+            throw new InvalidInputsException("Flight not found in this itinerary.");
+        }
+
+        return flight;
     }
 
     /**
      * Update an existing flight after validating the user, flight details and
-     * location. Recalculate its disaster warning afterwards.
+     * location.
      *
      * @param itineraryId itinerary containing the flight
      * @param userId user requesting the update
      * @param flightId flight to update
      * @param flight updated flight details
-     * @return updated flight including its disaster warning
+     * @return rows updated
      */
-    public Flight updateFlight(int itineraryId, int userId, int flightId, Flight flight) {
+    public int updateFlight(int itineraryId, int userId, int flightId, Flight flight) {
         // Verify that the user owns the itinerary.
         itineraryService.checkItineraryBelongToUser(itineraryId, userId);
-        
-        // Validate the request body.
-        if (flight == null) {
-            throw new InvalidInputsException("Flight details cannot be empty.");
-        }
-        if (flight.getDepartureAirport() == null || flight.getDepartureAirport().isBlank()) {
-            throw new InvalidInputsException("Departure airport is required.");
-        }
-        if (flight.getArrivalAirport() == null || flight.getArrivalAirport().isBlank()) {
-            throw new InvalidInputsException("Arrival airport is required.");
-        }
-        if (flight.getDepartureTime() == null || flight.getArrivalTime() == null) {
-            throw new InvalidInputsException("Departure and arrival times are required.");
-        }
+
         if (!flight.getArrivalTime().isAfter(flight.getDepartureTime())) {
             throw new InvalidInputsException("Arrival time must be after departure time.");
-        }
-
-        // Verify that this flight belongs to the selected itinerary.
-        Flight existingFlight
-                = flightRepository.findSelectedFlightByItineraryId(
-                        flightId, itineraryId
-                );
-
-        if (existingFlight == null) {
-            throw new ResponseStatusException(
-                    HttpStatus.NOT_FOUND,
-                    "Flight not found in this itinerary."
-            );
         }
 
         // Resolve the location again if its airports have changed.
@@ -175,35 +152,7 @@ public class FlightService {
         flight.setArrivalLatitude(Double.parseDouble(arrivalLocation.getLat()));
         flight.setArrivalLongitude(Double.parseDouble(arrivalLocation.getLon()));
 
-        // Persist the update.
-        int rowsUpdated = flightRepository.updateFlight(itineraryId, flight);
-        if (rowsUpdated == 0) {
-            // A zero count can also mean the values were unchanged.
-            // Recheck existence before treating it as a missing hotel.
-            Flight currentFlight = flightRepository.findSelectedFlightByItineraryId(flightId, itineraryId);
-
-            if (currentFlight == null) {
-                throw new ResponseStatusException(
-                        HttpStatus.NOT_FOUND,
-                        "Flight not found in this itinerary."
-                );
-            }
-        }
-
-        // Retrieve the persisted data.
-        Flight updatedFlight = flightRepository.findSelectedFlightByItineraryId(flightId, itineraryId);
-        if (updatedFlight == null) {
-            throw new ResponseStatusException(HttpStatus.NOT_FOUND, "Flight was not found after updating.");
-        }
-
-        // Refresh the disaster warning using the updated location and dates.
-        flight.setDisasterWarning(gdacsService.evaluateProximityAndDateFromDisasters(
-                flight.getArrivalLatitude(),
-                flight.getArrivalLongitude(),
-                flight.getDepartureTime(),
-                flight.getArrivalTime()));
-
-        return updatedFlight;
+        return flightRepository.updateFlight(itineraryId, flightId, flight);
     }
 
     /**
@@ -213,23 +162,10 @@ public class FlightService {
      * @param userId user requesting deletion
      * @param flightId flight to delete
      */
-    public void deleteFlight(int itineraryId, int userId, int flightId) {
+    public int deleteFlight(int itineraryId, int userId, int flightId) {
         // Verify itinerary ownership first.
         itineraryService.checkItineraryBelongToUser(itineraryId, userId);
 
-        // Verify that the flight belongs to this itinerary.
-        Flight existingFlight = flightRepository.findSelectedFlightByItineraryId(flightId, itineraryId);
-        if (existingFlight == null) {
-            throw new ResponseStatusException(HttpStatus.NOT_FOUND, "Flight not found in this itinerary.");
-        }
-
-        // Delete the selected hotel.
-        int rowsDeleted = flightRepository.deleteFlight(itineraryId, flightId);
-
-        if (rowsDeleted == 0) {
-            throw new ResponseStatusException(
-                    HttpStatus.NOT_FOUND,
-                    "Flight could not be deleted because it no longer exists.");
-        }
+        return flightRepository.deleteFlight(itineraryId, flightId);
     }
 }

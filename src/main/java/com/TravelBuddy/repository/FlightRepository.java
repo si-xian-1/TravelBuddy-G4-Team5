@@ -142,7 +142,7 @@ public class FlightRepository {
      * @param flight
      * @return the number of updated rows
      */
-    public int updateFlight(int itineraryId, Flight flight) {
+    public int updateFlight(int itineraryId, int flightId, Flight flight) {
         String sql = """
                 UPDATE flights
                 SET airline = COALESCE(?, airline),
@@ -170,7 +170,7 @@ public class FlightRepository {
                 flight.getArrivalLongitude(),
                 flight.getDepartureTime(),
                 flight.getArrivalTime(),
-                flight.getFlightId(),
+                flightId,
                 itineraryId
         );
     }
