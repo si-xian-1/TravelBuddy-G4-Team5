@@ -122,6 +122,6 @@ public class AttractionController {
             );
         }
 
-        return "Attraction deleted";
+        return "Attraction deleted successfully";
     }
 }

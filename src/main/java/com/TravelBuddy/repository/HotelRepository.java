@@ -110,4 +110,45 @@ public class HotelRepository {
         return hotel;
 
     }
+
+    /**
+     * Update hotel in an itinerary of the user
+     * @param itineraryId
+     * @param hotelId
+     * @param hotel
+     * @return number of updated rows in hotels
+     */
+    public int updateHotel(int itineraryId, int hotelId, Hotel hotel) {
+        String sql = """
+                UPDATE hotels
+                SET hotel_name = COALESCE(?, hotel_name),
+                    latitude = COALESCE(?, latitude),
+                    longitude = COALESCE(?, longitude),
+                    check_in = COALESCE(?, check_in),
+                    check_out = COALESCE(?, check_out)
+                WHERE hotel_id = ? AND itinerary_id = ?
+                """;
+
+        return jdbcTemplate.update(
+                sql,
+                hotel.getHotelName(),
+                hotel.getLatitude(),
+                hotel.getLongitude(),
+                hotel.getCheckIn(),
+                hotel.getCheckOut(),
+                hotelId,
+                itineraryId
+        );
+    }
+
+    /**
+     * Delete hotel in an itinerary of the user
+     * @param itineraryId
+     * @param hotelId
+     * @return number of updated rows in hotels
+     */
+    public int deleteHotel(int itineraryId, int hotelId) {
+        String sql = "DELETE FROM hotels WHERE hotel_id = ? AND itinerary_id = ?";
+        return jdbcTemplate.update(sql, hotelId, itineraryId);
+    }
 }

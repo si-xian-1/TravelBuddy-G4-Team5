@@ -34,16 +34,6 @@ public class HotelService {
         // Check that user has the permission to add hotel for this selected itinerary
         itineraryService.checkItineraryBelongToUser(itineraryId, userId);
 
-        // Validation checks and return meaningful response to user
-        if (hotel == null) {
-            throw new InvalidInputsException("Hotel cannot be empty.");
-        }
-        if (hotel.getHotelName() == null || hotel.getHotelName().trim().isEmpty()) {
-            throw new InvalidInputsException("Hotel name is required.");
-        }
-        if (hotel.getCheckIn() == null || hotel.getCheckOut() == null) {
-            throw new InvalidInputsException("Check-in and check-out dates are required.");
-        }
         if (hotel.getCheckIn().isAfter(hotel.getCheckOut())) {
             throw new InvalidInputsException("Check-in time cannot be after check-out time.");
         }
@@ -92,5 +82,47 @@ public class HotelService {
     public Hotel getSelectedHotel(int itineraryId, int userId, int hotelId) {
         itineraryService.checkItineraryBelongToUser(itineraryId, userId);
         return hotelRepository.findSelectedHotelByItineraryId(itineraryId, hotelId);
+    }
+
+    /**
+     * Update selected hotel belonging to an itinerary of the user
+     * @param itineraryId
+     * @param userId
+     * @param hotelId
+     * @param hotel
+     * @return number of rows updated in hotels
+     */
+    public int updateHotel(int itineraryId, int userId, int hotelId, Hotel hotel) {
+        itineraryService.checkItineraryBelongToUser(itineraryId, userId);
+
+        if (hotel.getCheckIn().isAfter(hotel.getCheckOut())) {
+            throw new InvalidInputsException("Check-in time cannot be after check-out time.");
+        }
+
+        // Get the coordinates of the hotel
+        LocationResponse location = locationService.getCoordinates(hotel.getHotelName());
+        
+        // When API is unable to find coordinates of the user selected location
+        if (location == null || location.getLat() == null || location.getLon() == null) {
+            throw new InvalidInputsException("Could not find coordinates for location: " + hotel.getHotelName());
+        }
+
+        hotel.setItineraryId(itineraryId);
+        hotel.setLatitude(Double.parseDouble(location.getLat()));
+        hotel.setLongitude(Double.parseDouble(location.getLon()));
+        
+        return hotelRepository.updateHotel(itineraryId, hotelId, hotel);
+    }
+
+    /**
+     * Deleted selected hotel belonging to an itinerary of the user
+     * @param itineraryId
+     * @param userId
+     * @param hotelId
+     * @return number of rows updated in hotels
+     */
+    public int deleteHotel(int itineraryId, int userId, int hotelId) {
+        itineraryService.checkItineraryBelongToUser(itineraryId, userId);
+        return hotelRepository.deleteHotel(itineraryId, hotelId);
     }
 }
