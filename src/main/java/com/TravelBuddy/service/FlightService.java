@@ -63,11 +63,6 @@ public class FlightService {
         // Execute sql to add new flight
         Flight savedFlight = flightRepository.createFlight(itineraryId, flight);
 
-        // Disaster monitoring
-        flight.setDisasterWarning(gdacsService.evaluateProximityAndDateFromDisasters(
-                flight.getArrivalLatitude(), flight.getArrivalLongitude(),
-                flight.getArrivalTime(), flight.getArrivalTime()));
-
         // If flight creation is successful
         return savedFlight;
     }
