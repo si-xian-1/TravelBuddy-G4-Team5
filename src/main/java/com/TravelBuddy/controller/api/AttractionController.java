@@ -12,6 +12,8 @@ import com.TravelBuddy.model.Attraction;
 import com.TravelBuddy.model.User;
 import com.TravelBuddy.service.AttractionService;
 
+import jakarta.validation.Valid;
+
 @RestController
 @RequestMapping("/api/itinerary/{itineraryId}/attractions")
 public class AttractionController {
@@ -30,7 +32,7 @@ public class AttractionController {
      */
     @PostMapping("/")
     public ResponseEntity<Attraction> createAttraction(
-            @PathVariable int itineraryId, @AuthenticationPrincipal User currentUser, @RequestBody Attraction attraction) {        
+            @PathVariable int itineraryId, @AuthenticationPrincipal User currentUser, @Valid @RequestBody Attraction attraction) {        
 
         //after user chooses recommendation then html sets display name of itinerary and calls this function
         Attraction addedAttraction = attractionService.createAttraction(itineraryId, currentUser.getUserId(), attraction);
@@ -91,7 +93,7 @@ public class AttractionController {
     public String updateAttraction(
             @PathVariable int itineraryId,
             @PathVariable int attractionId, 
-            @RequestBody Attraction attraction,
+            @Valid @RequestBody Attraction attraction,
             @AuthenticationPrincipal User currentUser
     ) {
         if (attractionService.updateAttraction(itineraryId, currentUser.getUserId(), attractionId, attraction) == 0) {
@@ -120,6 +122,6 @@ public class AttractionController {
             );
         }
 
-        return "Attraction deleted";
+        return "Attraction deleted successfully";
     }
 }
