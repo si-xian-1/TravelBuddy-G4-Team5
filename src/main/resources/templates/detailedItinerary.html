@@ -40,16 +40,423 @@
                 <div th:replace="~{fragments/topbar :: topbar}"></div>
 
                 <!-- Begin Page Content -->
-                <div class="container-fluid">
+                <div class="container-fluid" id="itineraryDetails" th:data-itinerary-id="${itineraryId}">
 
                     <!-- Page Heading -->
                     <div class="d-sm-flex align-items-center justify-content-between mb-4">
                         <h1 class="h3 mb-0 text-gray-800">Itinerary Details</h1>
+                        <a class="btn btn-secondary shadow-sm" th:href="@{/allItineraries}">
+                            <i class="fas fa-arrow-left fa-sm mr-2"></i> Back to my itineraries
+                        </a>
                     </div>
+
+                    <!-- Start of accordian to show hide flights, hotels and attractions to prevent infinite scrolling -->
+                    <div class="accordion" id="itineraryAccordion">
+
+                        <!-- Start show attraction accordion -->
+                        <div class="card shadow mb-4">
+                            <!-- Attractions header -->
+                            <a href="#collapseAttractions" class="d-block card-header py-3" data-toggle="collapse"
+                                role="button" aria-expanded="true" aria-controls="collapseAttractions">
+                                <h6 class="m-0 font-weight-bold text-primary">
+                                    <i class="fas fa-map-marker-alt mr-2"></i>Attractions
+                                </h6>
+                            </a>
+
+                            <!-- Attractions content-->
+                            <div class="collapse show" id="collapseAttractions" data-parent="#itineraryAccordion">
+                                <div class="card-body">
+
+                                    <div class="d-flex justify-content-end mb-3">
+                                        <a class="btn btn-primary btn-sm shadow-sm"
+                                            th:href="@{/itinerary/view/{id}/attractions/new(id=${itineraryId})}">
+                                            <i class="fas fa-plus fa-sm text-white-50 mr-2"></i> Add Attraction
+                                        </a>
+                                    </div>
+
+                                    <!-- Display of error message -->
+                                    <div id="attractionsError" class="alert alert-danger d-none" role="alert">
+                                        Unable to load attractions for this itinerary.
+                                    </div>
+
+                                    <!-- Display of loading when retrieving attractions -->
+                                    <p id="attractionsLoading" class="text-muted mb-0">Loading attractions...</p>
+
+                                    <!-- When no attractions -->
+                                    <p id="noAttractions" class="text-muted mb-0 d-none">
+                                        No attraction have been added to this itinerary yet.
+                                    </p>
+
+                                    <!-- Display attractions if not empty -->
+                                    <div class="row" id="attractionsList"></div>
+                                </div>
+                            </div>
+                        </div>
+                        <!-- End show attraction accordion -->
+
+                        <!-- Start of hotel accordion -->
+                        <div class="card shadow mb-4">
+                            <!-- Hotel header -->
+                            <a href="#collapseHotels" class="d-block card-header py-3 collapsed" data-toggle="collapse"
+                                role="button" aria-expanded="false" aria-controls="collapseHotels">
+                                <h6 class="m-0 font-weight-bold text-info">
+                                    <i class="fas fa-bed mr-2"></i>Hotel
+                                </h6>
+                            </a>
+                            <!-- Hotels content -->
+                            <div class="collapse" id="collapseHotels" data-parent="#itineraryAccordion">
+                                <div class="card-body">
+                                    <div class="d-flex justify-content-end mb-3">
+                                        <a class="btn btn-info btn-sm shadow-sm"
+                                            th:href="@{/itinerary/view/{id}/hotels/new(id=${itineraryId})}">
+                                            <i class="fas fa-plus fa-sm text-white-50 mr-2"></i> Add Hotel
+                                        </a>
+                                    </div>
+
+                                    <!-- Display of error message -->
+                                    <div id="hotelsError" class="alert alert-danger d-none" role="alert">
+                                        Unable to load hotels for this itinerary.
+                                    </div>
+
+                                    <!-- Display of loading when retrieving hotels -->
+                                    <p id="hotelsLoading" class="text-muted mb-0">Loading hotels...</p>
+
+                                    <!-- When no hotels -->
+                                    <p id="noHotels" class="text-muted mb-0 d-none">
+                                        No hotel have been added to this itinerary yet.
+                                    </p>
+
+                                    <!-- Display hotels if not empty -->
+                                    <div class="row" id="hotelsList"></div>
+                                </div>
+                            </div>
+                        </div>
+                        <!-- End of hotel accordion -->
+
+                        <!-- Start show flight accordion -->
+                        <div class="card shadow mb-4">
+                            <!-- Flight header -->
+                            <a href="#collapseFlights" class="d-block card-header py-3 collapsed" data-toggle="collapse"
+                                role="button" aria-expanded="false" aria-controls="collapseFlights">
+                                <h6 class="m-0 font-weight-bold text-success">
+                                    <i class="fas fa-plane mr-2"></i>Flight
+                                </h6>
+                            </a>
+
+                            <!-- Flight content -->
+                            <div class="collapse" id="collapseFlights" data-parent="#itineraryAccordion">
+                                <div class="card-body">
+                                    <div class="d-flex justify-content-end mb-3">
+                                        <a class="btn btn-success btn-sm shadow-sm"
+                                            th:href="@{/itinerary/view/{id}/flights/new(id=${itineraryId})}">
+                                            <i class="fas fa-plus fa-sm text-white-50 mr-2"></i> Add Flight
+                                        </a>
+                                    </div>
+
+                                    <!-- Display of error message -->
+                                    <div id="flightsError" class="alert alert-danger d-none" role="alert">
+                                        Unable to load flights for this itinerary.
+                                    </div>
+
+                                    <!-- Display of loading when retrieving flights -->
+                                    <p id="flightsLoading" class="text-muted mb-0">Loading flights...</p>
+
+                                    <!-- When no flights -->
+                                    <p id="noFlights" class="text-muted mb-0 d-none">
+                                        No flight have been added to this itinerary yet.
+                                    </p>
+
+                                    <!-- Display flights if not empty -->
+                                    <div class="row" id="flightsList"></div>
+                                </div>
+                            </div>
+                        </div>
+                        <!-- End show flight accordion -->
+
+                    </div>
+                    <!-- End of accordion -->
+
+                    <!-- Attraction card template -->
+                    <template id="attractionCard">
+                        <div class="col-md-6 col-xl-4 mb-4">
+                            <div class="card border-left-primary shadow h-100 attraction-card">
+                                <div class="card-body">
+                                    <!-- Start attraction details -->
+                                    <div class="attraction-details">
+                                        <!-- Attraction name-->
+                                        <h5 class="attraction-name font-weight-bold text-gray-900 mb-3"></h5>
+                                        <!-- Disaster warning -->
+                                        <div class="disaster-alert alert py-1 px-2 mb-3 text-xs font-weight-bold"
+                                            role="alert"></div>
+                                        <!-- Attraction visit date -->
+                                        <p class="mb-2 text-sm">
+                                            <i class="far fa-calendar-alt text-muted mr-2"></i>
+                                            <span class="attraction-visit-date"></span>
+                                        </p>
+                                        <!-- Attraction location -->
+                                        <!-- <p class="mb-3 text-sm">
+                                            <i class="fas fa-map-pin text-muted mr-2"></i>
+                                            <span class="attraction-coordinates text-muted"></span>
+                                        </p> -->
+
+                                        <!-- Action button -->
+                                        <div class="mt-3 pt-3 border-top">
+                                            <!-- Edit attraction details -->
+                                            <button type="button"
+                                                class="btn btn-sm btn-outline-primary edit-attraction mr-1">
+                                                <i class="fas fa-edit"></i> Edit
+                                            </button>
+                                            <!-- Delete attraction details -->
+                                            <button type="button"
+                                                class="btn btn-sm btn-outline-danger delete-attraction">
+                                                <i class="fas fa-trash"></i>
+                                            </button>
+                                        </div>
+                                    </div>
+                                    <!-- End attraction details -->
+
+                                    <!-- Error pop up -->
+                                    <div class="alert alert-danger d-none attraction-edit-error mt-2 text-sm"
+                                        role="alert"></div>
+
+                                    <!-- Start update attraction details -->
+                                    <form class="attraction-edit-form d-none">
+                                        <!-- Edit attraction name -->
+                                        <div class="form-group mb-2">
+                                            <label class="text-xs font-weight-bold text-uppercase mb-1">Name</label>
+                                            <input type="text" class="form-control form-control-sm edit-attraction-name"
+                                                maxlength="255" required>
+                                        </div>
+                                        <!-- Edit attraction visit date-->
+                                        <div class="form-group mb-3">
+                                            <label class="text-xs font-weight-bold text-uppercase mb-1">Visit
+                                                Date</label>
+                                            <input type="datetime-local"
+                                                class="form-control form-control-sm edit-attraction-date" required>
+                                        </div>
+                                        <!-- Action button -->
+                                        <div>
+                                            <!-- Update attraction details -->
+                                            <button type="submit"
+                                                class="btn btn-sm btn-primary save-attraction">Save</button>
+                                            <!-- Cancel update attraction details -->
+                                            <button type="button"
+                                                class="btn btn-sm btn-light cancel-attraction-edit border">Cancel</button>
+                                        </div>
+                                    </form>
+                                    <!-- End update attraction details -->
+
+                                </div>
+                            </div>
+                        </div>
+                    </template>
+                    <!-- End attraction card template -->
+
+                    <!-- Start hotel card template -->
+                    <template id="hotelCard">
+                        <div class="col-md-6 col-xl-4 mb-4">
+                            <div class="card border-left-info shadow h-100 hotel-card">
+                                <div class="card-body">
+                                    <!-- Start Hotel information -->
+                                    <div class="hotel-details">
+                                        <!-- Hotel name -->
+                                        <h5 class="hotel-name font-weight-bold text-gray-900 mb-3"></h5>
+                                        <!-- Disaster warning -->
+                                        <div class="disaster-alert alert py-1 px-2 mb-3 text-xs font-weight-bold"
+                                            role="alert"></div>
+                                        <!-- Hotel location -->
+                                        <!-- <p class="mb-2 text-sm">
+                                            <i class="fas fa-map-pin text-muted mr-2"></i>
+                                            <span class="hotel-location text-muted"></span>
+                                        </p> -->
+                                        <!-- Hotel check in and check out dates -->
+                                        <p class="mb-1 text-sm">
+                                            <strong>Check In:</strong> <span class="hotel-checkin"></span>
+                                        </p>
+                                        <p class="mb-3 text-sm">
+                                            <strong>Check Out:</strong> <span class="hotel-checkout"></span>
+                                        </p>
+
+                                        <!-- Actions button -->
+                                        <div class="mt-3 pt-3 border-top">
+                                            <!-- Edit hotel -->
+                                            <button type="button" class="btn btn-sm btn-outline-info edit-hotel mr-1">
+                                                <i class="fas fa-edit"></i> Edit
+                                            </button>
+                                            <!-- Delete hotel -->
+                                            <button type="button" class="btn btn-sm btn-outline-danger delete-hotel">
+                                                <i class="fas fa-trash"></i>
+                                            </button>
+                                        </div>
+                                    </div>
+                                    <!-- End Hotel information -->
+
+                                    <!-- Error pop up -->
+                                    <div class="alert alert-danger d-none hotel-edit-error mt-2 text-sm" role="alert">
+                                    </div>
+
+                                    <!-- Start of edit hotel form -->
+                                    <form class="hotel-edit-form d-none">
+                                        <!-- Edit hotel name -->
+                                        <div class="form-group mb-2">
+                                            <label class="text-xs font-weight-bold text-uppercase mb-1">Hotel
+                                                Name</label>
+                                            <input type="text" class="form-control form-control-sm edit-hotel-name"
+                                                maxlength="255" required>
+                                        </div>
+                                        <!-- Edit check in hotel date and time -->
+                                        <div class="form-group mb-2">
+                                            <label class="text-xs font-weight-bold text-uppercase mb-1">Check-in</label>
+                                            <input type="datetime-local"
+                                                class="form-control form-control-sm edit-hotel-checkin" required>
+                                        </div>
+                                        <!-- Edit check out hotel date and time -->
+                                        <div class="form-group mb-3">
+                                            <label
+                                                class="text-xs font-weight-bold text-uppercase mb-1">Check-out</label>
+                                            <input type="datetime-local"
+                                                class="form-control form-control-sm edit-hotel-checkout" required>
+                                        </div>
+
+                                        <!-- Action button -->
+                                        <div>
+                                            <!-- Save hotel -->
+                                            <button type="submit" class="btn btn-sm btn-info save-hotel">Save</button>
+                                            <!-- Cancel edit hotel -->
+                                            <button type="button"
+                                                class="btn btn-sm btn-light cancel-hotel-edit border">Cancel</button>
+                                        </div>
+                                    </form>
+                                    <!-- End of edit hotel form -->
+                                </div>
+                            </div>
+                        </div>
+                    </template>
+                    <!-- End hotel card template -->
+
+                    <!-- Start flight card template -->
+                    <template id="flightCard">
+                        <div class="col-md-6 col-xl-4 mb-4">
+                            <div class="card border-left-success shadow h-100 flight-card">
+                                <div class="card-body">
+                                    <!-- Start flight information -->
+                                    <div class="flight-details">
+                                        <!-- Flight airline and number -->
+                                        <h5 class="font-weight-bold text-gray-900 mb-1">
+                                            <span class="flight-airline"></span> <span class="flight-number"></span>
+                                        </h5>
+                                        <!-- Disaster warning -->
+                                        <div class="disaster-alert alert py-1 px-2 mb-3 text-xs font-weight-bold"
+                                            role="alert"></div>
+                                        <!-- Flight departure and arrival airport name -->
+                                        <div class="d-flex justify-content-between align-items-center mb-3 mt-3">
+                                            <div class="text-center">
+                                                <h4 class="mb-0 text-success flight-dep-airport font-weight-bold"></h4>
+                                                <small class="flight-dep-time text-muted"></small>
+                                            </div>
+                                            <i class="fas fa-plane text-muted mx-2"></i>
+                                            <div class="text-center">
+                                                <h4 class="mb-0 text-success flight-arr-airport font-weight-bold"></h4>
+                                                <small class="flight-arr-time text-muted"></small>
+                                            </div>
+                                        </div>
+
+                                        <!-- Action button -->
+                                        <div class="mt-3 pt-3 border-top">
+                                            <!-- Edit flight -->
+                                            <button type="button"
+                                                class="btn btn-sm btn-outline-success edit-flight mr-1">
+                                                <i class="fas fa-edit"></i> Edit
+                                            </button>
+                                            <!-- Delete flight -->
+                                            <button type="button" class="btn btn-sm btn-outline-danger delete-flight">
+                                                <i class="fas fa-trash"></i>
+                                            </button>
+                                        </div>
+                                    </div>
+
+                                    <!-- Error message -->
+                                    <div class="alert alert-danger d-none flight-edit-error mt-2 text-sm" role="alert">
+                                    </div>
+
+                                    <!-- Start edit flight details -->
+                                    <form class="flight-edit-form d-none">
+                                        <div class="form-row">
+                                            <!-- Edit flight airline -->
+                                            <div class="form-group col-md-6 mb-2">
+                                                <label
+                                                    class="text-xs font-weight-bold text-uppercase mb-1">Airline</label>
+                                                <input type="text"
+                                                    class="form-control form-control-sm edit-flight-airline" required>
+                                            </div>
+                                            <!-- Edit flight number-->
+                                            <div class="form-group col-md-6 mb-2">
+                                                <label class="text-xs font-weight-bold text-uppercase mb-1">Flight
+                                                    No.</label>
+                                                <input type="text"
+                                                    class="form-control form-control-sm edit-flight-number" required>
+                                            </div>
+                                        </div>
+
+                                        <div class="form-row">
+                                            <!-- Edit flight departure airport-->
+                                            <div class="form-group col-md-6 mb-2">
+                                                <label class="text-xs font-weight-bold text-uppercase mb-1">Dep.
+                                                    Airport</label>
+                                                <input type="text"
+                                                    class="form-control form-control-sm edit-flight-dep-airport"
+                                                    required>
+                                            </div>
+                                            <!-- Edit flight arrival airport -->
+                                            <div class="form-group col-md-6 mb-2">
+                                                <label class="text-xs font-weight-bold text-uppercase mb-1">Arr.
+                                                    Airport</label>
+                                                <input type="text"
+                                                    class="form-control form-control-sm edit-flight-arr-airport"
+                                                    required>
+                                            </div>
+                                        </div>
+
+                                        <div class="form-group mb-2">
+                                            <!-- Edit flight departure time -->
+                                            <label class="text-xs font-weight-bold text-uppercase mb-1">Departure
+                                                Time</label>
+                                            <input type="datetime-local"
+                                                class="form-control form-control-sm edit-flight-dep-time" required>
+                                        </div>
+
+                                        <div class="form-group mb-3">
+                                            <!-- Edit flight arrival time -->
+                                            <label class="text-xs font-weight-bold text-uppercase mb-1">Arrival
+                                                Time</label>
+                                            <input type="datetime-local"
+                                                class="form-control form-control-sm edit-flight-arr-time" required>
+                                        </div>
+
+                                        <!-- Action button -->
+                                        <div>
+                                            <!-- Update flight details -->
+                                            <button type="submit"
+                                                class="btn btn-sm btn-success save-flight">Save</button>
+                                            <!-- Cancel update flight details -->
+                                            <button type="button"
+                                                class="btn btn-sm btn-light cancel-flight-edit border">Cancel</button>
+                                        </div>
+                                    </form>
+                                    <!-- End edit flight details -->
+
+                                </div>
+                            </div>
+                        </div>
+                    </template>
+                    <!-- End flight card template -->
+
                 </div>
             </div>
         </div>
     </div>
+
+    <div th:replace="~{fragments/deleteModal :: deleteModal}"></div>
 
     <!-- Bootstrap core JavaScript-->
     <script th:src="@{/vendor/jquery/jquery.min.js}"></script>
@@ -57,6 +464,12 @@
 
     <!-- Core plugin JavaScript-->
     <script th:src="@{vendor/jquery-easing/jquery.easing.min.js}"></script>
+
+    <!-- Custom script to manage itinerary -->
+    <script th:src="@{/js/detailedItinerary.js}"></script>
+    <script th:src="@{/js/attractionManagement.js}"></script>
+    <script th:src="@{/js/hotelManagement.js}"></script>
+    <!-- <script th:src="@{/js/flightManagement.js}"></script> -->
 
     <!-- Custom scripts for all pages-->
     <script th:src="@{/js/sb-admin-2.min.js}"></script>
