@@ -1,129 +1,159 @@
-/**
- * Initialize the map display
- */
-
-
 document.addEventListener("DOMContentLoaded", function () {
-    // 1. Initialize Map
-    const map = L.map('dashboardMap').setView([15.0, 10.0], 2);
+    // 1. Initialize map and tile layer following the Leaflet Quick Start Guide
+    var map = L.map('dashboardMap').setView([15.0, 10.0], 2);
 
     L.tileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png', {
-        maxZoom: 18,
-        attribution: '&copy; OpenStreetMap'
+        maxZoom: 19,
+        attribution: '&copy; <a href="http://www.openstreetmap.org/copyright">OpenStreetMap</a>'
     }).addTo(map);
 
-    setTimeout(() => map.invalidateSize(), 200);
+    // Ensure map tiles render properly if inside responsive containers
+    setTimeout(function () {
+        map.invalidateSize();
+    }, 200);
 
-    // 2. Fetch User Location & Sync with Backend
+    // 2. Obtain traveler coordinates via Geolocation
     if (navigator.geolocation) {
         navigator.geolocation.getCurrentPosition(
-            (position) => {
-                const userLat = position.coords.latitude;
-                const userLon = position.coords.longitude;
-                document.getElementById("locationStatus").textContent = "Location Acquired";
+            function (position) {
+                var userLat = position.coords.latitude;
+                var userLon = position.coords.longitude;
 
-                // User marker icon
-                const userIcon = L.divIcon({
-                    className: 'user-pin',
-                    html: '<div style="background-color: #4e73df; width: 14px; height: 14px; border-radius: 50%; border: 2px solid white; box-shadow: 0 0 6px rgba(0,0,0,0.5);"></div>',
-                    iconSize: [14, 14],
-                    iconAnchor: [7, 7]
-                });
+                var locationStatus = document.getElementById("locationStatus");
+                if (locationStatus) {
+                    locationStatus.textContent = "Location Acquired";
+                }
 
-                L.marker([userLat, userLon], { icon: userIcon })
-                    .addTo(map)
-                    .bindPopup("<strong>Your Location</strong>")
-                    .openPopup();
-
-                // 120km safe/danger perimeter ring
-                L.circle([userLat, userLon], {
-                    radius: 120000,
-                    color: '#4e73df',
-                    fillColor: '#4e73df',
-                    fillOpacity: 0.08,
-                    weight: 1,
-                    dashArray: '3, 4'
-                }).addTo(map);
-
+                // Center view to user's location
                 map.setView([userLat, userLon], 5);
 
+                // Add standard marker and popup for the user
+                var userMarker = L.marker([userLat, userLon]).addTo(map);
+                userMarker.bindPopup("<b>You are here</b><br>Coordinates: " + userLat.toFixed(4) + ", " + userLon.toFixed(4)).openPopup();
+
+                // Add 120 km monitoring circle around user
+                var userPerimeter = L.circle([userLat, userLon], {
+                    color: '#007bff',
+                    fillColor: '#007bff',
+                    fillOpacity: 0.1,
+                    radius: 120000 // 120 km in meters
+                }).addTo(map);
+                userPerimeter.bindPopup("Your 120 km monitoring radius.");
+
+                // Load disaster layers and calculate proximity
                 loadDisasterMapData(map, userLat, userLon);
             },
-            (err) => {
+            function (err) {
                 console.warn("Geolocation denied or unavailable:", err.message);
-                document.getElementById("locationStatus").textContent = "Global View";
+                var locationStatus = document.getElementById("locationStatus");
+                if (locationStatus) {
+                    locationStatus.textContent = "Global View";
+                }
                 loadDisasterMapData(map, null, null);
             },
-            { enableHighAccuracy: true, timeout: 8000 }
+            {
+                enableHighAccuracy: false,
+                timeout: 10000,
+                maximumAge: 0
+            }
         );
     } else {
         loadDisasterMapData(map, null, null);
     }
 });
 
-// 3. Load Disasters and Update Right-hand Alert Box
+/**
+ * Load disaster locations and render markers/circles using Leaflet Quick Start conventions
+ */
 async function loadDisasterMapData(map, userLat, userLon) {
     try {
-        let url = '/api/dashboard/disaster-overview';
+        var params = new URLSearchParams();
         if (userLat != null && userLon != null) {
-            url += `?userLat=${userLat}&userLon=${userLon}`;
+            params.append("userLat", userLat);
+            params.append("userLon", userLon);
         }
 
-        const response = await fetch(url);
-        if (!response.ok) return;
+        var queryString = params.toString();
+        var url = '/api/dashboard/disaster-overview' + (queryString ? '?' + queryString : '');
 
-        const data = await response.json();
+        var response = await fetch(url, {
+            method: "GET",
+            headers: {
+                "Accept": "application/json"
+            },
+            credentials: "same-origin"
+        });
 
-        // Plot Disasters on Leaflet
-        if (data.disasters && data.disasters.length > 0) {
-            data.disasters.forEach(d => {
-                const coords = d.locationCoordinates.coordinates; // [lon, lat]
-                const lat = coords[1];
-                const lon = coords[0];
-                const details = d.disasterDetails;
+        if (!response.ok) {
+            console.error("Backend error loading disaster data: " + response.status);
+            return;
+        }
 
-                // Red circle for disaster zones
-                const disasterCircle = L.circle([lat, lon], {
-                    radius: 120000,
-                    color: '#e74a3b',
-                    fillColor: '#e74a3b',
-                    fillOpacity: 0.2,
-                    weight: 1
+        var data = await response.json();
+
+        // 3. Render markers, circles, and popups for each disaster
+        if (Array.isArray(data.disasters)) {
+            data.disasters.forEach(function (d) {
+                if (!d.locationCoordinates || !d.locationCoordinates.coordinates) {
+                    return;
+                }
+
+                // GeoJSON coordinates format is [longitude, latitude]
+                var lon = d.locationCoordinates.coordinates[0];
+                var lat = d.locationCoordinates.coordinates[1];
+                var details = d.disasterDetails || {};
+                var disasterType = details.disasterType ? details.disasterType.disasterName : "Disaster";
+                var country = details.disasterCountryLocation || "Unknown";
+                var alertLevel = details.alertLevel || "Unknown";
+
+                var popupHtml = "<b>" + disasterType + "</b><br>" +
+                    "Location: " + country + "<br>" +
+                    "Alert Level: " + alertLevel + "<br>" +
+                    "Danger Zone: 120 km radius";
+
+                // Add standard marker (ensures pin is visible at world/country zoom levels)
+                var disasterMarker = L.marker([lat, lon]).addTo(map);
+                disasterMarker.bindPopup(popupHtml);
+
+                // Add 120 km perimeter circle as shown in Leaflet guide
+                var disasterCircle = L.circle([lat, lon], {
+                    color: 'red',
+                    fillColor: '#f03',
+                    fillOpacity: 0.35,
+                    radius: 120000 // 120 km in meters
                 }).addTo(map);
-
-                disasterCircle.bindPopup(`
-                            <strong>${details.disasterType.disasterName}</strong><br>
-                            Location: ${details.disasterCountryLocation}<br>
-                            Alert Level: ${details.alertLevel}<br>
-                            Status: Active
-                        `);
+                disasterCircle.bindPopup(popupHtml);
             });
         }
 
-        // Update UI Alerts on the Right Column
-        const alertBox = document.getElementById("userProximityAlert");
-        const alertTitle = document.getElementById("proximityAlertTitle");
-        const alertBody = document.getElementById("proximityAlertBody");
-        const distanceText = document.getElementById("nearestDistanceText");
+        // 4. Update the sidebar UI cards
+        var alertBox = document.getElementById("userProximityAlert");
+        var alertTitle = document.getElementById("proximityAlertTitle");
+        var alertBody = document.getElementById("proximityAlertBody");
+        var distanceText = document.getElementById("nearestDistanceText");
+
+        if (!alertBox || !alertTitle || !alertBody || !distanceText) {
+            return;
+        }
 
         if (data.nearestDistanceKm != null) {
-            distanceText.textContent = `${data.nearestDistanceKm} km (${data.nearestDisasterName})`;
+            distanceText.textContent = data.nearestDistanceKm + " km (" + (data.nearestDisasterName || "Recorded Event") + ")";
         } else {
             distanceText.textContent = "No active disasters recorded";
         }
 
         if (data.warning) {
             alertBox.className = "alert alert-danger shadow-sm mb-4";
-            alertTitle.innerHTML = `<i class="fas fa-exclamation-triangle mr-1"></i> Proximity Alert: Near Disaster Zone!`;
+            alertTitle.innerHTML = '<i class="fas fa-exclamation-triangle mr-1"></i> Proximity Alert: Near Disaster Zone!';
             alertBody.textContent = data.warning;
-        } else if (userLat != null) {
+        } else if (userLat != null && userLon != null) {
             alertBox.className = "alert alert-success shadow-sm mb-4";
-            alertTitle.innerHTML = `<i class="fas fa-shield-alt mr-1"></i> Current Location Status: Safe`;
+            alertTitle.innerHTML = '<i class="fas fa-shield-alt mr-1"></i> Current Location Status: Safe';
             alertBody.textContent = "You are outside all recorded 120km disaster zones.";
         } else {
             alertBox.className = "alert alert-secondary shadow-sm mb-4";
-            alertTitle.innerHTML = `<i class="fas fa-info-circle mr-1"></i> Location Unavailable`;
-            alertBody.textContent = "Allow location access or override coordinates in browser dev tools to inspect proximity.";
+            alertTitle.innerHTML = '<i class="fas fa-info-circle mr-1"></i> Location Unavailable';
+            alertBody.textContent = "Allow browser location access or override coordinates in dev tools to calculate distance.";
         }
 
     } catch (err) {
