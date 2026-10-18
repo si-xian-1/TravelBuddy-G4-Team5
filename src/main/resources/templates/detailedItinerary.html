@@ -53,6 +53,23 @@
 
                     <div class="card shadow mb-4">
                         <div class="card-header py-3">
+                            <h6 class="m-0 font-weight-bold text-primary">Travel Details</h6>
+                        </div>
+                        <div class="card-body">
+                            <p id="itineraryLoading" class="text-muted mb-0">Loading travel details...</p>
+                            <div id="itineraryError" class="alert alert-danger d-none mb-0" role="alert"></div>
+                            <div id="itinerarySummary" class="d-none">
+                                <h4 id="itineraryName" class="font-weight-bold text-gray-900"></h4>
+                                <p class="mb-0">
+                                    <strong>Travel dates:</strong>
+                                    <span id="itineraryDates"></span>
+                                </p>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="card shadow mb-4">
+                        <div class="card-header py-3">
                             <h6 class="m-0 font-weight-bold text-primary">Attractions</h6>
                         </div>
                         <div class="card-body">
