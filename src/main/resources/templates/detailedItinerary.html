@@ -310,39 +310,59 @@
                                     <div class="alert alert-danger d-none hotel-edit-error mt-2 text-sm" role="alert">
                                     </div>
 
+
                                     <!-- Start of edit hotel form -->
-                                    <form class="hotel-edit-form d-none">
-                                        <!-- Edit hotel name -->
-                                        <div class="form-group mb-2">
-                                            <label class="text-xs font-weight-bold text-uppercase mb-1">Hotel
-                                                Name</label>
+                                    <form class="hotel-edit-form d-none" novalidate>
+
+                                        <!-- Hotel Name Search -->
+                                        <div class="form-group mb-2 position-relative">
+                                            <label class="text-xs font-weight-bold text-uppercase mb-1">
+                                                Hotel Name
+                                            </label>
                                             <input type="text" class="form-control form-control-sm edit-hotel-name"
-                                                maxlength="255" required>
-                                        </div>
-                                        <!-- Edit check in hotel date and time -->
-                                        <div class="form-group mb-2">
-                                            <label class="text-xs font-weight-bold text-uppercase mb-1">Check-in</label>
-                                            <input type="datetime-local"
-                                                class="form-control form-control-sm edit-hotel-checkin" required>
-                                        </div>
-                                        <!-- Edit check out hotel date and time -->
-                                        <div class="form-group mb-3">
-                                            <label
-                                                class="text-xs font-weight-bold text-uppercase mb-1">Check-out</label>
-                                            <input type="datetime-local"
-                                                class="form-control form-control-sm edit-hotel-checkout" required>
+                                                placeholder="Search for a hotel..." maxlength="255" autocomplete="off"
+                                                required>
+
+                                            <div class="invalid-feedback edit-hotel-name-error"></div>
+
+                                            <!-- Location API Suggestions -->
+                                            <div class="hotel-edit-suggestions list-group position-absolute w-100 d-none"
+                                                style="z-index: 1000; max-height: 250px; overflow-y: auto;">
+                                            </div>
                                         </div>
 
-                                        <!-- Action button -->
+                                        <!-- Check-in -->
+                                        <div class="form-group mb-2">
+                                            <label class="text-xs font-weight-bold text-uppercase mb-1">
+                                                Check-in
+                                            </label>
+                                            <input type="datetime-local"
+                                                class="form-control form-control-sm edit-hotel-checkin" required>
+                                            <div class="invalid-feedback edit-hotel-checkin-error"></div>
+                                        </div>
+
+                                        <!-- Check-out -->
+                                        <div class="form-group mb-3">
+                                            <label class="text-xs font-weight-bold text-uppercase mb-1">
+                                                Check-out
+                                            </label>
+                                            <input type="datetime-local"
+                                                class="form-control form-control-sm edit-hotel-checkout" required>
+                                            <div class="invalid-feedback edit-hotel-checkout-error"></div>
+                                        </div>
+
+                                        <!-- Action Buttons -->
                                         <div>
-                                            <!-- Save hotel -->
-                                            <button type="submit" class="btn btn-sm btn-info save-hotel">Save</button>
-                                            <!-- Cancel edit hotel -->
-                                            <button type="button"
-                                                class="btn btn-sm btn-light cancel-hotel-edit border">Cancel</button>
+                                            <button type="submit" class="btn btn-sm btn-info save-hotel">
+                                                Save
+                                            </button>
+                                            <button type="button" class="btn btn-sm btn-light cancel-hotel-edit border">
+                                                Cancel
+                                            </button>
                                         </div>
                                     </form>
                                     <!-- End of edit hotel form -->
+
                                 </div>
                             </div>
                         </div>

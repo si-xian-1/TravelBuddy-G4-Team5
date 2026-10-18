@@ -53,6 +53,55 @@
                 </div>
             </div>
         </div>
+
+<!-- Hotel Details Form -->
+<div class="card shadow mb-4">
+    <div class="card-header py-3">
+        <h6 class="m-0 font-weight-bold text-primary">Hotel Details</h6>
+    </div>
+    <div class="card-body">
+        <div id="hotelError" class="alert alert-danger d-none" role="alert"></div>
+
+        <form id="hotelForm" th:data-itinerary-id="${itineraryId}" novalidate>
+            <!-- Hotel Search -->
+            <div class="form-group position-relative">
+                <label for="hotelName">Hotel Name or Location</label>
+                <input type="text" class="form-control" id="hotelName"
+                    name="hotelName" placeholder="Search for a hotel..."
+                    maxlength="255" autocomplete="off" required>
+                <div class="invalid-feedback" id="hotelNameError"></div>
+
+                <!-- Location API Suggestions -->
+                <div id="hotelSuggestions"
+                    class="list-group position-absolute w-100 d-none"
+                    style="z-index: 1000; max-height: 250px; overflow-y: auto;">
+                </div>
+            </div>
+
+            <!-- Check-in -->
+            <div class="form-group">
+                <label for="checkIn">Check-in Date and Time</label>
+                <input type="datetime-local" class="form-control"
+                    id="checkIn" name="checkIn" required>
+                <div class="invalid-feedback" id="checkInError"></div>
+            </div>
+
+            <!-- Check-out -->
+            <div class="form-group">
+                <label for="checkOut">Check-out Date and Time</label>
+                <input type="datetime-local" class="form-control"
+                    id="checkOut" name="checkOut" required>
+                <div class="invalid-feedback" id="checkOutError"></div>
+            </div>
+
+            <!-- Submit -->
+            <button type="submit" class="btn btn-primary" id="saveHotelBtn">
+                Add Hotel
+            </button>
+        </form>
+    </div>
+</div>
+
     </div>
 
     <!-- Bootstrap core JavaScript-->
@@ -62,7 +111,10 @@
     <!-- Core plugin JavaScript-->
     <script th:src="@{vendor/jquery-easing/jquery.easing.min.js}"></script>
 
-    <!-- Custom scripts for all pages-->
+    <!-- Hotel search autocomplete -->
+    <script th:src="@{/js/newHotel.js}"></script>
+
+    <!-- Custom scripts for all pages -->
     <script th:src="@{/js/sb-admin-2.min.js}"></script>
 </body>
 
