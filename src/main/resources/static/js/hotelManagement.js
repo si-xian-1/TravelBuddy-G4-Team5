@@ -30,6 +30,7 @@ document.addEventListener("DOMContentLoaded", async function () {
 
             const hotels = await response.json();
             loadingMessage.classList.add("d-none");
+            setItinerarySectionExpanded("collapseHotels", hotels.length > 0);
 
             if (hotels.length === 0) {
                 emptyMessage.classList.remove("d-none");

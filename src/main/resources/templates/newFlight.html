@@ -9,7 +9,7 @@
     <meta name="description" content="">
     <meta name="author" content="">
 
-    <title>TravelBuddy - Home</title>
+    <title>TravelBuddy - Add Flight</title>
 
     <!-- Custom fonts for this template-->
     <link th:href="@{/vendor/fontawesome-free/css/all.min.css}" rel="stylesheet" type="text/css">
@@ -50,6 +50,64 @@
                             <i class="fas fa-arrow-left fa-sm mr-2"></i> Back to Itinerary
                         </a>
                     </div>
+
+                    <div class="card shadow mb-4">
+                        <div class="card-header py-3">
+                            <h6 class="m-0 font-weight-bold text-success">Flight Details</h6>
+                        </div>
+                        <div class="card-body">
+                            <div id="flightError" class="alert alert-danger d-none" role="alert"></div>
+
+                            <form id="flightForm" th:data-itinerary-id="${itineraryId}" novalidate>
+                                <div class="form-row">
+                                    <div class="form-group col-md-6">
+                                        <label for="airline">Airline</label>
+                                        <input type="text" class="form-control" id="airline" maxlength="255">
+                                        <div class="invalid-feedback" id="airlineError"></div>
+                                    </div>
+                                    <div class="form-group col-md-6">
+                                        <label for="flightNumber">Flight number</label>
+                                        <input type="text" class="form-control" id="flightNumber" maxlength="50">
+                                        <div class="invalid-feedback" id="flightNumberError"></div>
+                                    </div>
+                                </div>
+
+                                <div class="form-row">
+                                    <div class="form-group col-md-6">
+                                        <label for="departureAirport">Departure airport</label>
+                                        <input type="text" class="form-control" id="departureAirport"
+                                            maxlength="100">
+                                        <div class="invalid-feedback" id="departureAirportError"></div>
+                                    </div>
+                                    <div class="form-group col-md-6">
+                                        <label for="arrivalAirport">Arrival airport</label>
+                                        <input type="text" class="form-control" id="arrivalAirport"
+                                            maxlength="100">
+                                        <div class="invalid-feedback" id="arrivalAirportError"></div>
+                                    </div>
+                                </div>
+
+                                <div class="form-row">
+                                    <div class="form-group col-md-6">
+                                        <label for="departureTime">Departure date and time</label>
+                                        <input type="datetime-local" class="form-control" id="departureTime"
+                                            data-min-datetime="now">
+                                        <div class="invalid-feedback" id="departureTimeError"></div>
+                                    </div>
+                                    <div class="form-group col-md-6">
+                                        <label for="arrivalTime">Arrival date and time</label>
+                                        <input type="datetime-local" class="form-control" id="arrivalTime"
+                                            data-min-datetime="now">
+                                        <div class="invalid-feedback" id="arrivalTimeError"></div>
+                                    </div>
+                                </div>
+
+                                <button type="submit" class="btn btn-success" id="saveFlightBtn">
+                                    Add Flight
+                                </button>
+                            </form>
+                        </div>
+                    </div>
                 </div>
             </div>
         </div>
@@ -61,6 +119,9 @@
 
     <!-- Core plugin JavaScript-->
     <script th:src="@{vendor/jquery-easing/jquery.easing.min.js}"></script>
+
+    <script th:src="@{/js/dateTimeValidation.js}"></script>
+    <script th:src="@{/js/newFlight.js}"></script>
 
     <!-- Custom scripts for all pages-->
     <script th:src="@{/js/sb-admin-2.min.js}"></script>

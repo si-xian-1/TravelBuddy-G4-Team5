@@ -43,23 +43,19 @@
                         <div class="card-body">
                             <div id="attractionError" class="alert alert-danger d-none" role="alert"></div>
 
-                            <form id="attractionForm" th:data-itinerary-id="${itineraryId}">
+                            <form id="attractionForm" th:data-itinerary-id="${itineraryId}" novalidate>
                                 <div class="form-group">
                                     <label for="attractionName">Attraction name or location</label>
                                     <input type="text" class="form-control" id="attractionName"
-                                        name="attractionName" maxlength="255" required>
-                                    <div class="invalid-feedback" id="attractionNameError">
-                                        Enter an attraction name or location.
-                                    </div>
+                                        name="attractionName" maxlength="255">
+                                    <div class="invalid-feedback" id="attractionNameError"></div>
                                 </div>
 
                                 <div class="form-group">
                                     <label for="visitDate">Visit date and time</label>
                                     <input type="datetime-local" class="form-control" id="visitDate"
-                                        name="visitDate" required>
-                                    <div class="invalid-feedback" id="visitDateError">
-                                        Choose a visit date and time.
-                                    </div>
+                                        name="visitDate" data-min-datetime="now">
+                                    <div class="invalid-feedback" id="visitDateError"></div>
                                 </div>
 
                                 <button type="submit" class="btn btn-primary" id="saveAttractionBtn">
@@ -76,6 +72,7 @@
     <script th:src="@{/vendor/jquery/jquery.min.js}"></script>
     <script th:src="@{/vendor/bootstrap/js/bootstrap.bundle.min.js}"></script>
     <script th:src="@{vendor/jquery-easing/jquery.easing.min.js}"></script>
+    <script th:src="@{/js/dateTimeValidation.js}"></script>
     <script th:src="@{/js/newAttraction.js}"></script>
     <script th:src="@{/js/sb-admin-2.min.js}"></script>
 </body>

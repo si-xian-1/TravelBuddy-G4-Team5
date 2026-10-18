@@ -1,3 +1,5 @@
+const visitDateInput = document.getElementById("visitDate");
+
 document.getElementById("attractionForm").addEventListener("submit", async function (event) {
     event.preventDefault();
 
@@ -11,9 +13,30 @@ document.getElementById("attractionForm").addEventListener("submit", async funct
     const visitDate = visitDateInput.value;
 
     errorAlert.classList.add("d-none");
-    nameInput.classList.toggle("is-invalid", attractionName.length === 0);
-    visitDateInput.classList.toggle("is-invalid", visitDate.length === 0);
-    if (!attractionName || !visitDate) {
+    document.querySelectorAll(".form-control").forEach(input => input.classList.remove("is-invalid"));
+    document.querySelectorAll(".invalid-feedback").forEach(message => message.textContent = "");
+
+    let isValid = true;
+    if (!attractionName) {
+        nameInput.classList.add("is-invalid");
+        document.getElementById("attractionNameError").textContent =
+            "Attraction name cannot be empty.";
+        isValid = false;
+    }
+
+    if (!visitDate) {
+        visitDateInput.classList.add("is-invalid");
+        document.getElementById("visitDateError").textContent =
+            "Visit date and time is required.";
+        isValid = false;
+    } else if (!DateTimeValidation.isNowOrLater(visitDate)) {
+        visitDateInput.classList.add("is-invalid");
+        document.getElementById("visitDateError").textContent =
+            "Visit date and time must be now or later.";
+        isValid = false;
+    }
+
+    if (!isValid) {
         return;
     }
 

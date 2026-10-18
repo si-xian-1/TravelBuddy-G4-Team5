@@ -33,6 +33,7 @@ document.addEventListener("DOMContentLoaded", async function () {
 
             const attractions = await response.json();
             loadingMessage.classList.add("d-none");
+            setItinerarySectionExpanded("collapseAttractions", attractions.length > 0);
 
             if (attractions.length === 0) {
                 emptyMessage.classList.remove("d-none");
@@ -45,7 +46,6 @@ document.addEventListener("DOMContentLoaded", async function () {
                 const nameInput = card.querySelector(".edit-attraction-name");
                 const dateInput = card.querySelector(".edit-attraction-date");
                 const disasterAlert = card.querySelector(".disaster-alert");
-
                 cardElement.dataset.attractionId = attraction.attractionId;
                 card.querySelector(".attraction-name").textContent = attraction.attractionName;
                 card.querySelector(".attraction-visit-date").textContent =
@@ -54,6 +54,7 @@ document.addEventListener("DOMContentLoaded", async function () {
                 //     formatCoordinates(attraction.latitude, attraction.longitude);
                 nameInput.value = attraction.attractionName || "";
                 dateInput.value = toDateTimeInputValue(attraction.visitDate);
+                DateTimeValidation.setMinimumNow(dateInput);
 
                 // Display disaster warning if any
                 if (attraction.disasterWarning && attraction.disasterWarning.trim() !== "") {
@@ -154,11 +155,31 @@ document.addEventListener("DOMContentLoaded", async function () {
         const attractionName = nameInput.value.trim();
         const visitDate = dateInput.value;
 
-        nameInput.classList.toggle("is-invalid", !attractionName);
-        dateInput.classList.toggle("is-invalid", !visitDate);
         error.classList.add("d-none");
+        form.querySelectorAll(".form-control").forEach(input => input.classList.remove("is-invalid"));
+        form.querySelectorAll(".invalid-feedback").forEach(message => message.textContent = "");
 
-        if (!attractionName || !visitDate) {
+        let isValid = true;
+        if (!attractionName) {
+            nameInput.classList.add("is-invalid");
+            form.querySelector(".edit-attraction-name-error").textContent =
+                "Attraction name cannot be empty.";
+            isValid = false;
+        }
+
+        if (!visitDate) {
+            dateInput.classList.add("is-invalid");
+            form.querySelector(".edit-attraction-date-error").textContent =
+                "Visit date and time is required.";
+            isValid = false;
+        } else if (!DateTimeValidation.isNowOrLater(visitDate)) {
+            dateInput.classList.add("is-invalid");
+            form.querySelector(".edit-attraction-date-error").textContent =
+                "Visit date and time must be now or later.";
+            isValid = false;
+        }
+
+        if (!isValid) {
             return;
         }
 
@@ -190,3 +211,29 @@ document.addEventListener("DOMContentLoaded", async function () {
 
     await loadAttractions();
 });
+
+async function getErrorMessage(responseBody, status) {
+    if (!responseBody) {
+        return `Request failed (${status}).`;
+    }
+
+    try {
+        const errorData = JSON.parse(responseBody);
+        return errorData.message || errorData.detail || responseBody;
+    } catch {
+        return responseBody;
+    }
+}
+
+function formatVisitDate(value) {
+    if (!value) {
+        return "Not provided";
+    }
+
+    const date = new Date(value);
+    return Number.isNaN(date.getTime()) ? value : date.toLocaleString();
+}
+
+function toDateTimeInputValue(value) {
+    return value ? value.slice(0, 16) : "";
+}
