@@ -47,6 +47,8 @@ document.addEventListener("DOMContentLoaded", async function () {
                 const dateInput = card.querySelector(".edit-attraction-date");
                 const disasterAlert = card.querySelector(".disaster-alert");
                 cardElement.dataset.attractionId = attraction.attractionId;
+                cardElement.dataset.attractionName = attraction.attractionName || "";
+                cardElement.dataset.visitDate = toDateTimeInputValue(attraction.visitDate);
                 card.querySelector(".attraction-name").textContent = attraction.attractionName;
                 card.querySelector(".attraction-visit-date").textContent =
                     formatVisitDate(attraction.visitDate);
@@ -87,14 +89,17 @@ document.addEventListener("DOMContentLoaded", async function () {
 
         const card = button.closest(".attraction-card");
         if (button.classList.contains("edit-attraction")) {
+            resetAttractionEditForm(card);
             card.querySelector(".attraction-details").classList.add("d-none");
             card.querySelector(".attraction-edit-error").classList.add("d-none");
             card.querySelector(".attraction-edit-form").classList.remove("d-none");
         } else if (button.classList.contains("cancel-attraction-edit")) {
+            resetAttractionEditForm(card);
             card.querySelector(".attraction-edit-form").classList.add("d-none");
             card.querySelector(".attraction-details").classList.remove("d-none");
         } else if (button.classList.contains("delete-attraction")) {
             attractionPendingDelete = card;
+            deleteModal.dataset.deleteType = "attraction";
             document.getElementById("confirmDeleteModalTitle").textContent = "Delete Attraction";
             document.getElementById("confirmDeleteModalBody").textContent =
                 `Delete "${card.querySelector(".attraction-name").textContent}"? This action cannot be undone.`;
@@ -102,8 +107,13 @@ document.addEventListener("DOMContentLoaded", async function () {
         }
     });
 
+    $(deleteModal).on("hidden.bs.modal", function () {
+        attractionPendingDelete = null;
+        deleteModal.dataset.deleteType = "";
+    });
+
     deleteConfirmButton.addEventListener("click", async function () {
-        if (!attractionPendingDelete) {
+        if (deleteModal.dataset.deleteType !== "attraction" || !attractionPendingDelete) {
             return;
         }
 
@@ -236,4 +246,15 @@ function formatVisitDate(value) {
 
 function toDateTimeInputValue(value) {
     return value ? value.slice(0, 16) : "";
+}
+
+function resetAttractionEditForm(card) {
+    const form = card.querySelector(".attraction-edit-form");
+    form.querySelector(".edit-attraction-name").value = card.dataset.attractionName;
+    const dateInput = form.querySelector(".edit-attraction-date");
+    dateInput.value = card.dataset.visitDate;
+    DateTimeValidation.setMinimumNow(dateInput);
+    form.querySelectorAll(".form-control").forEach(input => input.classList.remove("is-invalid"));
+    form.querySelectorAll(".invalid-feedback").forEach(message => message.textContent = "");
+    card.querySelector(".attraction-edit-error").classList.add("d-none");
 }

@@ -41,6 +41,12 @@ document.addEventListener("DOMContentLoaded", async function () {
                 const disasterAlert = card.querySelector(".disaster-alert");
 
                 cardElement.dataset.flightId = flight.flightId;
+                cardElement.dataset.airline = flight.airline || "";
+                cardElement.dataset.flightNumber = flight.flightNumber || "";
+                cardElement.dataset.departureAirport = flight.departureAirport || "";
+                cardElement.dataset.arrivalAirport = flight.arrivalAirport || "";
+                cardElement.dataset.departureTime = toFlightDateTimeInputValue(flight.departureTime);
+                cardElement.dataset.arrivalTime = toFlightDateTimeInputValue(flight.arrivalTime);
                 card.querySelector(".flight-airline").textContent = flight.airline || "Airline";
                 card.querySelector(".flight-number").textContent = flight.flightNumber || "";
                 card.querySelector(".flight-dep-airport").textContent =
@@ -57,7 +63,8 @@ document.addEventListener("DOMContentLoaded", async function () {
                     disasterAlert.classList.add("alert-danger");
                     disasterAlert.classList.remove("alert-success");
                 } else {
-                    disasterAlert.textContent = "No active disaster alerts.";
+                    disasterAlert.innerHTML =
+                        '<i class="fas fa-check-circle mr-1"></i> Safe area (No active alerts)';
                     disasterAlert.classList.add("alert-success");
                     disasterAlert.classList.remove("alert-danger");
                 }
@@ -91,15 +98,17 @@ document.addEventListener("DOMContentLoaded", async function () {
 
         const card = button.closest(".flight-card");
         if (button.classList.contains("edit-flight")) {
+            resetFlightEditForm(card);
             card.querySelector(".flight-details").classList.add("d-none");
             card.querySelector(".flight-edit-error").classList.add("d-none");
             card.querySelector(".flight-edit-form").classList.remove("d-none");
         } else if (button.classList.contains("cancel-flight-edit")) {
+            resetFlightEditForm(card);
             card.querySelector(".flight-edit-form").classList.add("d-none");
             card.querySelector(".flight-details").classList.remove("d-none");
-            clearFlightValidation(card.querySelector(".flight-edit-form"));
         } else if (button.classList.contains("delete-flight")) {
             flightPendingDelete = card;
+            deleteModal.dataset.deleteType = "flight";
             document.getElementById("confirmDeleteModalTitle").textContent = "Delete Flight";
             document.getElementById("confirmDeleteModalBody").textContent =
                 `Delete "${card.querySelector(".flight-airline").textContent} ${card.querySelector(".flight-number").textContent}"? This action cannot be undone.`;
@@ -107,8 +116,13 @@ document.addEventListener("DOMContentLoaded", async function () {
         }
     });
 
+    $(deleteModal).on("hidden.bs.modal", function () {
+        flightPendingDelete = null;
+        deleteModal.dataset.deleteType = "";
+    });
+
     deleteConfirmButton.addEventListener("click", async function () {
-        if (!flightPendingDelete) {
+        if (deleteModal.dataset.deleteType !== "flight" || !flightPendingDelete) {
             return;
         }
 
@@ -244,6 +258,24 @@ document.addEventListener("DOMContentLoaded", async function () {
 function clearFlightValidation(form) {
     form.querySelectorAll(".form-control").forEach(input => input.classList.remove("is-invalid"));
     form.querySelectorAll(".invalid-feedback").forEach(message => message.textContent = "");
+}
+
+function resetFlightEditForm(card) {
+    const form = card.querySelector(".flight-edit-form");
+    form.querySelector(".edit-flight-airline").value = card.dataset.airline;
+    form.querySelector(".edit-flight-number").value = card.dataset.flightNumber;
+    form.querySelector(".edit-flight-dep-airport").value = card.dataset.departureAirport;
+    form.querySelector(".edit-flight-arr-airport").value = card.dataset.arrivalAirport;
+
+    const departureTimeInput = form.querySelector(".edit-flight-dep-time");
+    const arrivalTimeInput = form.querySelector(".edit-flight-arr-time");
+    departureTimeInput.value = card.dataset.departureTime;
+    arrivalTimeInput.value = card.dataset.arrivalTime;
+    DateTimeValidation.setMinimumNow(departureTimeInput);
+    DateTimeValidation.setMinimumNow(arrivalTimeInput);
+
+    card.querySelector(".flight-edit-error").classList.add("d-none");
+    clearFlightValidation(form);
 }
 
 function showFlightFieldError(form, selector, message) {
