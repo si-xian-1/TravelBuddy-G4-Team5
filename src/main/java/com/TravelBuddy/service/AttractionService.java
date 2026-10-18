@@ -33,17 +33,6 @@ public class AttractionService {
         // Check that user has the permission to add attraction for this selected itinerary
         checkItineraryBelongToUser(itineraryId, userId);
 
-        // Validation checks and return meaningful response to user
-        if (attraction == null) {
-            throw new InvalidInputsException("Attraction cannot be empty.");
-        }
-        if (attraction.getAttractionName() == null || attraction.getAttractionName().trim().isEmpty()) {
-            throw new InvalidInputsException("Attraction name is required.");
-        }
-        if (attraction.getVisitDate() == null) {
-            throw new InvalidInputsException("Visit date is required.");
-        }
-
         // Get the coordinates of the attraction
         LocationResponse location = locationService.getCoordinates(attraction.getAttractionName());
         
@@ -58,11 +47,6 @@ public class AttractionService {
 
         // Execute sql to add new attraction
         Attraction savedAttraction = attractionRepository.createAttraction(itineraryId, attraction);
-
-        // Disaster monitoring
-        savedAttraction.setDisasterWarning(gdacsService.evaluateProximityAndDateFromDisasters(
-                savedAttraction.getLatitude(), savedAttraction.getLongitude(), 
-                savedAttraction.getVisitDate(), savedAttraction.getVisitDate()));
 
         // If attraction creation is successful
         return savedAttraction;
@@ -87,7 +71,20 @@ public class AttractionService {
      */
     public List<Attraction> getAllAttraction(int itineraryId, int userId) {
         checkItineraryBelongToUser(itineraryId, userId);
-        return attractionRepository.findAllAttractionsByItineraryId(itineraryId);
+
+        // Execute sql to add get attraction
+        List<Attraction> attractions = attractionRepository.findAllAttractionsByItineraryId(itineraryId);
+
+        // Disaster monitoring
+        for (Attraction attraction : attractions) {
+            String warning = gdacsService.evaluateProximityAndDateFromDisasters(
+                    attraction.getLatitude(), attraction.getLongitude(), 
+                    attraction.getVisitDate(), attraction.getVisitDate());
+            
+            attraction.setDisasterWarning(warning);
+        }
+
+        return attractions;
     }
 
     /**
@@ -113,16 +110,6 @@ public class AttractionService {
      */
     public int updateAttraction(int itineraryId, int userId, int attractionId, Attraction attraction) {
         checkItineraryBelongToUser(itineraryId, userId);
-         // Validation checks and return meaningful response to user
-        if (attraction == null) {
-            throw new InvalidInputsException("Attraction cannot be empty.");
-        }
-        if (attraction.getAttractionName() == null || attraction.getAttractionName().trim().isEmpty()) {
-            throw new InvalidInputsException("Attraction name is required.");
-        }
-        if (attraction.getVisitDate() == null) {
-            throw new InvalidInputsException("Visit date is required.");
-        }
 
         // Get the coordinates of the attraction
         LocationResponse location = locationService.getCoordinates(attraction.getAttractionName());

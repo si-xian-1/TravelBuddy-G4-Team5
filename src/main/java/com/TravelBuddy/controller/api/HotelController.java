@@ -5,9 +5,11 @@ import java.util.List;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
+import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
@@ -16,6 +18,8 @@ import org.springframework.web.server.ResponseStatusException;
 import com.TravelBuddy.model.Hotel;
 import com.TravelBuddy.model.User;
 import com.TravelBuddy.service.HotelService;
+
+import jakarta.validation.Valid;
 
 @RestController
 @RequestMapping("/api/itinerary/{itineraryId}/hotels")
@@ -35,7 +39,7 @@ public class HotelController {
      */
     @PostMapping("/")
     public ResponseEntity<Hotel> createHotel(
-            @PathVariable int itineraryId, @AuthenticationPrincipal User currentUser, @RequestBody Hotel hotel) {
+            @PathVariable int itineraryId, @AuthenticationPrincipal User currentUser, @Valid @RequestBody Hotel hotel) {
         
         Hotel addedHotel = hotelService.createHotel(itineraryId, currentUser.getUserId(), hotel);
         
@@ -73,7 +77,7 @@ public class HotelController {
      * @param currentUser
      * @return List of all hotels belonging to the user
      */
-    @GetMapping("/all/{userId}")
+    @GetMapping("/all")
     public ResponseEntity<List<Hotel>> getAllHotel(
             @PathVariable int itineraryId, @AuthenticationPrincipal User currentUser) {
 
@@ -81,5 +85,49 @@ public class HotelController {
 
         // If success, returns all itinerary
         return ResponseEntity.status(HttpStatus.OK).body(hotels);
+    }
+
+     /**
+     * Update hotel details
+     * @param itineraryId
+     * @param hotelId
+     * @param hotel
+     * @param currentUser
+     * @return Success message for successful update of hotel or error message
+     */
+    @PutMapping("/{hotelId}")
+    public String updateHotel(
+            @PathVariable int itineraryId,
+            @PathVariable int hotelId, 
+            @Valid @RequestBody Hotel hotel,
+            @AuthenticationPrincipal User currentUser
+    ) {
+        if (hotelService.updateHotel(itineraryId, currentUser.getUserId(), hotelId, hotel) == 0) {
+            throw new ResponseStatusException(
+                    HttpStatus.NOT_FOUND,
+                    "Hotel not found"
+            );
+        }
+
+        return "Hotel updated successfully";
+    }
+
+    /**
+     * Delete a particular hotel
+     * @param itineraryId
+     * @param hotelId
+     * @param currentUser
+     * @return success message for deletion of hotel or error message
+     */
+    @DeleteMapping("/{hotelId}")
+    public String deleteHotel(@PathVariable int itineraryId, @PathVariable int hotelId, @AuthenticationPrincipal User currentUser) {
+        if (hotelService.deleteHotel(itineraryId, currentUser.getUserId(), hotelId) == 0) {
+            throw new ResponseStatusException(
+                    HttpStatus.NOT_FOUND,
+                    "Hotel not found"
+            );
+        }
+
+        return "Hotel deleted successfully";
     }
 }

@@ -1,3 +1,4 @@
+<<<<<<< HEAD
 document.addEventListener("DOMContentLoaded", async function () {
     const page = document.getElementById("itineraryDetails");
     const itineraryId = page.dataset.itineraryId;
@@ -201,6 +202,11 @@ document.addEventListener("DOMContentLoaded", async function () {
 
     await Promise.all([loadItineraryDetails(), loadAttractions()]);
 });
+=======
+/**
+ * Shared method across attraction, hotel and flight management
+ */
+>>>>>>> d59220c79e2284d98436cd6feb1a3fc51825141a
 
 async function getErrorMessage(responseBody, status) {
     if (!responseBody) {
