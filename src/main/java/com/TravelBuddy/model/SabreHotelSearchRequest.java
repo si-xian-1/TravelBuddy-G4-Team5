@@ -1,19 +1,24 @@
 package com.TravelBuddy.model;
 
+import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.annotation.JsonPropertyDescription;
 
 public class SabreHotelSearchRequest {
 
-    @JsonPropertyDescription("City name or location code, e.g., Taipei or TPE")
+    @JsonProperty("location")
+    @JsonPropertyDescription("The city name, airport code, or location for hotel search (e.g., Taipei, TPE, Singapore)")
     private String location;
 
+    @JsonProperty("checkInDate")
     @JsonPropertyDescription("Check-in date in YYYY-MM-DD format")
     private String checkInDate;
 
+    @JsonProperty("checkOutDate")
     @JsonPropertyDescription("Check-out date in YYYY-MM-DD format")
     private String checkOutDate;
 
-    // Getters and Setters
+    public SabreHotelSearchRequest() {}
+
     public String getLocation() { return location; }
     public void setLocation(String location) { this.location = location; }
 
