@@ -45,7 +45,7 @@ public class TravelerRepository {
 
     public User findCredentialsByUsername(String username) {
         String sql = """
-                SELECT user_id, username, password
+                SELECT user_id, username, password, role
                 FROM users
                 WHERE username = ? AND role = 'TRAVELER'
                 """;
@@ -57,6 +57,7 @@ public class TravelerRepository {
                     user.setUserId(rs.getInt("user_id"));
                     user.setUsername(rs.getString("username"));
                     user.setPassword(rs.getString("password"));
+                    user.setRole(rs.getString("role"));
                     return user;
                 },
                 username

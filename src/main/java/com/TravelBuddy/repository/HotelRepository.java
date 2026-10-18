@@ -115,6 +115,7 @@ public class HotelRepository {
     }
 
     /**
+<<<<<<< HEAD
      * Update a hotel belonging to a specific itinerary.
      *
      * @param itineraryId the itinerary containing the hotel
@@ -131,20 +132,45 @@ public class HotelRepository {
                 check_out = ?
             WHERE hotel_id = ? AND itinerary_id = ?
             """;
+=======
+     * Update hotel in an itinerary of the user
+     * @param itineraryId
+     * @param hotelId
+     * @param hotel
+     * @return number of updated rows in hotels
+     */
+    public int updateHotel(int itineraryId, int hotelId, Hotel hotel) {
+        String sql = """
+                UPDATE hotels
+                SET hotel_name = COALESCE(?, hotel_name),
+                    latitude = COALESCE(?, latitude),
+                    longitude = COALESCE(?, longitude),
+                    check_in = COALESCE(?, check_in),
+                    check_out = COALESCE(?, check_out)
+                WHERE hotel_id = ? AND itinerary_id = ?
+                """;
+>>>>>>> main
 
         return jdbcTemplate.update(
                 sql,
                 hotel.getHotelName(),
                 hotel.getLatitude(),
                 hotel.getLongitude(),
+<<<<<<< HEAD
                 Timestamp.valueOf(hotel.getCheckIn()),
                 Timestamp.valueOf(hotel.getCheckOut()),
                 hotel.getHotelId(),
+=======
+                hotel.getCheckIn(),
+                hotel.getCheckOut(),
+                hotelId,
+>>>>>>> main
                 itineraryId
         );
     }
 
     /**
+<<<<<<< HEAD
      * Delete a hotel belonging to a specific itinerary.
      *
      * @param hotelId the hotel to delete
@@ -157,6 +183,15 @@ public class HotelRepository {
             WHERE hotel_id = ? AND itinerary_id = ?
             """;
 
+=======
+     * Delete hotel in an itinerary of the user
+     * @param itineraryId
+     * @param hotelId
+     * @return number of updated rows in hotels
+     */
+    public int deleteHotel(int itineraryId, int hotelId) {
+        String sql = "DELETE FROM hotels WHERE hotel_id = ? AND itinerary_id = ?";
+>>>>>>> main
         return jdbcTemplate.update(sql, hotelId, itineraryId);
     }
 }
