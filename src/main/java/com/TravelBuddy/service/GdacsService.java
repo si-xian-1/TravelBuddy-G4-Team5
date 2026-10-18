@@ -67,6 +67,15 @@ public class GdacsService {
     }
 
     /**
+     * Retrieve active disaster events stored in memory without calling GDACS API again
+     * 
+     * @return in-memory list of active disasters
+     */
+    public List<DisasterEvents> getActiveDisasters() {
+        return this.activeDisasters;
+    }
+
+    /**
      * Get user itinerary plan to check against disaster location
      * @param latitude
      * @param longtitude

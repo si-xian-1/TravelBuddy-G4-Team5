@@ -20,12 +20,20 @@ To add own customized styling to overwrite existing styling
 
 /* Custom hover effect for cards to pop up for clickable cards */
 .card-hover {
-    transition: transform 0.2s ease-in-out, box-shadow 0.2s ease-in-out;
-    text-decoration: none !important;
-    cursor: pointer;
+  transition: transform 0.2s ease-in-out, box-shadow 0.2s ease-in-out;
+  text-decoration: none !important;
+  cursor: pointer;
 }
 
 .card-hover:hover {
-    transform: translateY(-3px);
-    box-shadow: 0 0.5rem 1rem rgba(0, 0, 0, 0.15) !important;
+  transform: translateY(-3px);
+  box-shadow: 0 0.5rem 1rem rgba(0, 0, 0, 0.15) !important;
+}
+
+/* Styling of map display */
+#dashboardMap {
+  height: 580px;
+  width: 100%;
+  border-radius: 0.35rem;
+  z-index: 1;
 }
