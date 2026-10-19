@@ -50,9 +50,6 @@
                             <i class="fas fa-arrow-left fa-sm mr-2"></i> Back to Itinerary
                         </a>
                     </div>
-                </div>
-            </div>
-        </div>
 
 <!-- Hotel Details Form -->
 <div class="card shadow mb-4">
@@ -73,8 +70,8 @@
 
                 <!-- Location API Suggestions -->
                 <div id="hotelSuggestions"
-                    class="list-group position-absolute w-100 d-none"
-                    style="z-index: 1000; max-height: 250px; overflow-y: auto;">
+                    class="list-group position-absolute w-100 hotel-suggestions d-none"
+                    role="listbox" aria-label="Hotel search suggestions">
                 </div>
             </div>
 
@@ -101,6 +98,10 @@
         </form>
     </div>
 </div>
+
+            </div>
+        </div>
+    </div>
 
     </div>
 

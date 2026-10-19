@@ -39,7 +39,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
             try {
                 const response = await fetch(
-                    `/api/location/search?query=${encodeURIComponent(query)}`,
+                    `/api/location/hotels/search?query=${encodeURIComponent(query)}`,
                     { signal: controller.signal }
                 );
 
@@ -62,16 +62,18 @@ document.addEventListener("DOMContentLoaded", () => {
                     suggestions.appendChild(message);
                 } else {
                     locations.forEach(location => {
+                        const displayName =
+                            location.display_name ?? location.displayName;
                         const item = document.createElement("button");
                         item.type = "button";
                         item.className =
                             "list-group-item list-group-item-action";
 
-                        item.textContent = location.displayName;
+                        item.textContent = displayName;
 
                         item.addEventListener("click", () => {
                             selectedHotel = {
-                                hotelName: location.displayName,
+                                hotelName: displayName,
                                 latitude: Number(location.lat),
                                 longitude: Number(location.lon)
                             };
@@ -95,7 +97,13 @@ document.addEventListener("DOMContentLoaded", () => {
             } catch (error) {
                 if (error.name !== "AbortError") {
                     console.error("Hotel search error:", error);
-                    hideSuggestions();
+                    suggestions.replaceChildren();
+                    const message = document.createElement("div");
+                    message.className = "list-group-item text-danger";
+                    message.textContent =
+                        "Hotel search is unavailable. Please try again.";
+                    suggestions.appendChild(message);
+                    suggestions.classList.remove("d-none");
                 }
             }
         }, 400);

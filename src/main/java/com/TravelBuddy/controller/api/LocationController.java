@@ -21,4 +21,9 @@ public class LocationController {
     public List<LocationResponse> searchLocations(@RequestParam String query) {
         return locationService.searchLocations(query);
     }
+
+    @GetMapping("/hotels/search")
+    public List<LocationResponse> searchHotels(@RequestParam String query) {
+        return locationService.searchHotelLocations(query);
+    }
 }

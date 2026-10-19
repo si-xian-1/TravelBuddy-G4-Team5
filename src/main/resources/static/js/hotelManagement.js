@@ -202,7 +202,7 @@ document.addEventListener("DOMContentLoaded", async function () {
 
             try {
                 const response = await fetch(
-                    `/api/location/search?query=${encodeURIComponent(query)}`,
+                    `/api/location/hotels/search?query=${encodeURIComponent(query)}`,
                     { signal: controller.signal }
                 );
 
@@ -227,12 +227,14 @@ document.addEventListener("DOMContentLoaded", async function () {
                     suggestions.appendChild(message);
                 } else {
                     locations.forEach(location => {
+                        const displayName =
+                            location.display_name ?? location.displayName;
                         const item = document.createElement("button");
                         item.type = "button";
                         item.className =
                             "list-group-item list-group-item-action";
 
-                        item.textContent = location.displayName;
+                        item.textContent = displayName;
 
                         item.addEventListener("click", () => {
                             const latitude = Number(location.lat);
@@ -244,12 +246,12 @@ document.addEventListener("DOMContentLoaded", async function () {
                             }
 
                             hotelSelections.set(form, {
-                                hotelName: location.displayName,
+                                hotelName: displayName,
                                 latitude,
                                 longitude
                             });
 
-                            input.value = location.displayName;
+                            input.value = displayName;
                             input.classList.remove("is-invalid");
                             form.querySelector(
                                 ".edit-hotel-name-error"
@@ -269,7 +271,12 @@ document.addEventListener("DOMContentLoaded", async function () {
                 if (error.name !== "AbortError") {
                     console.error("Hotel location search failed:", error);
                     suggestions.replaceChildren();
-                    suggestions.classList.add("d-none");
+                    const message = document.createElement("div");
+                    message.className = "list-group-item text-danger";
+                    message.textContent =
+                        "Hotel search is unavailable. Please try again.";
+                    suggestions.appendChild(message);
+                    suggestions.classList.remove("d-none");
                 }
             }
         }, 400);

@@ -2,6 +2,16 @@
 To add own customized styling to overwrite existing styling
 */
 
+.hotel-suggestions {
+  top: 100%;
+  left: 0;
+  z-index: 1050;
+  max-height: 250px;
+  overflow-y: auto;
+  background-color: #fff;
+  box-shadow: 0 0.5rem 1rem rgba(0, 0, 0, 0.15);
+}
+
 /* For sign up page */
 .bg-register-image {
   background-image: url("../img/signup.jpg") !important;
