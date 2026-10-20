@@ -53,11 +53,6 @@ public class HotelService {
         // Execute sql to add new hotel
         Hotel savedHotel = hotelRepository.createHotel(itineraryId, hotel);
 
-        // Disaster monitoring
-        savedHotel.setDisasterWarning(gdacsService.evaluateProximityAndDateFromDisasters(
-                savedHotel.getLatitude(), savedHotel.getLongitude(), 
-                savedHotel.getCheckIn(), savedHotel.getCheckOut()));
-
         // If hotel creation is successful
         return savedHotel;
     }
@@ -69,7 +64,20 @@ public class HotelService {
      */
     public List<Hotel> getAllHotel(int itineraryId, int userId) {
         itineraryService.checkItineraryBelongToUser(itineraryId, userId);
-        return hotelRepository.findAllHotelsByItineraryId(itineraryId);
+
+        // Execute sql to get hotel
+        List<Hotel> hotels = hotelRepository.findAllHotelsByItineraryId(itineraryId);
+
+        // Disaster monitoring
+        for (Hotel hotel : hotels) {
+            String warning = gdacsService.evaluateProximityAndDateFromDisasters(
+                    hotel.getLatitude(), hotel.getLongitude(), 
+                    hotel.getCheckIn(), hotel.getCheckOut());
+            
+            hotel.setDisasterWarning(warning);
+        }
+
+        return hotels;
     }
 
     /**

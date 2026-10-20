@@ -9,7 +9,7 @@
     <meta name="description" content="">
     <meta name="author" content="">
 
-    <title>TravelBuddy - All itineraries</title>
+    <title>TravelBuddy - My Profile</title>
 
     <!-- Custom fonts for this template-->
     <link th:href="@{/vendor/fontawesome-free/css/all.min.css}" rel="stylesheet" type="text/css">
@@ -46,6 +46,44 @@
                     <div class="d-sm-flex align-items-center justify-content-between mb-4">
                         <h1 class="h3 mb-0 text-gray-800">My Profile</h1>
                     </div>
+
+                    <div id="profileError" class="alert alert-danger d-none" role="alert">
+                        Unable to load your profile. Please refresh the page or sign in again.
+                    </div>
+
+                    <div class="card shadow mb-4">
+                        <div class="card-header py-3">
+                            <h6 class="m-0 font-weight-bold text-primary">Traveler Details</h6>
+                        </div>
+                        <div class="card-body">
+                            <div class="row">
+                                <div class="col-md-6">
+                                    <p class="mb-3">
+                                        <strong>Username:</strong>
+                                        <span id="profileUsername">Loading...</span>
+                                    </p>
+                                    <p class="mb-3">
+                                        <strong>Mobile Number:</strong>
+                                        <span id="profileMobileNumber">Loading...</span>
+                                    </p>
+                                    <p class="mb-3">
+                                        <strong>Location Consent:</strong>
+                                        <span id="profileLocationConsent">Loading...</span>
+                                    </p>
+                                </div>
+                                <div class="col-md-6">
+                                    <p class="mb-3">
+                                        <strong>Emergency Contact Name:</strong>
+                                        <span id="profileEmergencyContactName">Loading...</span>
+                                    </p>
+                                    <p class="mb-3">
+                                        <strong>Emergency Contact Number:</strong>
+                                        <span id="profileEmergencyContactNumber">Loading...</span>
+                                    </p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
                 </div>
             </div>
         </div>
@@ -57,6 +95,37 @@
 
     <!-- Core plugin JavaScript-->
     <script th:src="@{vendor/jquery-easing/jquery.easing.min.js}"></script>
+
+    <script>
+        document.addEventListener("DOMContentLoaded", async function () {
+            try {
+                const response = await fetch("/api/travelers/myProfile", {
+                    credentials: "same-origin"
+                });
+
+                if (!response.ok) {
+                    throw new Error(`Profile request failed with status ${response.status}`);
+                }
+
+                const traveler = await response.json();
+                const displayValue = value => value == null || value === "" ? "Not provided" : value;
+
+                document.getElementById("profileUsername").textContent = displayValue(traveler.username);
+                document.getElementById("profileMobileNumber").textContent = displayValue(traveler.mobileNumber);
+                document.getElementById("profileLocationConsent").textContent =
+                    traveler.hasConsentLocation == null
+                        ? "Not provided"
+                        : traveler.hasConsentLocation ? "Yes" : "No";
+                document.getElementById("profileEmergencyContactName").textContent =
+                    displayValue(traveler.emergencyContactName);
+                document.getElementById("profileEmergencyContactNumber").textContent =
+                    displayValue(traveler.emergencyContactMobileNumber);
+            } catch (error) {
+                console.error("Unable to load traveler profile:", error);
+                document.getElementById("profileError").classList.remove("d-none");
+            }
+        });
+    </script>
 
     <!-- Custom scripts for all pages-->
     <script th:src="@{/js/sb-admin-2.min.js}"></script>
