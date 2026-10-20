@@ -234,11 +234,20 @@
                                     <!-- Start update attraction details -->
                                     <form class="attraction-edit-form d-none" novalidate>
                                         <!-- Edit attraction name -->
-                                        <div class="form-group mb-2">
-                                            <label class="text-xs font-weight-bold text-uppercase mb-1">Name</label>
-                                            <input type="text" class="form-control form-control-sm edit-attraction-name"
-                                                maxlength="255">
+                                        <div class="form-group mb-2 position-relative location-autocomplete-wrapper">
+                                            <label class="text-xs font-weight-bold text-uppercase mb-1">Attraction Name</label>
+
+                                            <input type="text"
+                                                class="form-control form-control-sm edit-attraction-name location-autocomplete-input"
+                                                autocomplete="off" maxlength="255">
                                             <div class="invalid-feedback edit-attraction-name-error"></div>
+
+                                            <ul class="list-group position-absolute w-100 d-none location-autocomplete-dropdown"
+                                                style="z-index: 1000; max-height: 200px; overflow-y: auto; box-shadow: 0 .15rem 1.75rem 0 rgba(58,59,69,.15);">
+                                            </ul>
+
+                                            <input type="hidden" class="edit-attraction-lat location-autocomplete-lat">
+                                            <input type="hidden" class="edit-attraction-lon location-autocomplete-lon">
                                         </div>
                                         <!-- Edit attraction visit date-->
                                         <div class="form-group mb-3">

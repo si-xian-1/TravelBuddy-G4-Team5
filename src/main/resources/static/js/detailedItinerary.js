@@ -28,16 +28,24 @@ function formatDateTime(value) {
 
 // Converts date string into the local timezone format
 function toDateTimeInputValue(value) {
-    if (!value) return "";
+    if (!value) {
+        return "";
+    }
+    
     const date = new Date(value);
-    if (Number.isNaN(date.getTime())) return value.slice(0, 16);
+    if (Number.isNaN(date.getTime())) { 
+        return value.slice(0, 16);
+    }
 
     return `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, "0")}-${String(date.getDate()).padStart(2, "0")}T${String(date.getHours()).padStart(2, "0")}:${String(date.getMinutes()).padStart(2, "0")}`;
 }
 
 // Standardizes error messages returned by the Spring Boot backend
 function getApiErrorMessage(responseBody, status) {
-    if (!responseBody) return `Request failed (${status}).`;
+    if (!responseBody) {
+        return `Request failed (${status}).`;
+    }
+
     try {
         const errorData = JSON.parse(responseBody);
         const fieldErrors = Object.entries(errorData)
