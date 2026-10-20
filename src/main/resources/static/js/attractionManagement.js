@@ -1,16 +1,125 @@
 /**
- * Manage edit, delete and display of attraction
- * Display disaster warning
+ * Manage edit, delete, and display of attractions.
+ * Displays disaster warnings if applicable.
  */
 document.addEventListener("DOMContentLoaded", async function () {
     const page = document.getElementById("itineraryDetails");
+    const deleteModal = document.getElementById("confirmDeleteModal");
+
+    // Ensure this script only runs on pages with the correct DOM elements
+    if (!page || !deleteModal) {
+        return;
+    }
+
     const itineraryId = page.dataset.itineraryId;
     const attractionsList = document.getElementById("attractionsList");
     const attractionTemplate = document.getElementById("attractionCard");
-    const deleteModal = document.getElementById("confirmDeleteModal");
     const deleteConfirmButton = document.getElementById("confirmDeleteModalBtn");
     let attractionPendingDelete = null;
 
+    // Set timeout to prevent mutiple calls to api for searching attraction location
+    function setCallFrequency(func, delay) {
+        let timeout = null;
+
+        return function (event) {
+            clearTimeout(timeout);
+            timeout = setTimeout(() => {
+                func(event);
+            }, delay);
+        };
+    }
+
+    // Handle typing in the attraction name input to search locations
+    attractionsList.addEventListener("input", setCallFrequency(async function (event) {
+        if (!event.target.matches(".edit-attraction-name")) {
+            return;
+        }
+
+        const input = event.target;
+        const card = input.closest(".attraction-card");
+        
+        // Create the attraction name search result
+        const dropdown = card.querySelector(".location-autocomplete-dropdown");
+        const latInput = card.querySelector(".edit-attraction-lat");
+        const lonInput = card.querySelector(".edit-attraction-lon");
+        const query = input.value.trim();
+
+        // Clear hidden coordinates when user typed a new location
+        if (latInput && lonInput) {
+            latInput.value = "";
+            lonInput.value = "";
+        }
+
+        if (query.length < 3) {
+            dropdown.classList.add("d-none");
+            return;
+        }
+
+        try {
+            // Call the location api to retrieve a list of location to return to user
+            const response = await fetch(`/api/location/search?query=${encodeURIComponent(query)}`);
+
+            if (!response.ok) {
+                throw new Error("Location search failed");
+            }
+
+            const locations = await response.json();
+            dropdown.replaceChildren();
+
+            if (locations.length === 0) {
+                // When no locations found
+                dropdown.innerHTML = '<li class="list-group-item text-muted text-xs">No locations found</li>';
+            } else {
+                // When there are some location found
+                for (const loc of locations) {
+                    const li = document.createElement("li");
+                    li.className = "list-group-item list-group-item-action text-sm autocomplete-item cursor-pointer";
+
+                    // Retrieve the response
+                    const fullAddress = loc.display_name || "Unknown Location";
+                    
+                    // Shorten location name display for readability
+                    const shortName = fullAddress.split(',')[0].trim();
+
+                    li.dataset.name = shortName;
+                    li.dataset.lat = loc.lat;
+                    li.dataset.lon = loc.lon;
+
+                    // Show the attraction name in bold, and the full address in small text below it
+                    li.innerHTML = `<strong>${shortName}</strong><br><small class="text-muted">${fullAddress}</small>`;
+
+                    dropdown.appendChild(li);
+                }
+            }
+            dropdown.classList.remove("d-none");
+        } catch (error) {
+            console.error("Autocomplete fetch error:", error);
+        }
+    }, 400));
+
+    // Handle selecting an item from the dropdown or closing it by clicking elsewhere
+    document.addEventListener("click", function (event) {
+        const item = event.target.closest(".autocomplete-item");
+
+        if (item) {
+            const card = item.closest(".attraction-card");
+            const nameInput = card.querySelector(".edit-attraction-name");
+
+            nameInput.value = item.dataset.name;
+            nameInput.classList.remove("is-invalid");
+
+            card.querySelector(".edit-attraction-lat").value = item.dataset.lat;
+            card.querySelector(".edit-attraction-lon").value = item.dataset.lon;
+            card.querySelector(".location-autocomplete-dropdown").classList.add("d-none");
+        } else {
+            // Close all search result
+            document.querySelectorAll(".location-autocomplete-dropdown:not(.d-none)").forEach(dropdown => {
+                dropdown.classList.add("d-none");
+            });
+        }
+    });
+
+    // Fetches all attractions from the API and populates the UI cards
     async function loadAttractions() {
         const loadingMessage = document.getElementById("attractionsLoading");
         const emptyMessage = document.getElementById("noAttractions");
@@ -19,13 +128,12 @@ document.addEventListener("DOMContentLoaded", async function () {
         loadingMessage.classList.remove("d-none");
         emptyMessage.classList.add("d-none");
         errorMessage.classList.add("d-none");
-        attractionsList.replaceChildren();
+        attractionsList.replaceChildren(); 
 
         try {
-            const response = await fetch(
-                `/api/itinerary/${encodeURIComponent(itineraryId)}/attractions/all`,
-                { credentials: "same-origin" }
-            );
+            const response = await fetch(`/api/itinerary/${encodeURIComponent(itineraryId)}/attractions/all`, {
+                credentials: "same-origin"
+            });
 
             if (!response.ok) {
                 throw new Error(`Failed to load attractions (${response.status}).`);
@@ -33,6 +141,7 @@ document.addEventListener("DOMContentLoaded", async function () {
 
             const attractions = await response.json();
             loadingMessage.classList.add("d-none");
+
             setItinerarySectionExpanded("collapseAttractions", attractions.length > 0);
 
             if (attractions.length === 0) {
@@ -43,29 +152,37 @@ document.addEventListener("DOMContentLoaded", async function () {
             for (const attraction of attractions) {
                 const card = attractionTemplate.content.cloneNode(true);
                 const cardElement = card.querySelector(".attraction-card");
-                const nameInput = card.querySelector(".edit-attraction-name");
-                const dateInput = card.querySelector(".edit-attraction-date");
                 const disasterAlert = card.querySelector(".disaster-alert");
+
                 cardElement.dataset.attractionId = attraction.attractionId;
                 cardElement.dataset.attractionName = attraction.attractionName || "";
                 cardElement.dataset.visitDate = toDateTimeInputValue(attraction.visitDate);
-                card.querySelector(".attraction-name").textContent = attraction.attractionName;
-                card.querySelector(".attraction-visit-date").textContent =
-                    formatVisitDate(attraction.visitDate);
-                // card.querySelector(".attraction-coordinates").textContent =
-                //     formatCoordinates(attraction.latitude, attraction.longitude);
-                nameInput.value = attraction.attractionName || "";
-                dateInput.value = toDateTimeInputValue(attraction.visitDate);
-                DateTimeValidation.setMinimumNow(dateInput);
+                cardElement.dataset.latitude = attraction.latitude || "";
+                cardElement.dataset.longitude = attraction.longitude || "";
 
-                // Display disaster warning if any
+                card.querySelector(".attraction-name").textContent = attraction.attractionName;
+                card.querySelector(".attraction-visit-date").textContent = formatDateTime(attraction.visitDate);
+                card.querySelector(".edit-attraction-name").value = attraction.attractionName || "";
+
+                const latInput = card.querySelector(".edit-attraction-lat");
+                const lonInput = card.querySelector(".edit-attraction-lon");
+                
+                if (latInput) {
+                    latInput.value = attraction.latitude || "";
+                }
+                
+                if (lonInput) {
+                    lonInput.value = attraction.longitude || "";
+                }
+
+                card.querySelector(".edit-attraction-date").value = toDateTimeInputValue(attraction.visitDate);
+                DateTimeValidation.setMinimumNow(card.querySelector(".edit-attraction-date"));
+
                 if (attraction.disasterWarning && attraction.disasterWarning.trim() !== "") {
-                    // If there is a warning, make it Red and show the message
                     disasterAlert.innerHTML = `<i class="fas fa-exclamation-triangle mr-1"></i> ${attraction.disasterWarning}`;
                     disasterAlert.classList.add("alert-danger");
                     disasterAlert.classList.remove("alert-success");
                 } else {
-                    // If it is null or empty, it will show green status
                     disasterAlert.innerHTML = `<i class="fas fa-check-circle mr-1"></i> Safe area (No active alerts)`;
                     disasterAlert.classList.add("alert-success");
                     disasterAlert.classList.remove("alert-danger");
@@ -81,13 +198,45 @@ document.addEventListener("DOMContentLoaded", async function () {
         }
     }
 
+    // Resets the edit form back to the original database values
+    function resetAttractionEditForm(card) {
+        const form = card.querySelector(".attraction-edit-form");
+        form.querySelector(".edit-attraction-name").value = card.dataset.attractionName;
+
+        const latInput = form.querySelector(".edit-attraction-lat");
+        const lonInput = form.querySelector(".edit-attraction-lon");
+        
+        if (latInput) {
+            latInput.value = card.dataset.latitude;
+        }
+        
+        if (lonInput) {
+            lonInput.value = card.dataset.longitude;
+        }
+
+        const dropdown = form.querySelector(".location-autocomplete-dropdown");
+        if (dropdown) {
+            dropdown.classList.add("d-none");
+        }
+
+        const dateInput = form.querySelector(".edit-attraction-date");
+        dateInput.value = card.dataset.visitDate;
+        DateTimeValidation.setMinimumNow(dateInput);
+
+        card.querySelector(".attraction-edit-error").classList.add("d-none");
+        clearFormValidation(form);
+    }
+
+    // Checks for any edit, cancel, or delete action
     attractionsList.addEventListener("click", function (event) {
         const button = event.target.closest("button");
+        
         if (!button) {
             return;
         }
 
         const card = button.closest(".attraction-card");
+        
         if (button.classList.contains("edit-attraction")) {
             resetAttractionEditForm(card);
             card.querySelector(".attraction-details").classList.add("d-none");
@@ -101,17 +250,20 @@ document.addEventListener("DOMContentLoaded", async function () {
             attractionPendingDelete = card;
             deleteModal.dataset.deleteType = "attraction";
             document.getElementById("confirmDeleteModalTitle").textContent = "Delete Attraction";
-            document.getElementById("confirmDeleteModalBody").textContent =
-                `Delete "${card.querySelector(".attraction-name").textContent}"? This action cannot be undone.`;
+            document.getElementById("confirmDeleteModalBody").textContent = `Delete "${card.dataset.attractionName}"? This action cannot be undone.`;
             $(deleteModal).modal("show");
         }
     });
 
+    // Cleanup when the delete modal is dismissed
     $(deleteModal).on("hidden.bs.modal", function () {
-        attractionPendingDelete = null;
-        deleteModal.dataset.deleteType = "";
+        if (deleteModal.dataset.deleteType === "attraction") {
+            attractionPendingDelete = null;
+            deleteModal.dataset.deleteType = "";
+        }
     });
 
+    // Executes the actual deletion request to the API
     deleteConfirmButton.addEventListener("click", async function () {
         if (deleteModal.dataset.deleteType !== "attraction" || !attractionPendingDelete) {
             return;
@@ -121,17 +273,14 @@ document.addEventListener("DOMContentLoaded", async function () {
         deleteConfirmButton.disabled = true;
 
         try {
-            const response = await fetch(
-                `/api/itinerary/${encodeURIComponent(itineraryId)}/attractions/${encodeURIComponent(attractionId)}`,
-                {
-                    method: "DELETE",
-                    credentials: "same-origin"
-                }
-            );
+            const response = await fetch(`/api/itinerary/${encodeURIComponent(itineraryId)}/attractions/${encodeURIComponent(attractionId)}`, {
+                method: "DELETE",
+                credentials: "same-origin"
+            });
 
             if (!response.ok) {
                 const responseBody = await response.text();
-                throw new Error(await getErrorMessage(responseBody, response.status));
+                throw new Error(getApiErrorMessage(responseBody, response.status));
             }
 
             $(deleteModal).modal("hide");
@@ -149,43 +298,43 @@ document.addEventListener("DOMContentLoaded", async function () {
         }
     });
 
+    // Validates and submits the edit form for an attraction
     attractionsList.addEventListener("submit", async function (event) {
         if (!event.target.matches(".attraction-edit-form")) {
             return;
         }
-        event.preventDefault();
+        
+        event.preventDefault(); 
 
         const form = event.target;
         const card = form.closest(".attraction-card");
         const attractionId = card.dataset.attractionId;
-        const nameInput = form.querySelector(".edit-attraction-name");
-        const dateInput = form.querySelector(".edit-attraction-date");
         const error = card.querySelector(".attraction-edit-error");
         const saveButton = form.querySelector(".save-attraction");
-        const attractionName = nameInput.value.trim();
-        const visitDate = dateInput.value;
+
+        const attractionName = form.querySelector(".edit-attraction-name").value.trim();
+        const visitDate = form.querySelector(".edit-attraction-date").value;
+        const latitude = form.querySelector(".edit-attraction-lat").value;
+        const longitude = form.querySelector(".edit-attraction-lon").value;
 
         error.classList.add("d-none");
-        form.querySelectorAll(".form-control").forEach(input => input.classList.remove("is-invalid"));
-        form.querySelectorAll(".invalid-feedback").forEach(message => message.textContent = "");
+        clearFormValidation(form);
 
         let isValid = true;
+
         if (!attractionName) {
-            nameInput.classList.add("is-invalid");
-            form.querySelector(".edit-attraction-name-error").textContent =
-                "Attraction name cannot be empty.";
+            showFormFieldError(form, "edit-attraction-name", "Attraction name cannot be empty.");
+            isValid = false;
+        } else if (!latitude || !longitude) {
+            showFormFieldError(form, "edit-attraction-name", "Please select a valid location from the search results.");
             isValid = false;
         }
 
         if (!visitDate) {
-            dateInput.classList.add("is-invalid");
-            form.querySelector(".edit-attraction-date-error").textContent =
-                "Visit date and time is required.";
+            showFormFieldError(form, "edit-attraction-date", "Visit date and time is required.");
             isValid = false;
         } else if (!DateTimeValidation.isNowOrLater(visitDate)) {
-            dateInput.classList.add("is-invalid");
-            form.querySelector(".edit-attraction-date-error").textContent =
-                "Visit date and time must be now or later.";
+            showFormFieldError(form, "edit-attraction-date", "Visit date and time must be now or later.");
             isValid = false;
         }
 
@@ -194,23 +343,21 @@ document.addEventListener("DOMContentLoaded", async function () {
         }
 
         saveButton.disabled = true;
+        
         try {
-            const response = await fetch(
-                `/api/itinerary/${encodeURIComponent(itineraryId)}/attractions/${encodeURIComponent(attractionId)}`,
-                {
-                    method: "PUT",
-                    headers: { "Content-Type": "application/json" },
-                    credentials: "same-origin",
-                    body: JSON.stringify({ attractionName, visitDate })
-                }
-            );
+            const response = await fetch(`/api/itinerary/${encodeURIComponent(itineraryId)}/attractions/${encodeURIComponent(attractionId)}`, {
+                method: "PUT",
+                headers: { "Content-Type": "application/json" },
+                credentials: "same-origin",
+                body: JSON.stringify({ attractionName, visitDate, latitude, longitude })
+            });
 
             if (!response.ok) {
                 const responseBody = await response.text();
-                throw new Error(await getErrorMessage(responseBody, response.status));
+                throw new Error(getApiErrorMessage(responseBody, response.status));
             }
 
-            await loadAttractions();
+            await loadAttractions(); 
         } catch (updateError) {
             console.error("Unable to update attraction:", updateError);
             error.textContent = updateError.message || "Unable to update this attraction.";
@@ -221,40 +368,3 @@ document.addEventListener("DOMContentLoaded", async function () {
 
     await loadAttractions();
 });
-
-async function getErrorMessage(responseBody, status) {
-    if (!responseBody) {
-        return `Request failed (${status}).`;
-    }
-
-    try {
-        const errorData = JSON.parse(responseBody);
-        return errorData.message || errorData.detail || responseBody;
-    } catch {
-        return responseBody;
-    }
-}
-
-function formatVisitDate(value) {
-    if (!value) {
-        return "Not provided";
-    }
-
-    const date = new Date(value);
-    return Number.isNaN(date.getTime()) ? value : date.toLocaleString();
-}
-
-function toDateTimeInputValue(value) {
-    return value ? value.slice(0, 16) : "";
-}
-
-function resetAttractionEditForm(card) {
-    const form = card.querySelector(".attraction-edit-form");
-    form.querySelector(".edit-attraction-name").value = card.dataset.attractionName;
-    const dateInput = form.querySelector(".edit-attraction-date");
-    dateInput.value = card.dataset.visitDate;
-    DateTimeValidation.setMinimumNow(dateInput);
-    form.querySelectorAll(".form-control").forEach(input => input.classList.remove("is-invalid"));
-    form.querySelectorAll(".invalid-feedback").forEach(message => message.textContent = "");
-    card.querySelector(".attraction-edit-error").classList.add("d-none");
-}
