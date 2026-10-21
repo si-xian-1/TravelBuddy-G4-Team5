@@ -6,73 +6,55 @@ import org.springframework.stereotype.Service;
 
 import com.TravelBuddy.exception.InvalidInputsException;
 import com.TravelBuddy.model.Flight;
-import com.TravelBuddy.model.LocationResponse;
 import com.TravelBuddy.repository.FlightRepository;
 
 @Service
 public class FlightService {
     private final FlightRepository flightRepository;
     private final ItineraryService itineraryService;
-    private final LocationService locationService;
     private final GdacsService gdacsService;
 
-    public FlightService(FlightRepository flightRepository, ItineraryService itineraryService, LocationService locationService, GdacsService gdacsService) {
+    public FlightService(FlightRepository flightRepository, ItineraryService itineraryService, GdacsService gdacsService) {
         this.flightRepository = flightRepository;
         this.itineraryService = itineraryService;
-        this.locationService = locationService;
         this.gdacsService = gdacsService;
     }
 
     /**
      * Validate flight inputs before adding into database
-     *
      * @param itineraryId
      * @param userId
      * @param flight
-     * @return Validation messages or the newly created flight if successful
+     * @return Flight details created
      */
     public Flight createFlight(int itineraryId, int userId, Flight flight) {
-        // Check that user has the permission to add hotel for this selected itinerary
+        // Check that user has the permission to add flight for this selected itinerary
         itineraryService.checkItineraryBelongToUser(itineraryId, userId);
         
-        // Validation checks and return meaningful response to user
+        // Validation checks
         if (!flight.getArrivalTime().isAfter(flight.getDepartureTime())) {
             throw new InvalidInputsException("Arrival time must be after departure time.");
         }
 
-        // Get the coordinates of the airports
-        LocationResponse departureLocation = locationService.getCoordinates(flight.getDepartureAirport().trim());
-        LocationResponse arrivalLocation = locationService.getCoordinates(flight.getArrivalAirport().trim());
-
-        // When API is unable to find coordinates of the user selected location
-        if (departureLocation == null || departureLocation.getLat() == null || departureLocation.getLon() == null) {
-            throw new InvalidInputsException(
-                    "Could not find coordinates for departure airport: " + flight.getDepartureAirport());
+        // Ensure inputted coordinate values are valid
+        if (flight.getDepartureLatitude() == 0.0 && flight.getDepartureLongitude() == 0.0) {
+            throw new InvalidInputsException("Valid coordinates must be provided for the departure airport.");
         }
-        if (arrivalLocation == null || arrivalLocation.getLat() == null || arrivalLocation.getLon() == null) {
-            throw new InvalidInputsException(
-                    "Could not find coordinates for arrival airport: " + flight.getArrivalAirport());
+        if (flight.getArrivalLatitude() == 0.0 && flight.getArrivalLongitude() == 0.0) {
+            throw new InvalidInputsException("Valid coordinates must be provided for the arrival airport.");
         }
 
         flight.setItineraryId(itineraryId);
-        flight.setDepartureLatitude(Double.parseDouble(departureLocation.getLat()));
-        flight.setDepartureLongitude(Double.parseDouble(departureLocation.getLon()));
-        flight.setArrivalLatitude(Double.parseDouble(arrivalLocation.getLat()));
-        flight.setArrivalLongitude(Double.parseDouble(arrivalLocation.getLon()));
 
         // Execute sql to add new flight
-        Flight savedFlight = flightRepository.createFlight(itineraryId, flight);
-
-        // If flight creation is successful
-        return savedFlight;
+        return flightRepository.createFlight(itineraryId, flight);
     }
 
     /**
      * Get all flights belonging to an itinerary of the user
-     *
      * @param itineraryId
      * @param userId
-     * @return all flights in the itinerary
+     * @return lists of flight
      */
     public List<Flight> getAllFlights(int itineraryId, int userId) {
         itineraryService.checkItineraryBelongToUser(itineraryId, userId);
@@ -91,11 +73,10 @@ public class FlightService {
 
     /**
      * Get a selected flight belonging to an itinerary of the user
-     *
      * @param itineraryId
      * @param userId
      * @param flightId
-     * @return elected
+     * @return Selected flight details
      */
     public Flight getSelectedFlight(int itineraryId, int userId, int flightId) {
         itineraryService.checkItineraryBelongToUser(itineraryId, userId);
@@ -110,13 +91,11 @@ public class FlightService {
     }
 
     /**
-     * Update an existing flight after validating the user, flight details and
-     * location.
-     *
-     * @param itineraryId itinerary containing the flight
-     * @param userId user requesting the update
-     * @param flightId flight to update
-     * @param flight updated flight details
+     * Update an existing flight after validating the user, flight details and location.
+     * @param itineraryId
+     * @param userId
+     * @param flightId
+     * @param flight
      * @return rows updated
      */
     public int updateFlight(int itineraryId, int userId, int flightId, Flight flight) {
@@ -127,35 +106,25 @@ public class FlightService {
             throw new InvalidInputsException("Arrival time must be after departure time.");
         }
 
-        // Resolve the location again if its airports have changed.
-        LocationResponse departureLocation = locationService.getCoordinates(flight.getDepartureAirport().trim());
-        LocationResponse arrivalLocation = locationService.getCoordinates(flight.getArrivalAirport().trim());
-
-        // When API is unable to find coordinates of the user selected location
-        if (departureLocation == null || departureLocation.getLat() == null || departureLocation.getLon() == null) {
-            throw new InvalidInputsException(
-                    "Could not find coordinates for departure airport: " + flight.getDepartureAirport());
+        // Ensure inputted coordinate is valid
+        if (flight.getDepartureLatitude() == 0.0 && flight.getDepartureLongitude() == 0.0) {
+            throw new InvalidInputsException("Valid coordinates must be provided for the departure airport.");
         }
-        if (arrivalLocation == null || arrivalLocation.getLat() == null || arrivalLocation.getLon() == null) {
-            throw new InvalidInputsException(
-                    "Could not find coordinates for arrival airport: " + flight.getArrivalAirport());
+        if (flight.getArrivalLatitude() == 0.0 && flight.getArrivalLongitude() == 0.0) {
+            throw new InvalidInputsException("Valid coordinates must be provided for the arrival airport.");
         }
 
         flight.setItineraryId(itineraryId);
-        flight.setDepartureLatitude(Double.parseDouble(departureLocation.getLat()));
-        flight.setDepartureLongitude(Double.parseDouble(departureLocation.getLon()));
-        flight.setArrivalLatitude(Double.parseDouble(arrivalLocation.getLat()));
-        flight.setArrivalLongitude(Double.parseDouble(arrivalLocation.getLon()));
 
         return flightRepository.updateFlight(itineraryId, flightId, flight);
     }
 
     /**
      * Delete a flight only if the user owns its itinerary.
-     *
-     * @param itineraryId itinerary containing the flight
-     * @param userId user requesting deletion
-     * @param flightId flight to delete
+     * @param itineraryId
+     * @param userId
+     * @param flightId
+     * @return 0 for unsuccessful delete, else return non-zero for successful delete
      */
     public int deleteFlight(int itineraryId, int userId, int flightId) {
         // Verify itinerary ownership first.

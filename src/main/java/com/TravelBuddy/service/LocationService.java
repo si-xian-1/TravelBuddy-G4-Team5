@@ -28,7 +28,7 @@ public class LocationService {
                 .build();
     }
 
-    public List<LocationResponse> searchLocations(String query) {
+    public List<LocationResponse> searchLocations(String query, boolean isHotel) {
         LocationResponse[] response = restClient.get()
                 .uri(uriBuilder -> uriBuilder
                         .path("/search")
@@ -40,13 +40,20 @@ public class LocationService {
                 .retrieve()
                 .body(LocationResponse[].class);
 
-        return response != null ? Arrays.asList(response) : Collections.emptyList();
-    }
+        if (response == null || response.length == 0) {
+            return Collections.emptyList();
+        }
 
-    public List<LocationResponse> searchHotelLocations(String query) {
-        return searchLocations(query).stream()
-                .sorted(Comparator.comparing(location -> !isAccommodation(location)))
-                .toList();
+        List<LocationResponse> results = Arrays.asList(response);
+
+        // Bubble accommodations to the top if the frontend requested a hotel search
+        if (isHotel) {
+            return results.stream()
+                    .sorted(Comparator.comparing(location -> !isAccommodation(location)))
+                    .toList();
+        }
+
+        return results;
     }
 
     private boolean isAccommodation(LocationResponse location) {
@@ -54,13 +61,5 @@ public class LocationService {
                 && ACCOMMODATION_TYPES.contains(location.getType())
                 && ("tourism".equals(location.getCategory())
                         || "amenity".equals(location.getCategory()));
-    }
-
-    // Returns the single best matching location (first result)
-    // Need to edit in future to change it to when user click recommendation, return index number to get Coordinates or something like that
-    // getCoordinates(int index, List<LocationResponse> results)
-    public LocationResponse getCoordinates(String locationName) {
-        List<LocationResponse> results = searchLocations(locationName);
-        return results.isEmpty() ? null : results.get(0);
     }
 }
