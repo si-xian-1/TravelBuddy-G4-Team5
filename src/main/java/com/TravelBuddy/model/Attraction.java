@@ -18,8 +18,8 @@ public class Attraction {
     @NotNull(message = "Attraction name cannot be empty")
     @NotBlank(message = "Attraction name is required")
     private String attractionName;
-    private double latitude;
-    private double longitude;
+    private Double latitude;
+    private Double longitude;
 
     @NotNull(message = "Visit date is required")
     private LocalDateTime visitDate;

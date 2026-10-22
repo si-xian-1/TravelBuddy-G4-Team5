@@ -1,5 +1,6 @@
 package com.TravelBuddy.service;
 
+import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.Arrays;
 import java.util.List;
@@ -85,7 +86,6 @@ public class GdacsService {
      */
     public String evaluateProximityAndDateFromDisasters(
             double latitude, double longtitude, LocalDateTime startDate, LocalDateTime endDate) {
-
         for (DisasterEvents disaster : activeDisasters) {
             // Pythagoras theorem to calculate distance of itinerary locations to each disasters location
             double[] disasterCoordinates = disaster.getLocationCoordinates().getCoordinates();
@@ -98,17 +98,20 @@ public class GdacsService {
                 continue; 
             }
 
-            LocalDateTime disasterStartDate = disaster.getDisasterDetails().getDisasterStartDate();
-            LocalDateTime disasterEndDate = disaster.getDisasterDetails().getDisasterEndDate();
+            // Ignore time in comparing trip and disaster date
+            LocalDate tripStart = startDate.toLocalDate();
+            LocalDate tripEnd = endDate.toLocalDate();
+            LocalDate disasterStartDate = disaster.getDisasterDetails().getDisasterStartDate().toLocalDate();
+            LocalDate disasterEndDate = disaster.getDisasterDetails().getDisasterEndDate().toLocalDate();
 
             // Set 1 month away from disaster to still send warning to user, since there could be potential damages to infrastructures
-            LocalDateTime recoveryEndDate = disasterEndDate.plusMonths(1);
+            LocalDate recoveryEndDate = disasterEndDate.plusMonths(1);
 
             // Check if itinerary dates concide with disaster occured date
-            boolean isOverlapping = !startDate.isAfter(recoveryEndDate) && !endDate.isBefore(disasterStartDate);
+            boolean isOverlapping = !tripStart.isAfter(recoveryEndDate) && !tripEnd.isBefore(disasterStartDate);
 
             if (isOverlapping) {
-                if (!startDate.isAfter(disasterEndDate)) {
+                if (!tripStart.isAfter(disasterEndDate)) {
                     return String.format("WARNING - Active disaster type: %s affecting %s (Alert Level: %s). Please review it or let our travelbuddy AI agent help you with it.", 
                             disaster.getDisasterDetails().getDisasterType().getDisasterName(),
                             disaster.getDisasterDetails().getAffectedCountries(),
