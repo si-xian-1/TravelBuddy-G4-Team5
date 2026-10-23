@@ -1,5 +1,4 @@
 <!DOCTYPE html>
-
 <html lang="en" xmlns:th="https://www.thymeleaf.org/">
 
 <head>
@@ -13,9 +12,7 @@
 
     <!-- Custom fonts for this template-->
     <link th:href="@{/vendor/fontawesome-free/css/all.min.css}" rel="stylesheet" type="text/css">
-    <link
-        href="https://fonts.googleapis.com/css?family=Nunito:200,200i,300,300i,400,400i,600,600i,700,700i,800,800i,900,900i"
-        rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css?family=Nunito:200,200i,300,300i,400,400i,600,600i,700,700i,800,800i,900,900i" rel="stylesheet">
 
     <!--Template custom styling-->
     <link th:href="@{/css/sb-admin-2.min.css}" rel="stylesheet">
@@ -29,8 +26,6 @@
     <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"
         integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo=" crossorigin=""></script>
 </head>
-
-
 
 <body id="page-top">
 
@@ -57,12 +52,19 @@
                         <!-- LEFT COLUMN: Live Map View -->
                         <div class="col-lg-7 mb-4">
                             <div class="card shadow mb-4">
-                                <div
-                                    class="card-header py-3 d-flex flex-row align-items-center justify-content-between">
-                                    <h6 class="m-0 font-weight-bold text-primary">
+                                <div class="card-header py-3 d-flex flex-row align-items-center justify-content-between flex-wrap">
+                                    <h6 class="m-0 font-weight-bold text-primary my-1">
                                         <i class="fas fa-globe-americas mr-1"></i> Live Disaster & Location Map
                                     </h6>
-                                    <span class="badge badge-info" id="locationStatus">Detecting location...</span>
+                                    <div class="d-flex align-items-center my-1">
+                                        <button id="btnClearRoute" class="btn btn-sm btn-outline-danger shadow-sm mr-2" type="button" title="Clear evacuation route from map" style="display: none;">
+                                            <i class="fas fa-times-circle mr-1"></i> Clear Route
+                                        </button>
+                                        <button id="btnRecenterLocation" class="btn btn-sm btn-outline-primary shadow-sm mr-2" type="button" title="Center map to my current location">
+                                            <i class="fas fa-crosshairs mr-1"></i> My Location
+                                        </button>
+                                        <span class="badge badge-info" id="locationStatus">Detecting location...</span>
+                                    </div>
                                 </div>
                                 <div class="card-body p-2">
                                     <div id="dashboardMap"></div>
@@ -107,29 +109,23 @@
 
                                     <!-- Itinerary Brief Cards -->
                                     <div th:each="itinerary : ${itineraries}" class="border rounded p-3 mb-2"
-                                        th:classappend="${itinerary.hasDisasterWarnings} ? 'border-left-danger bg-light' : 'border-left-success'">
+                                         th:classappend="${itinerary.hasDisasterWarnings} ? 'border-left-danger bg-light' : 'border-left-success'">
                                         <div class="d-flex justify-content-between align-items-center">
-                                            <h6 class="font-weight-bold mb-1" th:text="${itinerary.itineraryName}">Trip
-                                                Name</h6>
-                                            <span th:if="${itinerary.hasDisasterWarnings}"
-                                                class="badge badge-danger">Warning</span>
-                                            <span th:unless="${itinerary.hasDisasterWarnings}"
-                                                class="badge badge-success">Safe</span>
+                                            <h6 class="font-weight-bold mb-1" th:text="${itinerary.itineraryName}">Trip Name</h6>
+                                            <span th:if="${itinerary.hasDisasterWarnings}" class="badge badge-danger">Warning</span>
+                                            <span th:unless="${itinerary.hasDisasterWarnings}" class="badge badge-success">Safe</span>
                                         </div>
                                         <div class="small text-muted mb-2">
                                             <i class="far fa-calendar-alt mr-1"></i>
-                                            <span th:text="${itinerary.startDate}"></span> to <span
-                                                th:text="${itinerary.endDate}"></span>
+                                            <span th:text="${itinerary.startDate}"></span> to <span th:text="${itinerary.endDate}"></span>
                                         </div>
 
-                                        <div th:if="${itinerary.hasDisasterWarnings}"
-                                            class="text-danger small mb-2 font-weight-bold">
-                                            <i class="fas fa-exclamation-circle mr-1"></i> Potential disaster impact
-                                            detected.
+                                        <div th:if="${itinerary.hasDisasterWarnings}" class="text-danger small mb-2 font-weight-bold">
+                                            <i class="fas fa-exclamation-circle mr-1"></i> Potential disaster impact detected.
                                         </div>
 
                                         <a th:href="@{/itinerary/view/{id}(id=${itinerary.itineraryId})}"
-                                            class="btn btn-sm btn-outline-secondary py-0 px-2 text-xs">
+                                           class="btn btn-sm btn-outline-secondary py-0 px-2 text-xs">
                                             Inspect Details & Alternatives <i class="fas fa-chevron-right ml-1"></i>
                                         </a>
                                     </div>
@@ -137,23 +133,211 @@
                             </div>
                         </div>
                     </div>
+
+                    <!-- ROW 2: Gemini AI Disaster Risk Assessment & Evacuation Route Recommendations -->
+                    <div class="row">
+                        <div class="col-12 mb-4">
+                            <div class="card shadow mb-4">
+                                <div class="card-header py-3 d-flex flex-row align-items-center justify-content-between flex-wrap">
+                                    <h6 class="m-0 font-weight-bold text-primary my-1">
+                                        <i class="fas fa-robot mr-1"></i> AI Disaster Risk Assessment & Escape Routes
+                                        <span class="badge badge-primary ml-2"><i class="fas fa-magic mr-1"></i>Gemini AI</span>
+                                    </h6>
+                                    <button id="btnRefreshAi" class="btn btn-sm btn-outline-primary shadow-sm my-1" type="button" title="Request updated AI risk assessment" style="display: none;">
+                                        <i class="fas fa-sync-alt mr-1"></i> Refresh Assessment
+                                    </button>
+                                </div>
+                                <div class="card-body">
+                                    <!-- Initial Placeholder Section -->
+                                    <div id="aiPlaceholderSection" class="text-center py-4">
+                                        <div class="mb-3">
+                                            <i class="fas fa-shield-alt text-primary fa-3x mb-2"></i>
+                                            <h5 class="font-weight-bold text-gray-800">On-Demand Disaster Risk Assessment</h5>
+                                            <p class="text-muted small mx-auto" style="max-width: 520px;">
+                                                Click below to evaluate your current proximity against live disaster events using Google Gemini AI and generate two evacuation route recommendations (on foot vs. vehicle).
+                                            </p>
+                                        </div>
+                                        <button id="btnGenerateAi" class="btn btn-primary px-4 shadow-sm" type="button">
+                                            <i class="fas fa-magic mr-1"></i> Generate AI Risk Assessment
+                                        </button>
+                                    </div>
+
+                                    <!-- Loading Section with Real-Time Agentic Updates -->
+                                    <div id="aiLoadingSection" class="text-center py-4" style="display: none;">
+                                        <div class="mb-3">
+                                            <div class="spinner-border text-primary" style="width: 2.5rem; height: 2.5rem;" role="status">
+                                                <span class="sr-only">Processing...</span>
+                                            </div>
+                                        </div>
+                                        <div class="mb-2">
+                                            <span id="aiStepBadge" class="badge badge-primary px-3 py-1 text-uppercase font-weight-bold" style="font-size: 0.75rem; letter-spacing: 0.5px;">
+                                                <i class="fas fa-satellite-dish mr-1"></i> Telemetry Check
+                                            </span>
+                                        </div>
+                                        <div id="aiProgressMessage" class="text-gray-900 font-weight-bold small mb-3" style="min-height: 22px;">
+                                            Scanning traveler GPS coordinates & 120km disaster perimeter...
+                                        </div>
+                                        <div class="progress progress-sm mx-auto mb-3" style="max-width: 420px; height: 6px;">
+                                            <div id="aiProgressBar" class="progress-bar progress-bar-striped progress-bar-animated bg-primary" role="progressbar" style="width: 25%"></div>
+                                        </div>
+                                        <div>
+                                            <button id="btnCancelAi" onclick="cancelAiGeneration()" class="btn btn-sm btn-outline-danger px-3 shadow-sm" type="button">
+                                                <i class="fas fa-times-circle mr-1"></i> Cancel Generation
+                                            </button>
+                                        </div>
+                                    </div>
+
+                                    <!-- Error / Unavailable Section -->
+                                    <div id="aiErrorSection" class="text-center py-4" style="display: none;">
+                                        <div class="mb-3">
+                                            <i class="fas fa-exclamation-circle text-warning fa-2x mb-2"></i>
+                                            <h6 class="font-weight-bold text-gray-800" id="aiErrorMessage">Unable to complete risk assessment</h6>
+                                            <p class="text-muted small mx-auto mb-3" style="max-width: 480px;">
+                                                AI assessment encountered an issue. Click below to try again.
+                                            </p>
+                                        </div>
+                                        <button id="btnRetryAi" class="btn btn-primary px-4 shadow-sm" type="button">
+                                            <i class="fas fa-redo mr-1"></i> Retry Generation
+                                        </button>
+                                    </div>
+
+                                    <!-- Content Section -->
+                                    <div id="aiContentSection" style="display: none;">
+                                        <!-- Live Refreshing Banner -->
+                                        <div id="aiRefreshingBanner" class="alert alert-info py-2 px-3 small font-weight-bold mb-3 shadow-sm justify-content-between align-items-center" style="display: none;">
+                                            <div class="d-flex align-items-center">
+                                                <div class="spinner-border spinner-border-sm text-info mr-2" role="status">
+                                                    <span class="sr-only">Refreshing...</span>
+                                                </div>
+                                                <span id="aiRefreshStepText">Refreshing assessment with Gemini AI...</span>
+                                            </div>
+                                            <button id="btnCancelRefresh" onclick="cancelAiGeneration()" class="btn btn-sm btn-outline-danger py-0 px-2" type="button">
+                                                <i class="fas fa-times mr-1"></i> Cancel
+                                            </button>
+                                        </div>
+
+                                        <!-- Risk Assessment Banner -->
+                                        <div class="d-flex align-items-center justify-content-between flex-wrap p-3 mb-3 bg-light rounded border">
+                                            <div class="my-1">
+                                                <span class="text-xs text-uppercase font-weight-bold text-muted d-block">Threat Level</span>
+                                                <span id="aiRiskBadge" class="badge badge-risk-low px-2 py-1 font-weight-bold" style="font-size: 0.95rem;">LOW</span>
+                                                <span id="aiToolBadge" class="badge badge-secondary ml-1 px-2 py-1 font-weight-bold" style="font-size: 0.75rem;" title="AI Evaluation Tool Used"></span>
+                                            </div>
+                                            <div class="flex-grow-1 mx-md-4 my-2">
+                                                <p id="aiRiskSummary" class="mb-0 small text-gray-800">
+                                                    Assessing disaster vicinity...
+                                                </p>
+                                            </div>
+                                            <div class="text-md-right my-1">
+                                                <span class="text-xs text-muted d-block">Recommended Action</span>
+                                                <span id="aiActionText" class="small font-weight-bold text-dark">Monitor alerts</span>
+                                            </div>
+                                        </div>
+
+                                        <!-- Safe Zone Banner -->
+                                        <div id="aiSafeZoneSection" class="alert alert-success border-left-success p-3 shadow-sm mb-3" style="display: none;">
+                                            <div class="d-flex align-items-center">
+                                                <div class="mr-3">
+                                                    <i class="fas fa-shield-alt fa-2x text-success"></i>
+                                                </div>
+                                                <div>
+                                                    <h6 class="font-weight-bold text-success mb-1">
+                                                        <i class="fas fa-check-circle mr-1"></i> Safe Zone Confirmed - No Evacuation Routes Required
+                                                    </h6>
+                                                    <p class="small text-gray-700 mb-0" id="aiSafeZoneText">
+                                                        You are located safely outside all active natural disaster danger perimeters. Normal travel caution is advised. Turn-by-turn evacuation routes are only generated if you enter a danger zone.
+                                                    </p>
+                                                </div>
+                                            </div>
+                                        </div>
+
+                                        <!-- Two Escape Route Recommendation Options -->
+                                        <div id="aiEscapeRoutesSection" class="row">
+                                            <!-- Option 1: On Foot -->
+                                            <div class="col-md-6 mb-3">
+                                                <div class="ai-escape-card ai-escape-foot p-3 h-100 shadow-sm" id="cardFootRoute">
+                                                    <div class="d-flex justify-content-between align-items-center mb-2">
+                                                        <h6 class="font-weight-bold text-success mb-0">
+                                                            <i class="fas fa-walking mr-1"></i> <span id="footOptionTitle">Option 1: Nearby Shelter (On Foot)</span>
+                                                        </h6>
+                                                        <span class="badge badge-success" id="footDistanceBadge">Est. 500m - 1.2km</span>
+                                                    </div>
+                                                    <div class="small mb-2">
+                                                        <strong><i class="fas fa-shield-alt text-success mr-1"></i>Destination / Refuge:</strong>
+                                                        <div id="footDestination" class="text-muted">Reinforced public shelter or community center</div>
+                                                    </div>
+                                                    <div class="small mb-2">
+                                                        <strong><i class="fas fa-directions text-success mr-1"></i>Route & Heading:</strong>
+                                                        <div id="footRoute" class="text-muted">Head to higher ground; avoid low-lying underpasses and glass structures.</div>
+                                                    </div>
+                                                    <div class="small text-secondary border-top pt-2 mt-2">
+                                                        <strong><i class="fas fa-lightbulb text-warning mr-1"></i>Safety Tips:</strong>
+                                                        <div id="footTips" class="text-muted">Wear sturdy shoes; carry emergency bag and waterproof torch.</div>
+                                                    </div>
+                                                    <button id="btnSelectFootRoute" class="btn btn-sm btn-outline-success btn-block mt-3 font-weight-bold" type="button">
+                                                        <i class="fas fa-walking mr-1"></i> Follow This Route (Show on Map)
+                                                    </button>
+                                                </div>
+                                            </div>
+
+                                            <!-- Option 2: By Vehicle -->
+                                            <div class="col-md-6 mb-3">
+                                                <div class="ai-escape-card ai-escape-vehicle p-3 h-100 shadow-sm" id="cardVehicleRoute">
+                                                    <div class="d-flex justify-content-between align-items-center mb-2">
+                                                        <h6 class="font-weight-bold text-primary mb-0">
+                                                            <i class="fas fa-car mr-1"></i> <span id="vehicleOptionTitle">Option 2: Regional Evacuation (By Vehicle)</span>
+                                                        </h6>
+                                                        <span class="badge badge-primary" id="vehicleDistanceBadge">Est. 40 - 70km</span>
+                                                    </div>
+                                                    <div class="small mb-2">
+                                                        <strong><i class="fas fa-map-marked-alt text-primary mr-1"></i>Safe Destination:</strong>
+                                                        <div id="vehicleDestination" class="text-muted">Inland regional hub or airport safe zone away from hazard path</div>
+                                                    </div>
+                                                    <div class="small mb-2">
+                                                        <strong><i class="fas fa-route text-primary mr-1"></i>Highway / Corridor:</strong>
+                                                        <div id="vehicleRoute" class="text-muted">Take primary expressways heading away from disaster epicenter.</div>
+                                                    </div>
+                                                    <div class="small text-secondary border-top pt-2 mt-2">
+                                                        <strong><i class="fas fa-gas-pump text-warning mr-1"></i>Vehicle Precautions:</strong>
+                                                        <div id="vehicleTips" class="text-muted">Maintain fuel above half tank; do not drive across flooded roads.</div>
+                                                    </div>
+                                                    <button id="btnSelectVehicleRoute" class="btn btn-sm btn-outline-primary btn-block mt-3 font-weight-bold" type="button">
+                                                        <i class="fas fa-car mr-1"></i> Follow This Route (Show on Map)
+                                                    </button>
+                                                </div>
+                                            </div>
+                                        </div>
+
+                                        <!-- Emergency Checklist Pills -->
+                                        <div class="mt-2 pt-2 border-top">
+                                            <span class="small font-weight-bold text-gray-700 mr-2">
+                                                <i class="fas fa-clipboard-check text-info mr-1"></i> Emergency Action Checklist:
+                                            </span>
+                                            <div id="aiChecklistContainer" class="d-inline-block"></div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
                 </div>
             </div>
         </div>
     </div>
 
-    <!-- Custom script for map management -->
-    <script th:src="@{/js/index.js}"></script>
-
-    <!-- Bootstrap core JavaScript-->
+    <!-- Bootstrap core JavaScript (MUST LOAD BEFORE index.js) -->
     <script th:src="@{/vendor/jquery/jquery.min.js}"></script>
     <script th:src="@{/vendor/bootstrap/js/bootstrap.bundle.min.js}"></script>
 
     <!-- Core plugin JavaScript-->
-    <script th:src="@{vendor/jquery-easing/jquery.easing.min.js}"></script>
+    <script th:src="@{/vendor/jquery-easing/jquery.easing.min.js}"></script>
 
     <!-- Custom scripts for all pages-->
     <script th:src="@{/js/sb-admin-2.min.js}"></script>
+
+    <!-- Custom script for map management (Loaded last with incremented cache buster) -->
+    <script th:src="@{/js/index.js(v='2.7')}"></script>
 </body>
 
 </html>
