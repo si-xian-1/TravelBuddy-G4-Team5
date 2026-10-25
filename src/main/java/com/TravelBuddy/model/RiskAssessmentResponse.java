@@ -11,7 +11,7 @@ import lombok.Setter;
 import lombok.ToString;
 
 /**
- * Normal DTO class representing AI-powered disaster risk assessment results.
+ * AI-powered disaster risk assessment results.
  */
 @Getter
 @Setter
@@ -30,4 +30,21 @@ public class RiskAssessmentResponse {
     private boolean aiGenerated;
     private String modelUsed;
     private String personalizedFor;
+    private String aiDisclaimer;
+
+    public RiskAssessmentResponse(
+            String riskLevel,
+            String riskSummary,
+            String recommendedAction,
+            boolean inSafeZone,
+            EvacuationRouteOption footOption,
+            EvacuationRouteOption vehicleOption,
+            List<String> emergencyChecklist,
+            boolean aiGenerated,
+            String modelUsed,
+            String personalizedFor) {
+        this(riskLevel, riskSummary, recommendedAction, inSafeZone, footOption, vehicleOption,
+             emergencyChecklist, aiGenerated, modelUsed, personalizedFor,
+             "Gemini is AI and can make mistakes. Always verify critical evacuation recommendations with local civil defence and emergency authorities.");
+    }
 }

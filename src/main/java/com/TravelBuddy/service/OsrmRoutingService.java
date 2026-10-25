@@ -22,19 +22,32 @@ public class OsrmRoutingService {
      */
     public String getRouteAlternatives(double userLat, double userLon, double destLat, double destLon, String profile) {
         
+        // Fast guard: Check for distance > 500km to avoid impossible cross-ocean OSRM calculations that hang
+        double latDiff = Math.abs(userLat - destLat);
+        double lonDiff = Math.abs(userLon - destLon);
+        if (latDiff > 5.0 || lonDiff > 5.0) {
+            return "Destination shelter is outside terrestrial navigation range (>500km).";
+        }
+
+        // Standardize profile: router.project-osrm.org supports 'driving'
+        String effectiveProfile = ("foot".equalsIgnoreCase(profile) || "walking".equalsIgnoreCase(profile)) ? "driving" : profile;
+        if (!"driving".equalsIgnoreCase(effectiveProfile)) {
+            effectiveProfile = "driving";
+        }
+
         // 1. Format coordinates for OSRM (User -> Destination)
         String coordString = String.format(Locale.US, "%.5f,%.5f;%.5f,%.5f", userLon, userLat, destLon, destLat);
         
         try {
-            // 2. Request 3 alternatives and turn-by-turn steps
+            // 2. Request 3 alternatives using raw URI to prevent semicolon encoding to %3B
             OsrmResponse response = restClient.get()
-                    .uri(baseUrl + "/route/v1/" + profile + "/{coordinates}?overview=full&geometries=geojson&steps=true&alternatives=3", coordString)
+                    .uri(baseUrl + "/route/v1/" + effectiveProfile + "/" + coordString + "?overview=full&geometries=geojson&steps=true&alternatives=3")
                     .header("Accept-Encoding", "identity")
                     .header("User-Agent", "TravelBuddy/1.0")
                     .retrieve()
                     .body(OsrmResponse.class);
 
-            if (response == null || !"Ok".equalsIgnoreCase(response.getCode()) || response.getRoutes().isEmpty()) {
+            if (response == null || !"Ok".equalsIgnoreCase(response.getCode()) || response.getRoutes() == null || response.getRoutes().isEmpty()) {
                 return "No valid " + profile + " routes found to the destination.";
             }
 
@@ -64,7 +77,7 @@ public class OsrmRoutingService {
 
         } catch (Exception e) {
             System.err.println("[OSRM Error] Routing call failed: " + e.getMessage());
-            return "OSRM API unavailable.";
+            return "OSRM API temporarily unavailable.";
         }
     }
 }

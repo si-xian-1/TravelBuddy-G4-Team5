@@ -1,0 +1,64 @@
+{
+  "features": [
+    {
+      "geometry": {
+        "coordinates": [139.75, 35.68]
+      },
+      "properties": {
+        "eventtype": "TC",
+        "eventid": 10001,
+        "alertlevel": "Red",
+        "country": "Japan",
+        "name": "Tropical Cyclone Shanshan",
+        "fromdate": "2026-10-20T00:00:00",
+        "todate": "2026-10-26T23:59:59",
+        "affectedcountries": [
+          {
+            "iso3": "JPN",
+            "countryname": "Japan"
+          }
+        ]
+      }
+    },
+    {
+      "geometry": {
+        "coordinates": [136.90, 35.18]
+      },
+      "properties": {
+        "eventtype": "EQ",
+        "eventid": 10002,
+        "alertlevel": "Orange",
+        "country": "Japan",
+        "name": "M 6.4 Earthquake - Honshu",
+        "fromdate": "2026-10-22T10:00:00",
+        "todate": "2026-10-25T18:00:00",
+        "affectedcountries": [
+          {
+            "iso3": "JPN",
+            "countryname": "Japan"
+          }
+        ]
+      }
+    },
+    {
+      "geometry": {
+        "coordinates": [103.85, 1.35]
+      },
+      "properties": {
+        "eventtype": "FL",
+        "eventid": 10003,
+        "alertlevel": "Orange",
+        "country": "Singapore",
+        "name": "Flash Flood Warning - Central",
+        "fromdate": "2026-10-23T06:00:00",
+        "todate": "2026-10-24T18:00:00",
+        "affectedcountries": [
+          {
+            "iso3": "SGP",
+            "countryname": "Singapore"
+          }
+        ]
+      }
+    }
+  ]
+}

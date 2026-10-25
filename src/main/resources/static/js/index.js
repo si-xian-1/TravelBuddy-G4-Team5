@@ -9,6 +9,7 @@
 var latestAiAssessment = null;
 var activeAiAbortController = null;
 var aiProgressInterval = null;
+var currentAiRequestId = null;
 
 // Expose cancellation globally so inline onclick="cancelAiGeneration()" works
 window.cancelAiGeneration = function () {
@@ -17,6 +18,18 @@ window.cancelAiGeneration = function () {
         activeAiAbortController = null;
     }
     stopAiProgressAnimation();
+
+    // Signal backend to immediately terminate in-progress AI generation task
+    if (currentAiRequestId) {
+        var cancelRequestId = currentAiRequestId;
+        currentAiRequestId = null;
+        fetch('/api/dashboard/risk-assessment/cancel?requestId=' + encodeURIComponent(cancelRequestId), {
+            method: 'POST',
+            credentials: 'same-origin'
+        }).catch(function (err) {
+            console.warn("Backend cancellation notice failed:", err);
+        });
+    }
 
     var placeholderSection = document.getElementById("aiPlaceholderSection");
     var loadingSection = document.getElementById("aiLoadingSection");
@@ -235,6 +248,9 @@ document.addEventListener("DOMContentLoaded", function () {
         if (activeAiAbortController) {
             activeAiAbortController.abort();
         }
+        if (currentAiRequestId) {
+            navigator.sendBeacon('/api/dashboard/risk-assessment/cancel?requestId=' + encodeURIComponent(currentAiRequestId));
+        }
     });
 
     /**
@@ -407,12 +423,6 @@ document.addEventListener("DOMContentLoaded", function () {
     }
 });
 
-function calculatePythagoreanDistanceKm(userLat, userLon, disasterLat, disasterLon) {
-    var latDiff = userLat - disasterLat;
-    var lonDiff = userLon - disasterLon;
-    return Math.round(Math.sqrt((latDiff * latDiff) + (lonDiff * lonDiff)) * 111.0);
-}
-
 function getDisasterTypeName(rawType) {
     var eventTypeMap = {
         'TC': 'Tropical Cyclone',
@@ -448,19 +458,20 @@ function getAlertConfig(alertLevel) {
     };
 }
 
-function buildDisasterPopupHtml(disasterTitle, country, alertLevel, alertConfig, disasterLat, disasterLon, userLat, userLon) {
+function buildDisasterPopupHtml(disasterTitle, country, alertLevel, alertConfig, disasterLat, disasterLon, userLat, userLon, distanceKm, isWithinDangerZone) {
     var distanceSection = '';
 
-    if (userLat != null && userLon != null) {
-        var distanceKm = calculatePythagoreanDistanceKm(userLat, userLon, disasterLat, disasterLon);
-        var isWithinDangerZone = distanceKm <= 120;
-
+    if (distanceKm != null) {
         distanceSection = '<div class="disaster-popup-distance">' +
             '<strong>Distance from you:</strong> ' +
             '<span class="font-weight-bold ' + (isWithinDangerZone ? 'text-danger' : 'text-dark') + '">' +
                 distanceKm.toLocaleString() + ' km' +
             '</span>' +
             (isWithinDangerZone ? ' <span class="badge badge-danger ml-1">Within Danger Zone!</span>' : '') +
+        '</div>';
+    } else if (userLat != null && userLon != null) {
+        distanceSection = '<div class="disaster-popup-distance text-muted">' +
+            '<strong>Location:</strong> ' + disasterLat.toFixed(2) + ', ' + disasterLon.toFixed(2) +
         '</div>';
     } else {
         distanceSection = '<div class="disaster-popup-distance text-muted font-italic">' +
@@ -518,6 +529,9 @@ function renderDisasterMarkers(layerGroup, disasters, userLat, userLon) {
         var alertLevel = details.alertlevel || details.alertLevel || "Unknown";
         var alertConfig = getAlertConfig(alertLevel);
 
+        var distanceKm = (disaster.distanceKm != null) ? disaster.distanceKm : null;
+        var isWithinDangerZone = Boolean(disaster.inDangerZone);
+
         var popupContent = buildDisasterPopupHtml(
             disasterTitle,
             country,
@@ -526,7 +540,9 @@ function renderDisasterMarkers(layerGroup, disasters, userLat, userLon) {
             lat,
             lon,
             userLat,
-            userLon
+            userLon,
+            distanceKm,
+            isWithinDangerZone
         );
 
         var markerIcon = L.divIcon({
@@ -569,10 +585,10 @@ function updateSidebarAlerts(data, userLat, userLon) {
         distanceText.textContent = "No active disasters recorded";
     }
 
-    if (data.warning) {
+    if (data.inDangerZone) {
         alertBox.className = "alert alert-danger shadow-sm mb-4";
         alertTitle.innerHTML = '<i class="fas fa-exclamation-triangle mr-1"></i> Proximity Alert: Near Disaster Zone!';
-        alertBody.textContent = data.warning;
+        alertBody.textContent = data.warning || "You are within a recorded natural disaster danger zone.";
     } else if (userLat != null && userLon != null) {
         alertBox.className = "alert alert-success shadow-sm mb-4";
         alertTitle.innerHTML = '<i class="fas fa-shield-alt mr-1"></i> Current Location Status: Safe';
@@ -678,6 +694,100 @@ function startAiProgressAnimation() {
     }, 600);
 }
 
+function renderAiAssessmentView(data) {
+    if (!data) return;
+
+    var riskBadge = document.getElementById("aiRiskBadge");
+    var toolBadge = document.getElementById("aiToolBadge");
+    var riskSummary = document.getElementById("aiRiskSummary");
+    var actionText = document.getElementById("aiActionText");
+    var safeZoneSection = document.getElementById("aiSafeZoneSection");
+    var escapeRoutesSection = document.getElementById("aiEscapeRoutesSection");
+    var checklistContainer = document.getElementById("aiChecklistContainer");
+
+    var level = String(data.riskLevel || "LOW").toUpperCase();
+    if (riskBadge) {
+        riskBadge.textContent = level;
+        riskBadge.className = "badge px-2 py-1 font-weight-bold " + (
+            level === "CRITICAL" ? "badge-risk-critical" :
+            level === "HIGH" ? "badge-risk-high" :
+            level === "MODERATE" ? "badge-risk-moderate" : "badge-risk-low"
+        );
+    }
+
+    if (toolBadge) {
+        toolBadge.textContent = data.modelUsed || "Gemini AI Agent";
+    }
+
+    if (riskSummary) {
+        riskSummary.textContent = data.riskSummary || "Assessment complete.";
+    }
+
+    if (actionText) {
+        actionText.textContent = data.recommendedAction || "Monitor local advisories.";
+    }
+
+    // Toggle between safe zone confirmation and evacuation routes
+    if (data.inSafeZone) {
+        if (safeZoneSection) safeZoneSection.style.display = "block";
+        if (escapeRoutesSection) escapeRoutesSection.style.display = "none";
+    } else {
+        if (safeZoneSection) safeZoneSection.style.display = "none";
+        if (escapeRoutesSection) escapeRoutesSection.style.display = "flex";
+
+        if (data.footOption) {
+            var footTitle = document.getElementById("footOptionTitle");
+            var footBadge = document.getElementById("footDistanceBadge");
+            var footDest = document.getElementById("footDestination");
+            var footRoute = document.getElementById("footRoute");
+            var footTips = document.getElementById("footTips");
+
+            if (footTitle) footTitle.textContent = data.footOption.title || "Option 1: Nearby Shelter (On Foot)";
+            if (footBadge) footBadge.textContent = data.footOption.estimatedDistance || "N/A";
+            if (footDest) footDest.textContent = data.footOption.destination || "Designated safe shelter";
+            if (footRoute) footRoute.textContent = data.footOption.routeAdvice || "Proceed towards destination.";
+            if (footTips) footTips.textContent = data.footOption.safetyTips || "Stay alert and follow emergency instructions.";
+        }
+
+        if (data.vehicleOption) {
+            var vehTitle = document.getElementById("vehicleOptionTitle");
+            var vehBadge = document.getElementById("vehicleDistanceBadge");
+            var vehDest = document.getElementById("vehicleDestination");
+            var vehRoute = document.getElementById("vehicleRoute");
+            var vehTips = document.getElementById("vehicleTips");
+
+            if (vehTitle) vehTitle.textContent = data.vehicleOption.title || "Option 2: Regional Evacuation (By Vehicle)";
+            if (vehBadge) vehBadge.textContent = data.vehicleOption.estimatedDistance || "N/A";
+            if (vehDest) vehDest.textContent = data.vehicleOption.destination || "Designated regional haven";
+            if (vehRoute) vehRoute.textContent = data.vehicleOption.routeAdvice || "Follow primary evacuation corridors.";
+            if (vehTips) vehTips.textContent = data.vehicleOption.safetyTips || "Keep fuel tank full and check road passability.";
+        }
+    }
+
+    // Format emergency checklist pills
+    if (checklistContainer) {
+        checklistContainer.innerHTML = "";
+        if (Array.isArray(data.emergencyChecklist) && data.emergencyChecklist.length > 0) {
+            data.emergencyChecklist.forEach(function (item) {
+                var pill = document.createElement("span");
+                pill.className = "ai-checklist-pill";
+                pill.innerHTML = '<i class="fas fa-check text-success mr-1"></i>' + item;
+                checklistContainer.appendChild(pill);
+            });
+        }
+    }
+
+    // Display AI disclaimer
+    var disclaimerContainer = document.getElementById("aiDisclaimerContainer");
+    var disclaimerText = document.getElementById("aiDisclaimerText");
+    if (disclaimerContainer) {
+        disclaimerContainer.style.display = "block";
+        if (disclaimerText && data.aiDisclaimer) {
+            disclaimerText.textContent = data.aiDisclaimer;
+        }
+    }
+}
+
 async function fetchAiRiskAssessment(userLat, userLon) {
     var placeholderSection = document.getElementById("aiPlaceholderSection");
     var loadingSection = document.getElementById("aiLoadingSection");
@@ -688,19 +798,12 @@ async function fetchAiRiskAssessment(userLat, userLon) {
     var btnRefresh = document.getElementById("btnRefreshAi");
     var btnGenerate = document.getElementById("btnGenerateAi");
 
-    var isInitialGeneration = (latestAiAssessment == null);
-
-    if (isInitialGeneration) {
-        if (placeholderSection) placeholderSection.style.display = "none";
-        if (contentSection) contentSection.style.display = "none";
-        if (errorSection) errorSection.style.display = "none";
-        if (loadingSection) loadingSection.style.display = "block";
-    } else {
-        if (loadingSection) loadingSection.style.display = "none";
-        if (errorSection) errorSection.style.display = "none";
-        if (contentSection) contentSection.style.display = "block";
-        if (refreshBanner) refreshBanner.style.display = "flex";
-    }
+    // Show full loading view for both initial generation and refresh
+    if (placeholderSection) placeholderSection.style.display = "none";
+    if (contentSection) contentSection.style.display = "none";
+    if (errorSection) errorSection.style.display = "none";
+    if (refreshBanner) refreshBanner.style.display = "none";
+    if (loadingSection) loadingSection.style.display = "block";
 
     if (btnRefresh) {
         btnRefresh.style.display = "inline-block";
@@ -721,7 +824,9 @@ async function fetchAiRiskAssessment(userLat, userLon) {
     startControlledProgress();
 
     try {
+        currentAiRequestId = "req_" + Date.now() + "_" + Math.random().toString(36).substring(2, 9);
         var params = new URLSearchParams();
+        params.append("requestId", currentAiRequestId);
         if (userLat != null && userLon != null) {
             params.append("userLat", userLat);
             params.append("userLon", userLon);
@@ -760,8 +865,8 @@ async function fetchAiRiskAssessment(userLat, userLon) {
             clearEvacuationRoute();
         }
 
-        // Render UI elements as normal...
-        // [Keep the rendering code for badges, summaries, routes, and checklist here]
+        // Configure frontend view and display formatting from assessment data
+        renderAiAssessmentView(data);
 
         if (loadingSection) loadingSection.style.display = "none";
         if (contentSection) contentSection.style.display = "block";
@@ -783,6 +888,7 @@ async function fetchAiRiskAssessment(userLat, userLon) {
             errorMessageElem.textContent = err.message || "AI assessment could not be generated at this time. Please retry later.";
         }
     } finally {
+        currentAiRequestId = null;
         stopAiProgressAnimation();
         var currentRefreshBanner = document.getElementById("aiRefreshingBanner");
         if (currentRefreshBanner) {
@@ -800,21 +906,52 @@ async function fetchAiRiskAssessment(userLat, userLon) {
     }
 }
 
-// Helper to keep progress realistic while waiting for backend tool loops
+// Helper to display real-time animated stage updates while awaiting AI assessment
 function startControlledProgress() {
     stopAiProgressAnimation();
-    var barElem = document.getElementById("aiProgressBar5"); // or aiProgressBar
+    var barElem = document.getElementById("aiProgressBar");
     var msgElem = document.getElementById("aiProgressMessage");
-    
-    if (barElem) barElem.style.width = "40%";
-    if (msgElem) msgElem.textContent = "AI Agent executing tool calls (Proximity & Shelters)...";
+    var stepBadge = document.getElementById("aiStepBadge");
+
+    var stages = [
+        {
+            pct: 35,
+            badge: '<i class="fas fa-satellite-dish mr-1"></i> Telemetry Analysis',
+            msg: 'Analyzing traveler GPS & active disaster danger perimeters...'
+        },
+        {
+            pct: 65,
+            badge: '<i class="fas fa-shield-alt mr-1"></i> Shelter & Routing Evaluation',
+            msg: 'Evaluating closest safe shelters & navigation escape corridors...'
+        },
+        {
+            pct: 88,
+            badge: '<i class="fas fa-robot mr-1"></i> Gemini AI Synthesis',
+            msg: 'Synthesizing situational safety assessment & personal recommendations...'
+        }
+    ];
+
+    var stageIndex = 0;
+    function applyStage(idx) {
+        var s = stages[idx];
+        if (barElem) barElem.style.width = s.pct + "%";
+        if (msgElem) msgElem.textContent = s.msg;
+        if (stepBadge) stepBadge.innerHTML = s.badge;
+    }
+
+    applyStage(0);
 
     aiProgressInterval = setInterval(function () {
-        if (barElem) {
-            var currentWidth = parseInt(barElem.style.width) || 40;
-            if (currentWidth < 85) {
-                barElem.style.width = (currentWidth + 5) + "%";
+        stageIndex++;
+        if (stageIndex < stages.length) {
+            applyStage(stageIndex);
+        } else {
+            if (barElem) {
+                var cur = parseInt(barElem.style.width) || 88;
+                if (cur < 95) {
+                    barElem.style.width = (cur + 2) + "%";
+                }
             }
         }
-    }, 1000);
+    }, 1200);
 }
