@@ -829,7 +829,8 @@ async function fetchAiRiskAssessment(userLat, userLon) {
         params.append("requestId", currentAiRequestId);
         if (userLat != null && userLon != null) {
             params.append("userLat", userLat);
-            params.append("userLon", userLon);
+            // The risk-assessment endpoint uses userLong for longitude.
+            params.append("userLong", userLon);
         }
 
         var queryString = params.toString();

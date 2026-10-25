@@ -7,12 +7,12 @@ import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.TimeUnit;
+import java.util.concurrent.TimeoutException;
 
 import org.springframework.ai.chat.client.ChatClient;
 import org.springframework.stereotype.Service;
 
-import com.TravelBuddy.model.Disaster.DisasterEvents;
-import com.TravelBuddy.model.ProximitySummary;
+import com.TravelBuddy.model.EvacuationRouteOption;
 import com.TravelBuddy.model.RiskAssessmentResponse;
 import com.TravelBuddy.model.User;
 import com.fasterxml.jackson.databind.DeserializationFeature;
@@ -21,264 +21,292 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 
 @Service
 public class GeminiRiskAssessmentService {
+    private static final long AI_TIMEOUT_SECONDS = 60;
+    private static final ObjectMapper OBJECT_MAPPER = new ObjectMapper()
+            .configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);
 
     private final ChatClient chatClient;
     private final GeminiAgentTools geminiAgentTools;
-    private static final ObjectMapper objectMapper = new ObjectMapper()
-            .configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);
-    // Store active AI modal requests for termination of models
     private final Map<String, Thread> activeThreads = new ConcurrentHashMap<>();
     private final Map<String, CompletableFuture<String>> activeFutures = new ConcurrentHashMap<>();
 
-    public GeminiRiskAssessmentService(ChatClient.Builder chatClientBuilder, GeminiAgentTools geminiAgentTools) {
+    public GeminiRiskAssessmentService(
+            ChatClient.Builder chatClientBuilder,
+            GeminiAgentTools geminiAgentTools) {
         this.chatClient = chatClientBuilder.build();
         this.geminiAgentTools = geminiAgentTools;
     }
 
     /**
-     * Terminate an in-progress AI generation task on the backend when user cancels.
+     * Cancels an assessment started by the supplied request.
      */
-    public void cancelAssessment(String requestId, String username) {
-        terminateKey(requestId);
-        terminateKey(username);
-    }
+    public void cancelAssessment(String requestId) {
+        if (requestId == null || requestId.isBlank()) {
+            return;
+        }
 
-    private void terminateKey(String key) {
-        if (key == null || key.isBlank()) return;
-        CompletableFuture<String> future = activeFutures.remove(key);
+        CompletableFuture<String> future = activeFutures.remove(requestId);
         if (future != null) {
             future.cancel(true);
         }
-        Thread thread = activeThreads.remove(key);
+
+        Thread thread = activeThreads.remove(requestId);
         if (thread != null && thread.isAlive()) {
             thread.interrupt();
         }
     }
 
+    /**
+     * Lets the AI agent inspect the location, assess the risk, and decide whether
+     * evacuation tools are required.
+     */
     public RiskAssessmentResponse evaluateRiskAndEscapeRoutes(
             Double userLat,
             Double userLon,
             User currentUser,
-            ProximitySummary proximity,
-            List<DisasterEvents> activeDisasters) {
-        return evaluateRiskAndEscapeRoutes(userLat, userLon, currentUser, proximity, activeDisasters, null);
-    }
-
-    public RiskAssessmentResponse evaluateRiskAndEscapeRoutes(
-            Double userLat,
-            Double userLon,
-            User currentUser,
-            ProximitySummary proximity,
-            List<DisasterEvents> activeDisasters,
             String requestId) {
 
-        String travelerLabel = resolveTravelerLabel(currentUser);
-
+        String travelerLabel = getTravelerLabel(currentUser);
         if (userLat == null || userLon == null) {
-            return new RiskAssessmentResponse(
-                "UNKNOWN", 
-                "Telemetry unavailable. Enable GPS.", 
-                "Enable GPS to calculate proximity and routes.", 
-                false, 
-                null, 
-                null, 
-                List.of("Check global feeds", "Enable GPS location access"), 
-                false, 
-                "Deterministic Guard", 
-                travelerLabel
-            );
+            return buildLocationUnavailableResponse(travelerLabel);
         }
-
-        boolean inDanger = proximity != null && proximity.inDangerZone();
 
         String systemPrompt = """
-            You are TravelBuddy's Autonomous Emergency AI Agent.
-            If the traveler is in a SAFE ZONE: Confirm safe status (riskLevel: "LOW"). Recommended action should advise normal caution. No route recommendation needed.
-            If the traveler is in a DANGER ZONE:
-            Step 1: Call 'getSafeShelters' to inspect available safe destinations in the database.
-            Step 2: If the user is in an unsupported region where no local shelters exist, do not attempt routing. State clearly that local shelter data is unavailable.
-            Step 3: If valid local shelters exist, pick the closest safe shelter and call 'getEvacuationRoute' for both walking and driving options.
-            Step 4: Output ONLY a valid JSON object matching the requested schema. Never use markdown code blocks.
-            
-            JSON schema required:
-            {
-              "riskLevel": "CRITICAL", "HIGH", "MODERATE", or "LOW",
-              "riskSummary": "1-2 sentences summarizing the situation and chosen shelter/route details.",
-              "recommendedAction": "1 sentence primary instruction",
-              "emergencyChecklist": ["Step 1", "Step 2", "Step 3"]
-            }
-            """;
+                You are TravelBuddy's autonomous emergency AI agent.
+                You must use the available tools to make your decision.
 
-        String userPrompt = String.format("Traveler '%s' Location: lat %f, lon %f | Telemetry: %s",
-                travelerLabel, userLat, userLon, inDanger ? "IN DANGER ZONE" : "SAFE ZONE");
+                1. Call checkProximity with the traveler's coordinates first.
+                2. Use the tool result, nearest hazard, and distance to determine
+                   whether the traveler is safe or in danger.
+                3. If checkProximity reports a safe zone, return a LOW-risk assessment.
+                   Do not call getSafeShelters or getEvacuationRoute.
+                4. If checkProximity reports a danger zone, call getSafeShelters
+                   with the same traveler coordinates. The tool returns only
+                   shelters registered in the relevant disaster country.
+                5. Select a returned local shelter using its exact name and
+                   coordinates. Never select a shelter from another country.
+                6. Call getEvacuationRoute twice using the exact selected shelter
+                   data: once with foot and once with vehicle.
+                7. If getSafeShelters returns no local shelters, do not call the
+                   route tool. Explain that no valid local route is available.
+                8. Never invent a shelter, distance, duration, route, or coordinate.
+                9. Return only one valid JSON object. Do not use markdown.
 
-        String userKey = (currentUser != null && currentUser.getUsername() != null && !currentUser.getUsername().isBlank())
-                ? currentUser.getUsername() : null;
+                The JSON object must contain:
+                {
+                  "riskLevel": "CRITICAL | HIGH | MODERATE | LOW | UNKNOWN",
+                  "riskSummary": "A meaningful 3-5 sentence analysis covering the nearest hazard, distance, risk level, likely local impact, uncertainty, and why a route was or was not recommended.",
+                  "recommendedAction": "The main safety instruction.",
+                  "inSafeZone": true or false,
+                  "footOption": route metadata or null,
+                  "vehicleOption": route metadata or null,
+                  "emergencyChecklist": ["Practical step 1", "Practical step 2"]
+                }
+                EvacuationRouteOption fields are:
+                title, destination, estimatedDistance, estimatedDuration,
+                destinationLat, destinationLon, routeAdvice, safetyTips,
+                routeVerified, roadBlocked, blockedHazardName.
+                Do not include coordinates. The application attaches the verified
+                road geometry after receiving your response.
+                Set both route options to null for safe-zone users and whenever
+                no verified local shelter route is returned.
+                """;
 
-        if (requestId != null && !requestId.isBlank()) {
-            activeThreads.put(requestId, Thread.currentThread());
-        }
-        if (userKey != null) {
-            activeThreads.put(userKey, Thread.currentThread());
-        }
+        String userPrompt = String.format(
+                "Traveler '%s' current location: latitude %f, longitude %f.",
+                travelerLabel, userLat, userLon);
 
+        registerRequest(requestId);
         try {
             if (Thread.currentThread().isInterrupted()) {
-                throw new InterruptedException("AI generation was cancelled by user.");
+                throw new InterruptedException("Assessment cancelled.");
             }
 
-            CompletableFuture<String> future = CompletableFuture.supplyAsync(() -> {
-                try {
-                    System.out.println("[Agent Engine] Calling Gemini AI model for traveler: " + travelerLabel + " (inDanger: " + inDanger + ")");
-                    var promptSpec = chatClient.prompt()
-                            .system(systemPrompt)
-                            .user(userPrompt);
-
-                    // When user is in a safe place, no route recommendation is needed, so do not call tools
-                    if (inDanger) {
-                        promptSpec = promptSpec.tools(geminiAgentTools);
-                    }
-
-                    String content = promptSpec.call().content();
-                    System.out.println("[Agent Engine] Gemini AI response received successfully:\n" + content);
-                    return content;
-                } catch (Exception ex) {
-                    System.out.println("==================================================");
-                    System.out.println("[Agent Engine ERROR] Gemini AI model invocation failed!");
-                    System.out.println("[Agent Engine ERROR] Exception Class: " + ex.getClass().getName());
-                    System.out.println("[Agent Engine ERROR] Error Message: " + ex.getMessage());
-                    if (ex.getCause() != null) {
-                        System.out.println("[Agent Engine ERROR] Root Cause: " + ex.getCause().getClass().getName() + " - " + ex.getCause().getMessage());
-                    }
-                    ex.printStackTrace(System.out);
-                    System.out.println("==================================================");
-                    throw ex;
-                }
-            });
-
+            CompletableFuture<String> future = requestAssessment(systemPrompt, userPrompt, travelerLabel);
             if (requestId != null && !requestId.isBlank()) {
                 activeFutures.put(requestId, future);
             }
-            if (userKey != null) {
-                activeFutures.put(userKey, future);
-            }
 
-            String jsonOutput;
-            try {
-                jsonOutput = future.get(60, TimeUnit.SECONDS);
-            } catch (CancellationException | InterruptedException e) {
-                Thread.currentThread().interrupt();
-                throw new InterruptedException("AI generation was cancelled by user.");
-            } catch (ExecutionException e) {
-                Throwable cause = e.getCause();
-                if (cause instanceof InterruptedException || Thread.currentThread().isInterrupted()) {
-                    throw new InterruptedException("AI generation was cancelled by user.");
-                }
-                if (cause instanceof Exception ex) {
-                    throw ex;
-                }
-                throw e;
-            }
-
-            JsonNode parsed = parseGeminiAdvice(jsonOutput);
-
-            return new RiskAssessmentResponse(
-                    parsed.path("riskLevel").asText(inDanger ? "HIGH" : "LOW"),
-                    parsed.path("riskSummary").asText("Assessing local disaster feeds and forecasts."),
-                    parsed.path("recommendedAction").asText("Monitor alerts."),
-                    !inDanger,
-                    null,
-                    null,
-                    objectMapper.convertValue(parsed.path("emergencyChecklist"), objectMapper.getTypeFactory().constructCollectionType(List.class, String.class)),
-                    true,
-                    "Gemini AI Agent",
-                    travelerLabel
-            );
-
+            String jsonOutput = getAssessmentResult(future);
+            return buildAssessmentResponse(
+                    parseGeminiAdvice(jsonOutput),
+                    travelerLabel,
+                    userLat,
+                    userLon);
         } catch (InterruptedException e) {
+            Thread.currentThread().interrupt();
             return buildCancelledResponse(requestId, travelerLabel);
         } catch (Exception e) {
-            boolean wasCancelled = Thread.currentThread().isInterrupted() ||
-                    e instanceof InterruptedException ||
-                    (e.getCause() instanceof InterruptedException);
-
-            if (wasCancelled) {
-                return buildCancelledResponse(requestId, travelerLabel);
-            }
-
-            Throwable root = e;
-            while (root.getCause() != null && root.getCause() != root) {
-                root = root.getCause();
-            }
-
-            System.out.println("==================================================");
-            System.out.println("[Agent Engine ERROR] Gemini orchestration failed: " + root.getClass().getName() + " - " + root.getMessage());
-            e.printStackTrace(System.out);
-            System.out.println("==================================================");
-
-            String errorDetail = root.getMessage() != null ? root.getMessage() : root.getClass().getSimpleName();
-
-            return new RiskAssessmentResponse(
-                "UNKNOWN", 
-                "AI model error: " + errorDetail, 
-                "Please check terminal logs or retry generating the assessment.", 
-                false, 
-                null, 
-                null, 
-                List.of("Monitor official emergency feeds", "Check application console for details"), 
-                false, 
-                "Error Fallback", 
-                travelerLabel
-            );
+            System.out.println("[Agent Engine ERROR] Assessment failed: " + e.getMessage());
+            return buildErrorResponse(travelerLabel, e);
         } finally {
-            if (requestId != null) {
-                activeThreads.remove(requestId);
-                activeFutures.remove(requestId);
-            }
-            if (userKey != null) {
-                activeThreads.remove(userKey);
-                activeFutures.remove(userKey);
-            }
+            removeRequest(requestId);
         }
     }
 
-    private RiskAssessmentResponse buildCancelledResponse(String requestId, String travelerLabel) {
-        System.out.println("[Agent Engine] Gemini AI generation successfully terminated for request: " + requestId);
-        return new RiskAssessmentResponse(
-            "CANCELLED", 
-            "Assessment generation was cancelled by user.", 
-            "Cancelled.", 
-            false, 
-            null, 
-            null, 
-            List.of(), 
-            false, 
-            "User Cancelled", 
-            travelerLabel
-        );
+    private CompletableFuture<String> requestAssessment(
+            String systemPrompt,
+            String userPrompt,
+            String travelerLabel) {
+        return CompletableFuture.supplyAsync(() -> {
+            try {
+                System.out.println("[Agent Engine] Calling Gemini for " + travelerLabel);
+                return chatClient.prompt()
+                        .system(systemPrompt)
+                        .user(userPrompt)
+                        .tools(geminiAgentTools)
+                        .call()
+                        .content();
+            } catch (Exception e) {
+                throw new IllegalStateException("Gemini invocation failed.", e);
+            }
+        });
     }
 
-    private String resolveTravelerLabel(User user) {
-        if (user == null || user.getUsername() == null || user.getUsername().isBlank()) return "Traveler";
-        if (user.getEmergencyContactName() != null && !user.getEmergencyContactName().isBlank()) {
-            return String.format("%s (Emergency Contact: %s)", user.getUsername(), user.getEmergencyContactName());
+    private String getAssessmentResult(CompletableFuture<String> future)
+            throws InterruptedException, ExecutionException, TimeoutException {
+        try {
+            return future.get(AI_TIMEOUT_SECONDS, TimeUnit.SECONDS);
+        } catch (CancellationException e) {
+            throw new InterruptedException("Assessment cancelled.");
+        } catch (InterruptedException e) {
+            future.cancel(true);
+            throw e;
+        } catch (TimeoutException e) {
+            future.cancel(true);
+            throw e;
+        }
+    }
+
+    private RiskAssessmentResponse buildAssessmentResponse(
+            JsonNode response,
+            String travelerLabel,
+            double userLat,
+            double userLon) {
+        boolean inSafeZone = response.path("inSafeZone").asBoolean(false);
+        EvacuationRouteOption footOption = readRouteOption(response, "footOption");
+        EvacuationRouteOption vehicleOption = readRouteOption(response, "vehicleOption");
+
+        return new RiskAssessmentResponse(
+                response.path("riskLevel").asText("UNKNOWN"),
+                response.path("riskSummary").asText("The assessment could not be completed."),
+                response.path("recommendedAction").asText("Follow official emergency instructions."),
+                inSafeZone,
+                inSafeZone ? null : footOption,
+                inSafeZone ? null : vehicleOption,
+                readChecklist(response),
+                true,
+                "Gemini AI Agent",
+                travelerLabel);
+    }
+
+    private EvacuationRouteOption readRouteOption(JsonNode response, String fieldName) {
+        JsonNode route = response.get(fieldName);
+        if (route == null || route.isNull() || !route.isObject()) {
+            return null;
+        }
+        return OBJECT_MAPPER.convertValue(route, EvacuationRouteOption.class);
+    }
+
+    private List<String> readChecklist(JsonNode response) {
+        JsonNode checklist = response.get("emergencyChecklist");
+        if (checklist == null || !checklist.isArray()) {
+            return List.of();
+        }
+        return OBJECT_MAPPER.convertValue(
+                checklist,
+                OBJECT_MAPPER.getTypeFactory().constructCollectionType(List.class, String.class));
+    }
+
+    private JsonNode parseGeminiAdvice(String content) {
+        if (content == null || content.isBlank()) {
+            return OBJECT_MAPPER.createObjectNode();
+        }
+
+        String json = content.trim();
+        if (json.startsWith("```json")) {
+            json = json.substring(7);
+        } else if (json.startsWith("```")) {
+            json = json.substring(3);
+        }
+        if (json.endsWith("```")) {
+            json = json.substring(0, json.length() - 3);
+        }
+
+        try {
+            return OBJECT_MAPPER.readTree(json.trim());
+        } catch (Exception e) {
+            return OBJECT_MAPPER.createObjectNode()
+                    .put("riskLevel", "UNKNOWN")
+                    .put("riskSummary", content)
+                    .put("recommendedAction", "Monitor official emergency broadcasts.")
+                    .put("inSafeZone", false);
+        }
+    }
+
+    private void registerRequest(String requestId) {
+        if (requestId != null && !requestId.isBlank()) {
+            activeThreads.put(requestId, Thread.currentThread());
+        }
+    }
+
+    private void removeRequest(String requestId) {
+        if (requestId != null && !requestId.isBlank()) {
+            activeThreads.remove(requestId);
+            activeFutures.remove(requestId);
+        }
+    }
+
+    private String getTravelerLabel(User user) {
+        if (user == null || user.getUsername() == null || user.getUsername().isBlank()) {
+            return "Traveler";
         }
         return user.getUsername();
     }
 
-    private JsonNode parseGeminiAdvice(String content) {
-        if (content == null || content.isBlank()) return objectMapper.createObjectNode();
-        try {
-            String cleaned = content;
-            if (cleaned.startsWith("```json")) cleaned = cleaned.substring(7);
-            else if (cleaned.startsWith("```")) cleaned = cleaned.substring(3);
-            if (cleaned.endsWith("```")) cleaned = cleaned.substring(0, cleaned.length() - 3);
-            return objectMapper.readTree(cleaned.trim());
-        } catch (Exception e) {
-            return objectMapper.createObjectNode()
-                    .put("riskLevel", "UNKNOWN")
-                    .put("riskSummary", content)
-                    .put("recommendedAction", "Monitor local emergency broadcasts.");
-        }
+    private RiskAssessmentResponse buildLocationUnavailableResponse(String travelerLabel) {
+        return new RiskAssessmentResponse(
+                "UNKNOWN",
+                "Current location is unavailable.",
+                "Enable location access to request an assessment.",
+                false,
+                null,
+                null,
+                List.of("Enable GPS location access", "Check official emergency feeds"),
+                false,
+                "Location Required",
+                travelerLabel);
+    }
+
+    private RiskAssessmentResponse buildCancelledResponse(String requestId, String travelerLabel) {
+        return new RiskAssessmentResponse(
+                "CANCELLED",
+                "Assessment generation was cancelled.",
+                "Cancelled.",
+                false,
+                null,
+                null,
+                List.of(),
+                false,
+                "User Cancelled",
+                travelerLabel);
+    }
+
+    private RiskAssessmentResponse buildErrorResponse(String travelerLabel, Exception exception) {
+        String detail = exception.getMessage() == null
+                ? exception.getClass().getSimpleName()
+                : exception.getMessage();
+
+        return new RiskAssessmentResponse(
+                "UNKNOWN",
+                "The AI assessment is temporarily unavailable: " + detail,
+                "Please retry or follow official emergency instructions.",
+                false,
+                null,
+                null,
+                List.of("Monitor official emergency feeds"),
+                false,
+                "Error Fallback",
+                travelerLabel);
     }
 }

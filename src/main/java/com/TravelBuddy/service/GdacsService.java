@@ -18,13 +18,15 @@ import com.TravelBuddy.model.Disaster.DisasterEvents;
 import com.TravelBuddy.model.Disaster.LocationCoordinates;
 import com.fasterxml.jackson.databind.DeserializationFeature;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
 import com.TravelBuddy.model.ProximitySummary;
 
 @Service
 public class GdacsService {
     private final RestClient restClient;
     private static final ObjectMapper objectMapper = new ObjectMapper()
-            .configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);
+            .configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false)
+            .registerModule(new JavaTimeModule());
     private final ResourceLoader resourceLoader;
     private final String base_url = "https://www.gdacs.org/gdacsapi/api";
     // If disaster is 120km away from the itienarary plan, user should be alerted
@@ -84,11 +86,16 @@ public class GdacsService {
     private Disaster loadMockDisasters() {
         try {
             Resource resource = resourceLoader.getResource(demoDisasterData);
+            if (!resource.exists()) {
+                throw new IllegalStateException("Mock disaster resource does not exist: " + demoDisasterData);
+            }
+
             try (InputStream is = resource.getInputStream()) {
                 return objectMapper.readValue(is, Disaster.class);
             }
         } catch (Exception ex) {
-            System.out.println("Failed to read mock disaster JSON file: " + ex.getMessage());
+            System.out.println("Failed to read mock disaster JSON file '" + demoDisasterData
+                    + "': " + ex.getMessage());
             return new Disaster();
         }
     }

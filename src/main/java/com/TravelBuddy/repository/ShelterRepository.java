@@ -17,21 +17,19 @@ public class ShelterRepository {
 
     public List<Shelter> getAllShelters() {
         String sql = """
-                SELECT shelter_id, shelter_name, latitude, longitude, facility_type
+                SELECT shelter_id, shelter_name, latitude, longitude, facility_type, country
                 FROM safe_shelter
                 """;
 
-        return jdbcTemplate.query(
-                sql,
-                (rs, rowNum) -> {
-                    Shelter shelter = new Shelter();
-                    shelter.setShelter_id(rs.getInt("shelter_id"));
-                    shelter.setShelter_name(rs.getString("shelter_name"));
-                    shelter.setLatitude(rs.getDouble("latitude"));
-                    shelter.setLongitude(rs.getDouble("longitude"));
-                    shelter.setFacility_type(rs.getString("facility_type"));
-                    return shelter;
-                }
-        );
+        return jdbcTemplate.query(sql, (resultSet, rowNum) -> {
+            Shelter shelter = new Shelter();
+            shelter.setShelter_id(resultSet.getInt("shelter_id"));
+            shelter.setShelter_name(resultSet.getString("shelter_name"));
+            shelter.setLatitude(resultSet.getDouble("latitude"));
+            shelter.setLongitude(resultSet.getDouble("longitude"));
+            shelter.setFacility_type(resultSet.getString("facility_type"));
+            shelter.setCountry(resultSet.getString("country"));
+            return shelter;
+        });
     }
 }

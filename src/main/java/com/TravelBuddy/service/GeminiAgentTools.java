@@ -2,6 +2,7 @@ package com.TravelBuddy.service;
 
 import com.TravelBuddy.repository.ShelterRepository;
 import java.util.List;
+import java.util.Locale;
 
 import org.springframework.stereotype.Component;
 import org.springframework.ai.tool.annotation.Tool;
@@ -9,6 +10,8 @@ import org.springframework.ai.tool.annotation.Tool;
 import com.TravelBuddy.model.ChatRequest;
 import com.TravelBuddy.model.ChatResult.ForecastResult;
 import com.TravelBuddy.model.ChatResult.ProximityResult;
+import com.TravelBuddy.model.EvacuationRouteOption;
+import com.TravelBuddy.model.OsrmResponse;
 import com.TravelBuddy.model.ProximitySummary;
 import com.TravelBuddy.model.Shelter;
 
@@ -38,8 +41,11 @@ public class GeminiAgentTools {
             return new ProximityResult(false, "None", null, "MODERATE");
         }
 
-        ProximitySummary summary = gdacsService.calculateProximitySummary(request.getUserLat(), request.getUserLon());
-        String threat = summary.getNearestDistanceKm() != null && summary.getNearestDistanceKm() <= 30.0 ? "CRITICAL" : "MODERATE";
+        ProximitySummary summary = getProximitySummary(request);
+        String threat = summary.getNearestDistanceKm() != null
+                && summary.getNearestDistanceKm() <= 30.0
+                        ? "CRITICAL"
+                        : "MODERATE";
         
         return new ProximityResult(summary.inDangerZone(), summary.getNearestDisasterName(), summary.getNearestDistanceKm(), threat);
     }
@@ -56,7 +62,7 @@ public class GeminiAgentTools {
         }
 
         try {
-            ProximitySummary summary = gdacsService.calculateProximitySummary(request.getUserLat(), request.getUserLon());
+            ProximitySummary summary = getProximitySummary(request);
             
             if (!summary.inDangerZone()) {
                 return new ForecastResult("None", "Stable", "N/A", "No active hazards in proximity.");
@@ -72,10 +78,36 @@ public class GeminiAgentTools {
         }
     }
 
-    // Check database the set of shelters for route recommendation to safe shelter
-    @Tool(description = "Retrieves the list of all registered safe shelters from the database so you can evaluate distances and filter out hazards.")
-    public List<Shelter> getSafeShelters() {
-        return shelterRepository.getAllShelters();
+    @Tool(description = """
+            Finds registered shelters in the country of the traveler's nearest
+            active disaster. Use the returned shelters only; an empty list means
+            that no local shelter is available and routing must not be attempted.
+            """)
+    public List<Shelter> getSafeShelters(ChatRequest.LocationRequest request) {
+        if (request == null) {
+            return List.of();
+        }
+
+        ProximitySummary summary = getProximitySummary(request);
+        if (summary.nearestDisaster() == null
+                || summary.nearestDisaster().getDisasterDetails() == null) {
+            return List.of();
+        }
+
+        String country = summary.nearestDisaster()
+                .getDisasterDetails()
+                .getDisasterCountryLocation();
+
+        if (country == null || country.isBlank()) {
+            return List.of();
+        }
+
+        String expectedCountry = country.trim().toLowerCase(Locale.ROOT);
+        return shelterRepository.getAllShelters().stream()
+                .filter(shelter -> shelter.getCountry() != null
+                        && shelter.getCountry().trim().toLowerCase(Locale.ROOT)
+                                .equals(expectedCountry))
+                .toList();
     }
 
     // Get route from OSRM api
@@ -86,13 +118,16 @@ public class GeminiAgentTools {
         }
 
         String profile = "foot".equalsIgnoreCase(request.getTransportMode()) ? "foot" : "driving";
-        
+
         return osrmRoutingService.getRouteAlternatives(
-                request.getUserLat(), 
-                request.getUserLon(), 
-                request.getDestLat(), 
-                request.getDestLon(), 
-                profile
-        );
+                request.getUserLat(),
+                request.getUserLon(),
+                request.getDestLat(),
+                request.getDestLon(),
+                profile);
+    }
+
+    private ProximitySummary getProximitySummary(ChatRequest.LocationRequest request) {
+        return gdacsService.calculateProximitySummary(request.getUserLat(), request.getUserLon());
     }
 }

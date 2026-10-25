@@ -15,4 +15,5 @@ public class Shelter {
     private Double latitude;
     private Double longitude;
     private String facility_type;
+    private String country;
 }

@@ -1,63 +1,653 @@
 {
   "features": [
     {
-      "geometry": {
-        "coordinates": [139.75, 35.68]
-      },
+      "geometry": { "coordinates": [139.75, 35.68] },
       "properties": {
         "eventtype": "TC",
         "eventid": 10001,
         "alertlevel": "Red",
         "country": "Japan",
-        "name": "Tropical Cyclone Shanshan",
+        "name": "Tropical Cyclone Shanshan - Tokyo Metropolitan",
         "fromdate": "2026-10-20T00:00:00",
         "todate": "2026-10-26T23:59:59",
-        "affectedcountries": [
-          {
-            "iso3": "JPN",
-            "countryname": "Japan"
-          }
-        ]
+        "affectedcountries": [{ "iso3": "JPN", "countryname": "Japan" }]
       }
     },
     {
-      "geometry": {
-        "coordinates": [136.90, 35.18]
-      },
+      "geometry": { "coordinates": [136.90, 35.18] },
       "properties": {
         "eventtype": "EQ",
         "eventid": 10002,
         "alertlevel": "Orange",
         "country": "Japan",
-        "name": "M 6.4 Earthquake - Honshu",
+        "name": "M 6.4 Earthquake - Nagoya / Aichi",
         "fromdate": "2026-10-22T10:00:00",
-        "todate": "2026-10-25T18:00:00",
-        "affectedcountries": [
-          {
-            "iso3": "JPN",
-            "countryname": "Japan"
-          }
-        ]
+        "todate": "2026-10-27T18:00:00",
+        "affectedcountries": [{ "iso3": "JPN", "countryname": "Japan" }]
       }
     },
     {
-      "geometry": {
-        "coordinates": [103.85, 1.35]
-      },
+      "geometry": { "coordinates": [103.85, 1.35] },
       "properties": {
         "eventtype": "FL",
         "eventid": 10003,
         "alertlevel": "Orange",
         "country": "Singapore",
-        "name": "Flash Flood Warning - Central",
+        "name": "Flash Flood Warning - Central Singapore",
         "fromdate": "2026-10-23T06:00:00",
-        "todate": "2026-10-24T18:00:00",
-        "affectedcountries": [
-          {
-            "iso3": "SGP",
-            "countryname": "Singapore"
-          }
-        ]
+        "todate": "2026-10-27T18:00:00",
+        "affectedcountries": [{ "iso3": "SGP", "countryname": "Singapore" }]
+      }
+    },
+    {
+      "geometry": { "coordinates": [100.50, 13.75] },
+      "properties": {
+        "eventtype": "FL",
+        "eventid": 10004,
+        "alertlevel": "Green",
+        "country": "Thailand",
+        "name": "Minor River Swell - Chao Phraya Basin Bangkok",
+        "fromdate": "2026-10-24T08:00:00",
+        "todate": "2026-10-28T18:00:00",
+        "affectedcountries": [{ "iso3": "THA", "countryname": "Thailand" }]
+      }
+    },
+    {
+      "geometry": { "coordinates": [-118.24, 34.05] },
+      "properties": {
+        "eventtype": "WF",
+        "eventid": 10005,
+        "alertlevel": "Red",
+        "country": "United States",
+        "name": "Foothill Wildfire Complex - Los Angeles",
+        "fromdate": "2026-10-23T12:00:00",
+        "todate": "2026-10-29T23:59:59",
+        "affectedcountries": [{ "iso3": "USA", "countryname": "United States" }]
+      }
+    },
+    {
+      "geometry": { "coordinates": [14.42, 50.08] },
+      "properties": {
+        "eventtype": "FL",
+        "eventid": 10006,
+        "alertlevel": "Green",
+        "country": "Czech Republic",
+        "name": "Seasonal River Runoff - Vltava Prague",
+        "fromdate": "2026-10-21T00:00:00",
+        "todate": "2026-10-27T12:00:00",
+        "affectedcountries": [{ "iso3": "CZE", "countryname": "Czech Republic" }]
+      }
+    },
+    {
+      "geometry": { "coordinates": [115.17, -8.34] },
+      "properties": {
+        "eventtype": "VO",
+        "eventid": 10007,
+        "alertlevel": "Orange",
+        "country": "Indonesia",
+        "name": "Mount Agung Volcanic Ash Advisory - Bali",
+        "fromdate": "2026-10-24T14:30:00",
+        "todate": "2026-10-30T23:59:59",
+        "affectedcountries": [{ "iso3": "IDN", "countryname": "Indonesia" }]
+      }
+    },
+    {
+      "geometry": { "coordinates": [-99.13, 19.43] },
+      "properties": {
+        "eventtype": "EQ",
+        "eventid": 10008,
+        "alertlevel": "Red",
+        "country": "Mexico",
+        "name": "M 7.1 Inland Seismic Event - Mexico City",
+        "fromdate": "2026-10-25T03:15:00",
+        "todate": "2026-10-31T18:00:00",
+        "affectedcountries": [{ "iso3": "MEX", "countryname": "Mexico" }]
+      }
+    },
+    {
+      "geometry": { "coordinates": [149.13, -35.28] },
+      "properties": {
+        "eventtype": "WF",
+        "eventid": 10009,
+        "alertlevel": "Green",
+        "country": "Australia",
+        "name": "Controlled Hazard Reduction Burn - Canberra ACT",
+        "fromdate": "2026-10-22T06:00:00",
+        "todate": "2026-10-27T18:00:00",
+        "affectedcountries": [{ "iso3": "AUS", "countryname": "Australia" }]
+      }
+    },
+    {
+      "geometry": { "coordinates": [77.20, 28.61] },
+      "properties": {
+        "eventtype": "FL",
+        "eventid": 10010,
+        "alertlevel": "Orange",
+        "country": "India",
+        "name": "Monsoon Urban Inundation - Yamuna Basin New Delhi",
+        "fromdate": "2026-10-24T11:00:00",
+        "todate": "2026-10-28T20:00:00",
+        "affectedcountries": [{ "iso3": "IND", "countryname": "India" }]
+      }
+    },
+    {
+      "geometry": { "coordinates": [15.08, 37.75] },
+      "properties": {
+        "eventtype": "VO",
+        "eventid": 10011,
+        "alertlevel": "Orange",
+        "country": "Italy",
+        "name": "Mount Etna Crater Activity - Catania Sicily",
+        "fromdate": "2026-10-23T19:00:00",
+        "todate": "2026-10-29T12:00:00",
+        "affectedcountries": [{ "iso3": "ITA", "countryname": "Italy" }]
+      }
+    },
+    {
+      "geometry": { "coordinates": [-47.92, -15.78] },
+      "properties": {
+        "eventtype": "DR",
+        "eventid": 10012,
+        "alertlevel": "Green",
+        "country": "Brazil",
+        "name": "Regional Low Humidity & Mild Drought - Brasilia",
+        "fromdate": "2026-10-18T00:00:00",
+        "todate": "2026-10-31T23:59:59",
+        "affectedcountries": [{ "iso3": "BRA", "countryname": "Brazil" }]
+      }
+    },
+    {
+      "geometry": { "coordinates": [103.76, 1.49] },
+      "properties": {
+        "eventtype": "FL",
+        "eventid": 10013,
+        "alertlevel": "Red",
+        "country": "Malaysia",
+        "name": "Severe Flash Flooding & Causeway Delays - Johor Bahru",
+        "fromdate": "2026-10-25T04:00:00",
+        "todate": "2026-10-30T12:00:00",
+        "affectedcountries": [{ "iso3": "MYS", "countryname": "Malaysia" }]
+      }
+    },
+    {
+      "geometry": { "coordinates": [101.68, 3.13] },
+      "properties": {
+        "eventtype": "FL",
+        "eventid": 10014,
+        "alertlevel": "Orange",
+        "country": "Malaysia",
+        "name": "Klang River High Water Level Advisory - Kuala Lumpur",
+        "fromdate": "2026-10-24T09:00:00",
+        "todate": "2026-10-28T22:00:00",
+        "affectedcountries": [{ "iso3": "MYS", "countryname": "Malaysia" }]
+      }
+    },
+    {
+      "geometry": { "coordinates": [100.32, 5.41] },
+      "properties": {
+        "eventtype": "EQ",
+        "eventid": 10015,
+        "alertlevel": "Green",
+        "country": "Malaysia",
+        "name": "Minor Tremor Advisory - George Town Penang",
+        "fromdate": "2026-10-23T15:00:00",
+        "todate": "2026-10-26T23:59:59",
+        "affectedcountries": [{ "iso3": "MYS", "countryname": "Malaysia" }]
+      }
+    },
+    {
+      "geometry": { "coordinates": [135.50, 34.69] },
+      "properties": {
+        "eventtype": "FL",
+        "eventid": 10016,
+        "alertlevel": "Orange",
+        "country": "Japan",
+        "name": "Yodo River Inundation Warning - Osaka",
+        "fromdate": "2026-10-24T12:00:00",
+        "todate": "2026-10-28T16:00:00",
+        "affectedcountries": [{ "iso3": "JPN", "countryname": "Japan" }]
+      }
+    },
+    {
+      "geometry": { "coordinates": [141.35, 43.06] },
+      "properties": {
+        "eventtype": "EQ",
+        "eventid": 10017,
+        "alertlevel": "Green",
+        "country": "Japan",
+        "name": "Minor Seismic Jolt - Sapporo Hokkaido",
+        "fromdate": "2026-10-25T01:00:00",
+        "todate": "2026-10-27T10:00:00",
+        "affectedcountries": [{ "iso3": "JPN", "countryname": "Japan" }]
+      }
+    },
+    {
+      "geometry": { "coordinates": [126.97, 37.56] },
+      "properties": {
+        "eventtype": "FL",
+        "eventid": 10018,
+        "alertlevel": "Orange",
+        "country": "South Korea",
+        "name": "Han River Embankment Advisory - Seoul",
+        "fromdate": "2026-10-24T06:00:00",
+        "todate": "2026-10-29T14:00:00",
+        "affectedcountries": [{ "iso3": "KOR", "countryname": "South Korea" }]
+      }
+    },
+    {
+      "geometry": { "coordinates": [129.07, 35.17] },
+      "properties": {
+        "eventtype": "TC",
+        "eventid": 10019,
+        "alertlevel": "Red",
+        "country": "South Korea",
+        "name": "Typhoon Goring Coastal Surge - Busan",
+        "fromdate": "2026-10-23T18:00:00",
+        "todate": "2026-10-28T12:00:00",
+        "affectedcountries": [{ "iso3": "KOR", "countryname": "South Korea" }]
+      }
+    },
+    {
+      "geometry": { "coordinates": [128.60, 35.87] },
+      "properties": {
+        "eventtype": "DR",
+        "eventid": 10020,
+        "alertlevel": "Green",
+        "country": "South Korea",
+        "name": "Mild Agricultural Drought Advisory - Daegu",
+        "fromdate": "2026-10-20T00:00:00",
+        "todate": "2026-11-02T23:59:59",
+        "affectedcountries": [{ "iso3": "KOR", "countryname": "South Korea" }]
+      }
+    },
+    {
+      "geometry": { "coordinates": [121.56, 25.03] },
+      "properties": {
+        "eventtype": "EQ",
+        "eventid": 10021,
+        "alertlevel": "Orange",
+        "country": "Taiwan",
+        "name": "M 5.8 Inland Earthquake - Taipei Basin",
+        "fromdate": "2026-10-24T22:30:00",
+        "todate": "2026-10-28T08:00:00",
+        "affectedcountries": [{ "iso3": "TWN", "countryname": "Taiwan" }]
+      }
+    },
+    {
+      "geometry": { "coordinates": [121.60, 23.98] },
+      "properties": {
+        "eventtype": "EQ",
+        "eventid": 10022,
+        "alertlevel": "Red",
+        "country": "Taiwan",
+        "name": "M 6.8 Coastal Seismic Rupture - Hualien",
+        "fromdate": "2026-10-25T05:00:00",
+        "todate": "2026-10-31T20:00:00",
+        "affectedcountries": [{ "iso3": "TWN", "countryname": "Taiwan" }]
+      }
+    },
+    {
+      "geometry": { "coordinates": [120.30, 22.62] },
+      "properties": {
+        "eventtype": "FL",
+        "eventid": 10023,
+        "alertlevel": "Green",
+        "country": "Taiwan",
+        "name": "Localized Urban Drainage Backflow - Kaohsiung",
+        "fromdate": "2026-10-23T14:00:00",
+        "todate": "2026-10-26T20:00:00",
+        "affectedcountries": [{ "iso3": "TWN", "countryname": "Taiwan" }]
+      }
+    },
+    {
+      "geometry": { "coordinates": [98.98, 18.78] },
+      "properties": {
+        "eventtype": "WF",
+        "eventid": 10024,
+        "alertlevel": "Orange",
+        "country": "Thailand",
+        "name": "Agricultural Scrub Fire Alert - Chiang Mai",
+        "fromdate": "2026-10-22T10:00:00",
+        "todate": "2026-10-28T18:00:00",
+        "affectedcountries": [{ "iso3": "THA", "countryname": "Thailand" }]
+      }
+    },
+    {
+      "geometry": { "coordinates": [105.83, 21.02] },
+      "properties": {
+        "eventtype": "FL",
+        "eventid": 10025,
+        "alertlevel": "Red",
+        "country": "Vietnam",
+        "name": "Red River Basin Flooding - Hanoi",
+        "fromdate": "2026-10-24T02:00:00",
+        "todate": "2026-10-30T12:00:00",
+        "affectedcountries": [{ "iso3": "VNM", "countryname": "Vietnam" }]
+      }
+    },
+    {
+      "geometry": { "coordinates": [106.62, 10.82] },
+      "properties": {
+        "eventtype": "FL",
+        "eventid": 10026,
+        "alertlevel": "Orange",
+        "country": "Vietnam",
+        "name": "Tidal High Water Inundation - Ho Chi Minh City",
+        "fromdate": "2026-10-25T16:00:00",
+        "todate": "2026-10-29T21:00:00",
+        "affectedcountries": [{ "iso3": "VNM", "countryname": "Vietnam" }]
+      }
+    },
+    {
+      "geometry": { "coordinates": [108.20, 16.05] },
+      "properties": {
+        "eventtype": "TC",
+        "eventid": 10027,
+        "alertlevel": "Green",
+        "country": "Vietnam",
+        "name": "Tropical Depression Advisory - Da Nang",
+        "fromdate": "2026-10-23T08:00:00",
+        "todate": "2026-10-27T00:00:00",
+        "affectedcountries": [{ "iso3": "VNM", "countryname": "Vietnam" }]
+      }
+    },
+    {
+      "geometry": { "coordinates": [106.84, -6.20] },
+      "properties": {
+        "eventtype": "FL",
+        "eventid": 10028,
+        "alertlevel": "Red",
+        "country": "Indonesia",
+        "name": "Ciliwung River Overflow - Jakarta",
+        "fromdate": "2026-10-24T03:00:00",
+        "todate": "2026-10-29T18:00:00",
+        "affectedcountries": [{ "iso3": "IDN", "countryname": "Indonesia" }]
+      }
+    },
+    {
+      "geometry": { "coordinates": [110.36, -7.79] },
+      "properties": {
+        "eventtype": "VO",
+        "eventid": 10029,
+        "alertlevel": "Orange",
+        "country": "Indonesia",
+        "name": "Mount Merapi Volcanic Warning - Yogyakarta",
+        "fromdate": "2026-10-23T11:00:00",
+        "todate": "2026-10-31T23:59:59",
+        "affectedcountries": [{ "iso3": "IDN", "countryname": "Indonesia" }]
+      }
+    },
+    {
+      "geometry": { "coordinates": [107.61, -6.91] },
+      "properties": {
+        "eventtype": "FL",
+        "eventid": 10030,
+        "alertlevel": "Green",
+        "country": "Indonesia",
+        "name": "Seasonal Hillside Runoff - Bandung",
+        "fromdate": "2026-10-24T15:00:00",
+        "todate": "2026-10-27T20:00:00",
+        "affectedcountries": [{ "iso3": "IDN", "countryname": "Indonesia" }]
+      }
+    },
+    {
+      "geometry": { "coordinates": [120.98, 14.59] },
+      "properties": {
+        "eventtype": "TC",
+        "eventid": 10031,
+        "alertlevel": "Red",
+        "country": "Philippines",
+        "name": "Typhoon Trami Severe Gale - Manila",
+        "fromdate": "2026-10-23T01:00:00",
+        "todate": "2026-10-28T18:00:00",
+        "affectedcountries": [{ "iso3": "PHL", "countryname": "Philippines" }]
+      }
+    },
+    {
+      "geometry": { "coordinates": [123.88, 10.31] },
+      "properties": {
+        "eventtype": "FL",
+        "eventid": 10032,
+        "alertlevel": "Orange",
+        "country": "Philippines",
+        "name": "Downtown Drainage Overflow - Cebu City",
+        "fromdate": "2026-10-24T10:00:00",
+        "todate": "2026-10-28T15:00:00",
+        "affectedcountries": [{ "iso3": "PHL", "countryname": "Philippines" }]
+      }
+    },
+    {
+      "geometry": { "coordinates": [125.60, 7.07] },
+      "properties": {
+        "eventtype": "EQ",
+        "eventid": 10033,
+        "alertlevel": "Green",
+        "country": "Philippines",
+        "name": "Minor Deep Intraplate Tremor - Davao City",
+        "fromdate": "2026-10-22T04:00:00",
+        "todate": "2026-10-26T22:00:00",
+        "affectedcountries": [{ "iso3": "PHL", "countryname": "Philippines" }]
+      }
+    },
+    {
+      "geometry": { "coordinates": [72.87, 19.07] },
+      "properties": {
+        "eventtype": "FL",
+        "eventid": 10034,
+        "alertlevel": "Red",
+        "country": "India",
+        "name": "Severe Coastal Inundation & Rail Disruption - Mumbai",
+        "fromdate": "2026-10-24T05:00:00",
+        "todate": "2026-10-30T12:00:00",
+        "affectedcountries": [{ "iso3": "IND", "countryname": "India" }]
+      }
+    },
+    {
+      "geometry": { "coordinates": [77.59, 12.97] },
+      "properties": {
+        "eventtype": "FL",
+        "eventid": 10035,
+        "alertlevel": "Orange",
+        "country": "India",
+        "name": "Heavy Lake Spillover Flood - Bangalore",
+        "fromdate": "2026-10-23T16:00:00",
+        "todate": "2026-10-28T18:00:00",
+        "affectedcountries": [{ "iso3": "IND", "countryname": "India" }]
+      }
+    },
+    {
+      "geometry": { "coordinates": [88.36, 22.57] },
+      "properties": {
+        "eventtype": "TC",
+        "eventid": 10036,
+        "alertlevel": "Green",
+        "country": "India",
+        "name": "Bay of Bengal Squall Watch - Kolkata",
+        "fromdate": "2026-10-24T09:00:00",
+        "todate": "2026-10-27T18:00:00",
+        "affectedcountries": [{ "iso3": "IND", "countryname": "India" }]
+      }
+    },
+    {
+      "geometry": { "coordinates": [-122.41, 37.77] },
+      "properties": {
+        "eventtype": "EQ",
+        "eventid": 10037,
+        "alertlevel": "Orange",
+        "country": "United States",
+        "name": "M 5.9 Fault Slip Warning - San Francisco Bay",
+        "fromdate": "2026-10-25T01:30:00",
+        "todate": "2026-10-29T10:00:00",
+        "affectedcountries": [{ "iso3": "USA", "countryname": "United States" }]
+      }
+    },
+    {
+      "geometry": { "coordinates": [-95.36, 29.76] },
+      "properties": {
+        "eventtype": "FL",
+        "eventid": 10038,
+        "alertlevel": "Red",
+        "country": "United States",
+        "name": "Buffalo Bayou Severe Urban Surge - Houston",
+        "fromdate": "2026-10-23T14:00:00",
+        "todate": "2026-10-30T18:00:00",
+        "affectedcountries": [{ "iso3": "USA", "countryname": "United States" }]
+      }
+    },
+    {
+      "geometry": { "coordinates": [-104.99, 39.73] },
+      "properties": {
+        "eventtype": "WF",
+        "eventid": 10039,
+        "alertlevel": "Green",
+        "country": "United States",
+        "name": "Foothill Grass Fire Advisory - Denver",
+        "fromdate": "2026-10-22T08:00:00",
+        "todate": "2026-10-27T18:00:00",
+        "affectedcountries": [{ "iso3": "USA", "countryname": "United States" }]
+      }
+    },
+    {
+      "geometry": { "coordinates": [-79.38, 43.65] },
+      "properties": {
+        "eventtype": "FL",
+        "eventid": 10040,
+        "alertlevel": "Green",
+        "country": "Canada",
+        "name": "Don Valley River Swell - Toronto",
+        "fromdate": "2026-10-24T07:00:00",
+        "todate": "2026-10-28T12:00:00",
+        "affectedcountries": [{ "iso3": "CAN", "countryname": "Canada" }]
+      }
+    },
+    {
+      "geometry": { "coordinates": [-114.07, 51.04] },
+      "properties": {
+        "eventtype": "WF",
+        "eventid": 10041,
+        "alertlevel": "Orange",
+        "country": "Canada",
+        "name": "Wildfire Smoke & Haze Advisory - Calgary",
+        "fromdate": "2026-10-23T11:00:00",
+        "todate": "2026-10-29T20:00:00",
+        "affectedcountries": [{ "iso3": "CAN", "countryname": "Canada" }]
+      }
+    },
+    {
+      "geometry": { "coordinates": [12.49, 41.90] },
+      "properties": {
+        "eventtype": "FL",
+        "eventid": 10042,
+        "alertlevel": "Green",
+        "country": "Italy",
+        "name": "Tiber Embankment Water Rise - Rome",
+        "fromdate": "2026-10-24T05:00:00",
+        "todate": "2026-10-27T18:00:00",
+        "affectedcountries": [{ "iso3": "ITA", "countryname": "Italy" }]
+      }
+    },
+    {
+      "geometry": { "coordinates": [2.35, 48.85] },
+      "properties": {
+        "eventtype": "FL",
+        "eventid": 10043,
+        "alertlevel": "Orange",
+        "country": "France",
+        "name": "Seine River Basin Flood Warning - Paris",
+        "fromdate": "2026-10-24T08:00:00",
+        "todate": "2026-10-30T16:00:00",
+        "affectedcountries": [{ "iso3": "FRA", "countryname": "France" }]
+      }
+    },
+    {
+      "geometry": { "coordinates": [5.36, 43.29] },
+      "properties": {
+        "eventtype": "WF",
+        "eventid": 10044,
+        "alertlevel": "Red",
+        "country": "France",
+        "name": "Mistral Wind Scrub Fire Complex - Marseille",
+        "fromdate": "2026-10-23T13:00:00",
+        "todate": "2026-10-29T23:59:59",
+        "affectedcountries": [{ "iso3": "FRA", "countryname": "France" }]
+      }
+    },
+    {
+      "geometry": { "coordinates": [-3.70, 40.41] },
+      "properties": {
+        "eventtype": "DR",
+        "eventid": 10045,
+        "alertlevel": "Green",
+        "country": "Spain",
+        "name": "Meseta Central Drought Watch - Madrid",
+        "fromdate": "2026-10-18T00:00:00",
+        "todate": "2026-11-05T23:59:59",
+        "affectedcountries": [{ "iso3": "ESP", "countryname": "Spain" }]
+      }
+    },
+    {
+      "geometry": { "coordinates": [-0.37, 39.46] },
+      "properties": {
+        "eventtype": "FL",
+        "eventid": 10046,
+        "alertlevel": "Red",
+        "country": "Spain",
+        "name": "Flash Flood Inundation - Valencia",
+        "fromdate": "2026-10-25T02:00:00",
+        "todate": "2026-10-31T12:00:00",
+        "affectedcountries": [{ "iso3": "ESP", "countryname": "Spain" }]
+      }
+    },
+    {
+      "geometry": { "coordinates": [28.97, 41.00] },
+      "properties": {
+        "eventtype": "EQ",
+        "eventid": 10047,
+        "alertlevel": "Orange",
+        "country": "Turkey",
+        "name": "North Anatolian Fault Tremor - Istanbul",
+        "fromdate": "2026-10-24T18:00:00",
+        "todate": "2026-10-28T12:00:00",
+        "affectedcountries": [{ "iso3": "TUR", "countryname": "Turkey" }]
+      }
+    },
+    {
+      "geometry": { "coordinates": [32.85, 39.93] },
+      "properties": {
+        "eventtype": "DR",
+        "eventid": 10048,
+        "alertlevel": "Green",
+        "country": "Turkey",
+        "name": "Central Anatolia Water Conservation Advisory - Ankara",
+        "fromdate": "2026-10-19T00:00:00",
+        "todate": "2026-11-03T23:59:59",
+        "affectedcountries": [{ "iso3": "TUR", "countryname": "Turkey" }]
+      }
+    },
+    {
+      "geometry": { "coordinates": [151.20, -33.86] },
+      "properties": {
+        "eventtype": "FL",
+        "eventid": 10049,
+        "alertlevel": "Orange",
+        "country": "Australia",
+        "name": "Hawkesbury River Surge Warning - Sydney",
+        "fromdate": "2026-10-24T10:00:00",
+        "todate": "2026-10-29T18:00:00",
+        "affectedcountries": [{ "iso3": "AUS", "countryname": "Australia" }]
+      }
+    },
+    {
+      "geometry": { "coordinates": [144.96, -37.81] },
+      "properties": {
+        "eventtype": "WF",
+        "eventid": 10050,
+        "alertlevel": "Red",
+        "country": "Australia",
+        "name": "Dandenong Ranges Severe Bushfire Threat - Melbourne",
+        "fromdate": "2026-10-23T14:00:00",
+        "todate": "2026-10-30T22:00:00",
+        "affectedcountries": [{ "iso3": "AUS", "countryname": "Australia" }]
       }
     }
   ]

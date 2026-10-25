@@ -13,9 +13,9 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
-import com.TravelBuddy.model.Disaster.DisasterEvents;
 import com.TravelBuddy.model.RiskAssessmentResponse;
 import com.TravelBuddy.model.User;
+import com.TravelBuddy.model.Disaster.DisasterEvents;
 import com.TravelBuddy.model.ProximitySummary;
 import com.TravelBuddy.service.GdacsService;
 import com.TravelBuddy.service.GeminiRiskAssessmentService;
@@ -80,15 +80,8 @@ public class DashboardController {
             @RequestParam(required = false) String requestId,
             @AuthenticationPrincipal User currentUser) {
 
-        List<DisasterEvents> activeDisasters = gdacsService.getActiveDisasters();
-
-        ProximitySummary proximity = null;
-        if (userLat != null && userLong != null) {
-            proximity = gdacsService.calculateProximitySummary(userLat, userLong);
-        }
-
         RiskAssessmentResponse assessment = geminiRiskAssessmentService.evaluateRiskAndEscapeRoutes(
-                userLat, userLong, currentUser, proximity, activeDisasters, requestId);
+                userLat, userLong, currentUser, requestId);
 
         return ResponseEntity.ok(assessment);
     }
@@ -104,8 +97,7 @@ public class DashboardController {
             @RequestParam(required = false) String requestId,
             @AuthenticationPrincipal User currentUser) {
 
-        String username = (currentUser != null && currentUser.getUsername() != null) ? currentUser.getUsername() : null;
-        geminiRiskAssessmentService.cancelAssessment(requestId, username);
+        geminiRiskAssessmentService.cancelAssessment(requestId);
 
         Map<String, Object> response = new HashMap<>();
         response.put("status", "cancelled");
