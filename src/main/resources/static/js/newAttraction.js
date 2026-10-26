@@ -1,55 +1,112 @@
-document.getElementById("attractionForm").addEventListener("submit", async function (event) {
-    event.preventDefault();
-
-    const form = event.currentTarget;
+document.addEventListener("DOMContentLoaded", function () {
+    const form = document.getElementById("attractionForm");
     const nameInput = document.getElementById("attractionName");
+    const latInput = document.getElementById("attractionLatitude");
+    const lonInput = document.getElementById("attractionLongitude");
     const visitDateInput = document.getElementById("visitDate");
     const errorAlert = document.getElementById("attractionError");
     const saveButton = document.getElementById("saveAttractionBtn");
-    const itineraryId = form.dataset.itineraryId;
-    const attractionName = nameInput.value.trim();
-    const visitDate = visitDateInput.value;
 
-    errorAlert.classList.add("d-none");
-    nameInput.classList.toggle("is-invalid", attractionName.length === 0);
-    visitDateInput.classList.toggle("is-invalid", visitDate.length === 0);
-    if (!attractionName || !visitDate) {
-        return;
+    // Display an error under a specific field
+    function showFieldError(input, errorId, message) {
+        input.classList.add("is-invalid");
+        document.getElementById(errorId).textContent = message;
     }
 
-    saveButton.disabled = true;
+    // Clear all previous validation errors
+    function clearValidationErrors() {
+        errorAlert.classList.add("d-none");
+        errorAlert.textContent = "";
 
-    try {
-        const response = await fetch(`/api/itinerary/${encodeURIComponent(itineraryId)}/attractions/`, {
-            method: "POST",
-            headers: {
-                "Content-Type": "application/json"
-            },
-            credentials: "same-origin",
-            body: JSON.stringify({ attractionName, visitDate })
-        });
+        // Uses the shared utility function from detailedItinerary.js
+        clearFormValidation(form);
+        
+        document.getElementById("attractionNameError").textContent = "";
+        document.getElementById("visitDateError").textContent = "";
+    }
 
-        if (!response.ok) {
-            const responseBody = await response.text();
-            let errorMessage = responseBody || `Request failed (${response.status}).`;
+    // Handle Form Submission to save the new attraction
+    form.addEventListener("submit", async function (event) {
+        event.preventDefault();
 
-            if (responseBody) {
-                try {
-                    const errorData = JSON.parse(responseBody);
-                    errorMessage = errorData.message || errorData.detail || responseBody;
-                } catch {
-                    errorMessage = responseBody;
-                }
-            }
+        clearValidationErrors();
 
-            throw new Error(errorMessage);
+        const itineraryId = form.dataset.itineraryId;
+        const attractionName = nameInput.value.trim();
+        const visitDate = visitDateInput.value;
+        const latitude = latInput ? latInput.value : "";
+        const longitude = lonInput ? lonInput.value : "";
+
+        let isValid = true;
+
+        // Validation Check: Name and Coordinates
+        if (!attractionName) {
+            showFieldError(nameInput, "attractionNameError", "Attraction name cannot be empty.");
+            isValid = false;
+        } else if (!latitude || !longitude) {
+            showFieldError(nameInput, "attractionNameError", "Please select a valid location from the search results.");
+            isValid = false;
         }
 
-        window.location.href = `/itinerary/view/${encodeURIComponent(itineraryId)}`;
-    } catch (error) {
-        console.error("Unable to create attraction:", error);
-        errorAlert.textContent = error.message || "Unable to create the attraction. Please try again.";
-        errorAlert.classList.remove("d-none");
-        saveButton.disabled = false;
-    }
+        // Validation Check: Date constraints
+        if (!visitDate) {
+            showFieldError(visitDateInput, "visitDateError", "Visit date and time is required.");
+            isValid = false;
+        } else if (!DateTimeValidation.isNowOrLater(visitDate)) {
+            showFieldError(visitDateInput, "visitDateError", "Visit date and time must be now or later.");
+            isValid = false;
+        }
+
+        if (!isValid) {
+            return;
+        }
+
+        // Disable the save button to prevent double-clicking and duplicate submissions
+        saveButton.disabled = true;
+
+        try {
+            // Send the POST request to the backend API to create the attraction
+            const response = await fetch(`/api/itinerary/${encodeURIComponent(itineraryId)}/attractions/`, {
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/json"
+                },
+                credentials: "same-origin",
+                body: JSON.stringify({
+                    attractionName,
+                    visitDate,
+                    latitude: Number(latitude),
+                    longitude: Number(longitude)
+                })
+            });
+
+            // If the server returns a 4xx or 5xx status code
+            if (!response.ok) {
+                const responseBody = await response.text();
+                throw new Error(getApiErrorMessage(responseBody, response.status));
+            }
+
+            // Redirect back to the detailed itinerary view upon success
+            window.location.href = `/itinerary/view/${encodeURIComponent(itineraryId)}`;
+        } catch (error) {
+            console.error("Unable to create attraction:", error);
+            // Display the specific error message to the user
+            errorAlert.textContent = error.message || "Unable to create the attraction. Please try again.";
+            errorAlert.classList.remove("d-none");
+
+            // Re-enable the button so they can fix the error and try again
+            saveButton.disabled = false;
+        }
+    });
+
+    // Clear specific field errors when the user begins typing or changing an input again
+    [nameInput, visitDateInput].forEach(input => {
+        input.addEventListener("input", () => {
+            input.classList.remove("is-invalid");
+            const errorElement = document.getElementById(input.id + "Error");
+            if (errorElement) {
+                errorElement.textContent = "";
+            }
+        });
+    });
 });

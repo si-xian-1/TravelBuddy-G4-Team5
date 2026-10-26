@@ -45,14 +45,66 @@
                     <!-- Page Heading -->
                     <div class="d-sm-flex align-items-center justify-content-between mb-4">
                         <h1 class="h3 mb-0 text-gray-800">Add Hotel</h1>
-                        <a class="btn btn-secondary shadow-sm"
-                            th:href="@{/itinerary/view/{id}(id=${itineraryId})}">
+                        <a class="btn btn-secondary shadow-sm" th:href="@{/itinerary/view/{id}(id=${itineraryId})}">
                             <i class="fas fa-arrow-left fa-sm mr-2"></i> Back to Itinerary
                         </a>
                     </div>
+
+                    <!-- Hotel Details Form -->
+                    <div class="card shadow mb-4">
+                        <div class="card-header py-3">
+                            <h6 class="m-0 font-weight-bold text-primary">Hotel Details</h6>
+                        </div>
+                        <div class="card-body">
+                            <div id="hotelError" class="alert alert-danger d-none" role="alert"></div>
+
+                            <form id="hotelForm" th:data-itinerary-id="${itineraryId}" novalidate>
+                                <!-- Hotel Search -->
+                                <div class="form-group mb-3 position-relative location-autocomplete-wrapper">
+                                    <label for="hotelName" class="font-weight-bold">Hotel Name</label>
+
+                                    <!-- data-search-type="hotel" to indicate it is a hotel search -->
+                                    <input type="text" class="form-control location-autocomplete-input" id="hotelName"
+                                        name="hotelName" placeholder="Search for a hotel..." maxlength="255"
+                                        autocomplete="off" data-search-type="hotel" required>
+                                    <div class="invalid-feedback" id="hotelNameError"></div>
+
+                                    <!-- location result -->
+                                    <ul class="list-group position-absolute w-100 d-none location-autocomplete-dropdown"></ul>
+
+                                    <!-- Hidden coordinate -->
+                                    <input type="hidden" id="hotelLatitude" class="location-autocomplete-lat">
+                                    <input type="hidden" id="hotelLongitude" class="location-autocomplete-lon">
+                                </div>
+
+                                <!-- Check-in -->
+                                <div class="form-group mb-3">
+                                    <label for="checkIn" class="font-weight-bold">Check-in Date and Time</label>
+                                    <input type="datetime-local" class="form-control" id="checkIn" name="checkIn"
+                                        data-min-datetime="now" required>
+                                    <div class="invalid-feedback" id="checkInError"></div>
+                                </div>
+
+                                <!-- Check-out -->
+                                <div class="form-group mb-4">
+                                    <label for="checkOut" class="font-weight-bold">Check-out Date and Time</label>
+                                    <input type="datetime-local" class="form-control" id="checkOut" name="checkOut"
+                                        data-min-datetime="now" required>
+                                    <div class="invalid-feedback" id="checkOutError"></div>
+                                </div>
+
+                                <!-- Submit -->
+                                <button type="submit" class="btn btn-primary" id="saveHotelBtn">
+                                    Add Hotel
+                                </button>
+                            </form>
+                        </div>
+                    </div>
+
                 </div>
             </div>
         </div>
+
     </div>
 
     <!-- Bootstrap core JavaScript-->
@@ -62,7 +114,13 @@
     <!-- Core plugin JavaScript-->
     <script th:src="@{vendor/jquery-easing/jquery.easing.min.js}"></script>
 
-    <!-- Custom scripts for all pages-->
+    <!-- Shared Utilities for date validation and location search -->
+    <script th:src="@{/js/dateTimeValidation.js}"></script>
+    <script th:src="@{/js/detailedItinerary.js}"></script>
+
+    <script th:src="@{/js/newHotel.js}"></script>
+
+    <!-- Custom scripts for all pages -->
     <script th:src="@{/js/sb-admin-2.min.js}"></script>
 </body>
 

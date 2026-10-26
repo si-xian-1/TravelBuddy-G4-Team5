@@ -16,9 +16,9 @@ public class LocationController {
         this.locationService = locationService;
     }
 
-    // Listens on: GET /api/location/search?query=Paris
+    // Listens on: GET /api/location/search?query=Paris&isHotel=true
     @GetMapping("/search")
-    public List<LocationResponse> searchLocations(@RequestParam String query) {
-        return locationService.searchLocations(query);
+    public List<LocationResponse> searchLocations(@RequestParam String query, @RequestParam(defaultValue = "false") boolean isHotel) {
+        return locationService.searchLocations(query, isHotel);
     }
 }

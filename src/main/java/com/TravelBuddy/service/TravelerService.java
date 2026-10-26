@@ -78,9 +78,12 @@ public class TravelerService {
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Invalid password");
         }
 
-        // Executes when user update their password
-        if (user.getPassword() != null && !user.getPassword().isBlank()) {
-            user.setPassword(passwordEncoder.encode(user.getPassword()));
+        // Preserve the existing password when no replacement is provided.
+        String password = user.getPassword();
+        if (password == null || password.isBlank()) {
+            user.setPassword(null);
+        } else {
+            user.setPassword(passwordEncoder.encode(password));
         }
 
         try {

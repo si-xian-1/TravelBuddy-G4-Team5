@@ -30,8 +30,7 @@
                 <div class="container-fluid">
                     <div class="d-sm-flex align-items-center justify-content-between mb-4">
                         <h1 class="h3 mb-0 text-gray-800">Add Attraction</h1>
-                        <a class="btn btn-secondary shadow-sm"
-                            th:href="@{/itinerary/view/{id}(id=${itineraryId})}">
+                        <a class="btn btn-secondary shadow-sm" th:href="@{/itinerary/view/{id}(id=${itineraryId})}">
                             <i class="fas fa-arrow-left fa-sm mr-2"></i> Back to Itinerary
                         </a>
                     </div>
@@ -43,23 +42,27 @@
                         <div class="card-body">
                             <div id="attractionError" class="alert alert-danger d-none" role="alert"></div>
 
-                            <form id="attractionForm" th:data-itinerary-id="${itineraryId}">
-                                <div class="form-group">
-                                    <label for="attractionName">Attraction name or location</label>
-                                    <input type="text" class="form-control" id="attractionName"
-                                        name="attractionName" maxlength="255" required>
-                                    <div class="invalid-feedback" id="attractionNameError">
-                                        Enter an attraction name or location.
-                                    </div>
+                            <form id="attractionForm" th:data-itinerary-id="${itineraryId}" novalidate>
+
+                                <!-- Reusable Autocomplete Wrapper -->
+                                <div class="form-group mb-3 position-relative location-autocomplete-wrapper">
+                                    <label for="attractionName" class="font-weight-bold">Attraction name</label>
+
+                                    <input type="text" class="form-control location-autocomplete-input"
+                                        id="attractionName" name="attractionName" autocomplete="off" maxlength="255">
+                                    <div class="invalid-feedback" id="attractionNameError"></div>
+
+                                    <ul class="list-group position-absolute w-100 d-none location-autocomplete-dropdown"></ul>
+
+                                    <input type="hidden" id="attractionLatitude" class="location-autocomplete-lat">
+                                    <input type="hidden" id="attractionLongitude" class="location-autocomplete-lon">
                                 </div>
 
-                                <div class="form-group">
-                                    <label for="visitDate">Visit date and time</label>
-                                    <input type="datetime-local" class="form-control" id="visitDate"
-                                        name="visitDate" required>
-                                    <div class="invalid-feedback" id="visitDateError">
-                                        Choose a visit date and time.
-                                    </div>
+                                <div class="form-group mb-4">
+                                    <label for="visitDate" class="font-weight-bold">Visit date and time</label>
+                                    <input type="datetime-local" class="form-control" id="visitDate" name="visitDate"
+                                        data-min-datetime="now">
+                                    <div class="invalid-feedback" id="visitDateError"></div>
                                 </div>
 
                                 <button type="submit" class="btn btn-primary" id="saveAttractionBtn">
@@ -76,7 +79,13 @@
     <script th:src="@{/vendor/jquery/jquery.min.js}"></script>
     <script th:src="@{/vendor/bootstrap/js/bootstrap.bundle.min.js}"></script>
     <script th:src="@{vendor/jquery-easing/jquery.easing.min.js}"></script>
+
+    <!-- Shared Utilities for date validation and location search -->
+    <script th:src="@{/js/dateTimeValidation.js}"></script>
+    <script th:src="@{/js/detailedItinerary.js}"></script>
+    
     <script th:src="@{/js/newAttraction.js}"></script>
+
     <script th:src="@{/js/sb-admin-2.min.js}"></script>
 </body>
 

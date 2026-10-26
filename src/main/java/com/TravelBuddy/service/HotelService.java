@@ -6,20 +6,17 @@ import org.springframework.stereotype.Service;
 
 import com.TravelBuddy.exception.InvalidInputsException;
 import com.TravelBuddy.model.Hotel;
-import com.TravelBuddy.model.LocationResponse;
 import com.TravelBuddy.repository.HotelRepository;
 
 @Service 
 public class HotelService {
     private final HotelRepository hotelRepository;
     private final ItineraryService itineraryService;
-    private final LocationService locationService;
     private final GdacsService gdacsService;
 
-    public HotelService(HotelRepository hotelRepository, ItineraryService itineraryService, LocationService locationService, GdacsService gdacsService) {
+    public HotelService(HotelRepository hotelRepository, ItineraryService itineraryService, GdacsService gdacsService) {
         this.hotelRepository = hotelRepository;
         this.itineraryService = itineraryService;
-        this.locationService = locationService;
         this.gdacsService = gdacsService;
     }
     
@@ -28,7 +25,7 @@ public class HotelService {
      * @param itineraryId
      * @param userId
      * @param hotel
-     * @return Validation messages or the newly created hotel if successful
+     * @return Hotel details created
      */
     public Hotel createHotel(int itineraryId, int userId, Hotel hotel) {
         // Check that user has the permission to add hotel for this selected itinerary
@@ -38,29 +35,22 @@ public class HotelService {
             throw new InvalidInputsException("Check-in time cannot be after check-out time.");
         }
 
-        // Get the coordinates of the hotel
-        LocationResponse location = locationService.getCoordinates(hotel.getHotelName());
-        
-        // When API is unable to find coordinates of the user selected location
-        if (location == null || location.getLat() == null || location.getLon() == null) {
-            throw new InvalidInputsException("Could not find coordinates for location: " + hotel.getHotelName());
+        // Ensure inputted coordinate is valid
+        if (hotel.getLatitude() == 0.0 && hotel.getLongitude() == 0.0) {
+            throw new InvalidInputsException("Valid location coordinates must be provided from the search results.");
         }
         
         hotel.setItineraryId(itineraryId);
-        hotel.setLatitude(Double.parseDouble(location.getLat()));
-        hotel.setLongitude(Double.parseDouble(location.getLon()));
 
         // Execute sql to add new hotel
-        Hotel savedHotel = hotelRepository.createHotel(itineraryId, hotel);
-
-        // If hotel creation is successful
-        return savedHotel;
+        return hotelRepository.createHotel(itineraryId, hotel);
     }
 
     /**
      * Get all hotels belonging to an itinerary of the user
+     * @param itineraryId
      * @param userId
-     * @return all hotels belonging to user
+     * @return List of hotels
      */
     public List<Hotel> getAllHotel(int itineraryId, int userId) {
         itineraryService.checkItineraryBelongToUser(itineraryId, userId);
@@ -85,7 +75,7 @@ public class HotelService {
      * @param itineraryId
      * @param userId
      * @param hotelId
-     * @return selected 
+     * @return Selected hotel details
      */
     public Hotel getSelectedHotel(int itineraryId, int userId, int hotelId) {
         itineraryService.checkItineraryBelongToUser(itineraryId, userId);
@@ -98,7 +88,7 @@ public class HotelService {
      * @param userId
      * @param hotelId
      * @param hotel
-     * @return number of rows updated in hotels
+     * @return rows updated
      */
     public int updateHotel(int itineraryId, int userId, int hotelId, Hotel hotel) {
         itineraryService.checkItineraryBelongToUser(itineraryId, userId);
@@ -107,17 +97,12 @@ public class HotelService {
             throw new InvalidInputsException("Check-in time cannot be after check-out time.");
         }
 
-        // Get the coordinates of the hotel
-        LocationResponse location = locationService.getCoordinates(hotel.getHotelName());
-        
-        // When API is unable to find coordinates of the user selected location
-        if (location == null || location.getLat() == null || location.getLon() == null) {
-            throw new InvalidInputsException("Could not find coordinates for location: " + hotel.getHotelName());
+        // Ensure inputted coordinate is valid
+        if (hotel.getLatitude() == 0.0 && hotel.getLongitude() == 0.0) {
+            throw new InvalidInputsException("Valid location coordinates must be provided from the search results.");
         }
 
         hotel.setItineraryId(itineraryId);
-        hotel.setLatitude(Double.parseDouble(location.getLat()));
-        hotel.setLongitude(Double.parseDouble(location.getLon()));
         
         return hotelRepository.updateHotel(itineraryId, hotelId, hotel);
     }
@@ -127,7 +112,7 @@ public class HotelService {
      * @param itineraryId
      * @param userId
      * @param hotelId
-     * @return number of rows updated in hotels
+     * @return 0 for unsuccessful delete, else return non-zero for successful delete
      */
     public int deleteHotel(int itineraryId, int userId, int hotelId) {
         itineraryService.checkItineraryBelongToUser(itineraryId, userId);

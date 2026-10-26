@@ -15,6 +15,12 @@ public class LocationResponse {
     @JsonProperty("display_name")
     private String displayName;
 
+    @JsonProperty("class")
+    private String category;
+
+    @JsonProperty("type")
+    private String type;
+
     public LocationResponse() {}
 
     public String getLat() { return lat; }
@@ -25,4 +31,10 @@ public class LocationResponse {
 
     public String getDisplayName() { return displayName; }
     public void setDisplayName(String displayName) { this.displayName = displayName; }
+
+    public String getCategory() { return category; }
+    public void setCategory(String category) { this.category = category; }
+
+    public String getType() { return type; }
+    public void setType(String type) { this.type = type; }
 }
