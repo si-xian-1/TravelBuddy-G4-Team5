@@ -30,11 +30,6 @@ public class FlightService {
     public Flight createFlight(int itineraryId, int userId, Flight flight) {
         // Check that user has the permission to add flight for this selected itinerary
         itineraryService.checkItineraryBelongToUser(itineraryId, userId);
-        
-        // Validation checks
-        if (!flight.getArrivalTime().isAfter(flight.getDepartureTime())) {
-            throw new InvalidInputsException("Arrival time must be after departure time.");
-        }
 
         // Ensure inputted coordinate values are valid
         if (flight.getDepartureLatitude() == 0.0 && flight.getDepartureLongitude() == 0.0) {
@@ -101,10 +96,6 @@ public class FlightService {
     public int updateFlight(int itineraryId, int userId, int flightId, Flight flight) {
         // Verify that the user owns the itinerary.
         itineraryService.checkItineraryBelongToUser(itineraryId, userId);
-
-        if (!flight.getArrivalTime().isAfter(flight.getDepartureTime())) {
-            throw new InvalidInputsException("Arrival time must be after departure time.");
-        }
 
         // Ensure inputted coordinate is valid
         if (flight.getDepartureLatitude() == 0.0 && flight.getDepartureLongitude() == 0.0) {

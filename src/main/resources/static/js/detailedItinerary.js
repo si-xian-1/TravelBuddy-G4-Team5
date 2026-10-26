@@ -188,6 +188,36 @@ document.addEventListener("click", function (event) {
 });
 
 /**
+ * Shared Itinerary Data Cache
+ * Caches the itinerary fetch promise so multiple scripts don't refetch the same data.
+ */
+let itineraryPromise = null;
+let cachedItineraryId = null;
+
+function getItinerary(itineraryId) {
+    if (!itineraryId) {
+        return Promise.reject(new Error("No itinerary ID provided"));
+    }
+    if (itineraryPromise && cachedItineraryId === String(itineraryId)) {
+        return itineraryPromise;
+    }
+    cachedItineraryId = String(itineraryId);
+    itineraryPromise = fetch(`/api/itinerary/${encodeURIComponent(itineraryId)}`, { credentials: "same-origin" })
+        .then(response => {
+            if (!response.ok) {
+                throw new Error(`Failed to load itinerary (${response.status}).`);
+            }
+            return response.json();
+        })
+        .catch(err => {
+            itineraryPromise = null;
+            cachedItineraryId = null;
+            throw err;
+        });
+    return itineraryPromise;
+}
+
+/**
  * Page initialization
  * Fetches and displays the top-level itinerary summary (Name and Overall Dates).
  */
@@ -205,14 +235,7 @@ document.addEventListener("DOMContentLoaded", async function () {
 
     try {
         // Fetch core itinerary details
-        const response = await fetch(`/api/itinerary/${encodeURIComponent(itineraryId)}`,
-                                { credentials: "same-origin" });
-
-        if (!response.ok) {
-            throw new Error(`Failed to load travel details (${response.status}).`);
-        }
-
-        const itinerary = await response.json();
+        const itinerary = await getItinerary(itineraryId);
         document.getElementById("itineraryName").textContent = itinerary.itineraryName || "Unnamed itinerary";
 
         // Format overall trip dates cleanly (excluding time)

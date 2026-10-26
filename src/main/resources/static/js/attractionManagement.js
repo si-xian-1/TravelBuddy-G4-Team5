@@ -17,6 +17,13 @@ document.addEventListener("DOMContentLoaded", async function () {
     const deleteConfirmButton = document.getElementById("confirmDeleteModalBtn");
     let attractionPendingDelete = null;
 
+    let itinerary = null;
+    try {
+        itinerary = await getItinerary(itineraryId);
+    } catch (e) {
+        console.error("Unable to load itinerary for attraction date validation:", e);
+    }
+
     // Fetches all attractions from the API and populates the UI cards
     async function loadAttractions() {
         const loadingMessage = document.getElementById("attractionsLoading");
@@ -68,7 +75,10 @@ document.addEventListener("DOMContentLoaded", async function () {
                 const dateInput = card.querySelector(".edit-attraction-date");
                 dateInput.value = toDateTimeInputValue(attraction.visitDate);
                 
-                DateTimeValidation.setMinimumNow(dateInput);
+                // Limit user to only select within the itinerary date period
+                if (itinerary) {
+                    DateTimeValidation.setItineraryLimits(dateInput, itinerary.startDate, itinerary.endDate);
+                }
 
                 if (attraction.disasterWarning && attraction.disasterWarning.trim() !== "") {
                     disasterAlert.innerHTML = `<i class="fas fa-exclamation-triangle mr-1"></i> ${attraction.disasterWarning}`;
@@ -106,7 +116,10 @@ document.addEventListener("DOMContentLoaded", async function () {
         const dateInput = form.querySelector(".edit-attraction-date");
         dateInput.value = card.dataset.visitDate;
         
-        DateTimeValidation.setMinimumNow(dateInput);
+        // Limit user to only select within the itinerary date period
+        if (itinerary) {
+            DateTimeValidation.setItineraryLimits(dateInput, itinerary.startDate, itinerary.endDate);
+        }
 
         card.querySelector(".attraction-edit-error").classList.add("d-none");
         clearFormValidation(form);
@@ -236,8 +249,8 @@ document.addEventListener("DOMContentLoaded", async function () {
         if (!visitDate) {
             showFormFieldError(form, "edit-attraction-date", "Visit date and time is required.");
             isValid = false;
-        } else if (!DateTimeValidation.isNowOrLater(visitDate)) {
-            showFormFieldError(form, "edit-attraction-date", "Visit date and time must be now or later.");
+        } else if (itinerary && !DateTimeValidation.isWithinItinerary(visitDate, itinerary.startDate, itinerary.endDate)) {
+            showFormFieldError(form, "edit-attraction-date", "Visit date and time must be within the itinerary dates.");
             isValid = false;
         }
 

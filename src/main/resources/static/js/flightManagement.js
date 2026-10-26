@@ -17,6 +17,13 @@ document.addEventListener("DOMContentLoaded", async function () {
     const deleteConfirmButton = document.getElementById("confirmDeleteModalBtn");
     let flightPendingDelete = null;
 
+    let itinerary = null;
+    try {
+        itinerary = await getItinerary(itineraryId);
+    } catch (e) {
+        console.error("Unable to load itinerary for flight date validation:", e);
+    }
+
     // Fetches all flights from the API and populates the UI cards
     async function loadFlights() {
         const loadingMessage = document.getElementById("flightsLoading");
@@ -103,8 +110,10 @@ document.addEventListener("DOMContentLoaded", async function () {
                 const depTimeInput = card.querySelector(".edit-flight-dep-time");
                 const arrTimeInput = card.querySelector(".edit-flight-arr-time");
 
-                DateTimeValidation.setMinimumNow(depTimeInput);
-                DateTimeValidation.setMinimumNow(arrTimeInput);
+                if (itinerary) {
+                    DateTimeValidation.setItineraryLimits(depTimeInput, itinerary.startDate, itinerary.endDate);
+                    DateTimeValidation.setItineraryLimits(arrTimeInput, itinerary.startDate, itinerary.endDate);
+                }
 
                 flightsList.appendChild(card);
             }
@@ -137,8 +146,10 @@ document.addEventListener("DOMContentLoaded", async function () {
         departureTimeInput.value = card.dataset.departureTime;
         arrivalTimeInput.value = card.dataset.arrivalTime;
 
-        DateTimeValidation.setMinimumNow(departureTimeInput);
-        DateTimeValidation.setMinimumNow(arrivalTimeInput);
+        if (itinerary) {
+            DateTimeValidation.setItineraryLimits(departureTimeInput, itinerary.startDate, itinerary.endDate);
+            DateTimeValidation.setItineraryLimits(arrivalTimeInput, itinerary.startDate, itinerary.endDate);
+        }
 
         card.querySelector(".flight-edit-error").classList.add("d-none");
         clearFormValidation(form);
@@ -286,26 +297,20 @@ document.addEventListener("DOMContentLoaded", async function () {
             isValid = false;
         }
 
-        // Ensure dates provided are not in the past
+        // Ensure dates provided are within itinerary dates
         if (!departureTime) {
             showFormFieldError(form, "edit-flight-dep-time", "Departure time is required.");
             isValid = false;
-        } else if (!DateTimeValidation.isNowOrLater(departureTime)) {
-            showFormFieldError(form, "edit-flight-dep-time", "Date and time must be now or later.");
+        } else if (itinerary && !DateTimeValidation.isWithinItinerary(departureTime, itinerary.startDate, itinerary.endDate)) {
+            showFormFieldError(form, "edit-flight-dep-time", "Departure date and time must be within the itinerary dates.");
             isValid = false;
         }
 
         if (!arrivalTime) {
             showFormFieldError(form, "edit-flight-arr-time", "Arrival time is required.");
             isValid = false;
-        } else if (!DateTimeValidation.isNowOrLater(arrivalTime)) {
-            showFormFieldError(form, "edit-flight-arr-time", "Date and time must be now or later.");
-            isValid = false;
-        }
-
-        // Arrival time must occur after departure time
-        if (departureTime && arrivalTime && new Date(arrivalTime) <= new Date(departureTime)) {
-            showFormFieldError(form, "edit-flight-arr-time", "Arrival time must be after departure time.");
+        } else if (itinerary && !DateTimeValidation.isWithinItinerary(arrivalTime, itinerary.startDate, itinerary.endDate)) {
+            showFormFieldError(form, "edit-flight-arr-time", "Arrival date and time must be within the itinerary dates.");
             isValid = false;
         }
 
