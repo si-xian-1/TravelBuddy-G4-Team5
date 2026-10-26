@@ -1,12 +1,30 @@
+// Track whether a sign up request is already in progress to prevent duplicate clicks
+let isSubmitting = false;
+
 // Handle sign up form submission
 document.getElementById("signupForm").addEventListener("submit", async function (event) {
     event.preventDefault();
 
+    if (isSubmitting) {
+        return;
+    }
+
+    // Clear previous error alert and field errors
+    clearAlert();
+    clearError("username");
+    clearError("mobileNumber");
+    clearError("password");
+    clearError("hasConsentLocation");
+
     // Retrieve input values
-    const username = document.getElementById("username").value.trim();
-    const mobileNumber = document.getElementById("mobileNumber").value.trim();
-    const password = document.getElementById("password").value;
+    const usernameInput = document.getElementById("username");
+    const mobileNumberInput = document.getElementById("mobileNumber");
+    const passwordInput = document.getElementById("password");
     const hasConsentLocation = document.getElementById("hasConsentLocation");
+
+    const username = usernameInput ? usernameInput.value.trim() : "";
+    const mobileNumber = mobileNumberInput ? mobileNumberInput.value.trim() : "";
+    const password = passwordInput ? passwordInput.value : "";
 
     // Validate sign up forms
     if (!validateSignUpForm(username, mobileNumber, hasConsentLocation, password)) {
@@ -14,7 +32,22 @@ document.getElementById("signupForm").addEventListener("submit", async function 
     }
 
     // Prepare input values to pass to backend
-    const travelerSignUpDetails = {username, mobileNumber, password, hasConsentLocation: hasConsentLocation.checked};
+    const travelerSignUpDetails = {
+        username,
+        mobileNumber,
+        password,
+        hasConsentLocation: hasConsentLocation ? hasConsentLocation.checked : false
+    };
+
+    const signupBtn = document.getElementById("signupBtn");
+    const originalBtnHtml = signupBtn ? signupBtn.innerHTML : "Sign up";
+
+    // Disable button and show spinner to provide immediate feedback and prevent duplicate submissions
+    isSubmitting = true;
+    if (signupBtn) {
+        signupBtn.disabled = true;
+        signupBtn.innerHTML = '<span class="spinner-border spinner-border-sm mr-2" role="status" aria-hidden="true"></span>Creating account...';
+    }
 
     try {
         // Call POST method to register this user
@@ -25,12 +58,23 @@ document.getElementById("signupForm").addEventListener("submit", async function 
         });
 
         if (response.ok) {
+            // Update button text while redirecting to login page
+            if (signupBtn) {
+                signupBtn.innerHTML = '<span class="spinner-border spinner-border-sm mr-2" role="status" aria-hidden="true"></span>Redirecting to login...';
+            }
             // When sign up successful, redirect to login page
-            window.location.href = '/login';
+            window.location.replace('/login');
             return;
         } else {
+            // Re-enable button on error
+            isSubmitting = false;
+            if (signupBtn) {
+                signupBtn.disabled = false;
+                signupBtn.innerHTML = originalBtnHtml;
+            }
+
             // When user inputs has some errors, display error message from backend
-            const errData = await response.json();
+            const errData = await response.json().catch(() => ({}));
 
             // Handle duplicate username issue
             if (response.status === 409) {
@@ -38,28 +82,63 @@ document.getElementById("signupForm").addEventListener("submit", async function 
             } 
             // Handle 400 Bad Request (Field Validation Errors from RestExceptionHandler)
             else if (response.status === 400 && errData && typeof errData === 'object') {
+                let hasFieldErrors = false;
                 for (const [field, message] of Object.entries(errData)) {
-                    showError(field, message);
+                    if (document.getElementById(field)) {
+                        showError(field, message);
+                        hasFieldErrors = true;
+                    }
+                }
+                if (!hasFieldErrors) {
+                    showGeneralAlert(errData.message || "Please check the form for invalid inputs.");
                 }
             } 
             // Handle other errors
             else {
                 // Log error debugging purposes
                 console.error("Server error details:", errData);
-                
-                // Notify user of unknown error occured
-                alert("An unexpected error occurred. Please try again later.");
+                showGeneralAlert(errData.message || "An unexpected error occurred. Please try again later.");
             }
         }
     } catch (err) {
         console.error("Unable to complete sign up:", err);
+        isSubmitting = false;
+        if (signupBtn) {
+            signupBtn.disabled = false;
+            signupBtn.innerHTML = originalBtnHtml;
+        }
+        showGeneralAlert("Unable to connect to the server. Please check your connection and try again.");
     }
 });
+
+// Show the general error alert
+function showGeneralAlert(message) {
+    const alertBox = document.getElementById('signupErrAlert');
+    const alertMsg = document.getElementById('signupErrAlertMsg');
+    if (alertBox && alertMsg) {
+        alertMsg.textContent = message;
+        alertBox.classList.remove('d-none');
+    }
+}
+
+// Clear the general error alert
+function clearAlert() {
+    const alertBox = document.getElementById('signupErrAlert');
+    const alertMsg = document.getElementById('signupErrAlertMsg');
+    if (alertBox) {
+        alertBox.classList.add('d-none');
+    }
+    if (alertMsg) {
+        alertMsg.textContent = '';
+    }
+}
 
 // Show the error message
 function showError(fieldId, message) {
     const inputElement = document.getElementById(fieldId);
-    inputElement.classList.add('is-invalid');
+    if (inputElement) {
+        inputElement.classList.add('is-invalid');
+    }
 
     const feedbackElement = document.getElementById(fieldId + 'ErrMsg');
     if (feedbackElement) {
@@ -72,6 +151,10 @@ function clearError(fieldId) {
     const inputElement = document.getElementById(fieldId);
     if (inputElement) {
         inputElement.classList.remove('is-invalid');
+    }
+    const feedbackElement = document.getElementById(fieldId + 'ErrMsg');
+    if (feedbackElement) {
+        feedbackElement.textContent = '';
     }
 }
 
@@ -111,7 +194,7 @@ function validateMobileNumber(mobileNumber) {
 
 // Validate location consent
 function validateLocationConsent(hasConsentLocation) {
-    if (!hasConsentLocation.checked) {
+    if (!hasConsentLocation || !hasConsentLocation.checked) {
         showError("hasConsentLocation", "Invalid consent location");
         return false;
     }
@@ -143,3 +226,27 @@ function validateSignUpForm(username, mobileNumber, hasConsentLocation, password
     let isValidPassword = validatePassword(password);
     return isValidUsername && isValidMobileNumber && isValidLocationConsent && isValidPassword;
 }
+
+// Clear error message and alert when user interacts with inputs
+['username', 'mobileNumber', 'password'].forEach(id => {
+    const input = document.getElementById(id);
+    if (input) {
+        input.addEventListener('input', function () {
+            clearError(id);
+            clearAlert();
+        });
+    }
+});
+
+const consentCheck = document.getElementById('hasConsentLocation');
+if (consentCheck) {
+    consentCheck.addEventListener('change', function () {
+        clearError('hasConsentLocation');
+        clearAlert();
+    });
+}
+
+// Allow alert to re-appear again if user continues to submit invalid credential details
+document.getElementById('signupErrAlertClose')?.addEventListener('click', function () {
+    clearAlert();
+});
