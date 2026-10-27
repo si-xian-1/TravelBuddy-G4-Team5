@@ -242,9 +242,7 @@
                                                 autocomplete="off" maxlength="255">
                                             <div class="invalid-feedback edit-attraction-name-error"></div>
 
-                                            <ul class="list-group position-absolute w-100 d-none location-autocomplete-dropdown"
-                                                style="z-index: 1000; max-height: 200px; overflow-y: auto; box-shadow: 0 .15rem 1.75rem 0 rgba(58,59,69,.15);">
-                                            </ul>
+                                            <ul class="list-group position-absolute w-100 d-none location-autocomplete-dropdown"></ul>
 
                                             <input type="hidden" class="edit-attraction-lat location-autocomplete-lat">
                                             <input type="hidden" class="edit-attraction-lon location-autocomplete-lon">
@@ -254,8 +252,7 @@
                                             <label class="text-xs font-weight-bold text-uppercase mb-1">Visit
                                                 Date</label>
                                             <input type="datetime-local"
-                                                class="form-control form-control-sm edit-attraction-date"
-                                                data-min-datetime="now">
+                                                class="form-control form-control-sm edit-attraction-date">
                                             <div class="invalid-feedback edit-attraction-date-error"></div>
                                         </div>
                                         <!-- Action button -->
@@ -319,39 +316,62 @@
                                     <div class="alert alert-danger d-none hotel-edit-error mt-2 text-sm" role="alert">
                                     </div>
 
+
                                     <!-- Start of edit hotel form -->
-                                    <form class="hotel-edit-form d-none">
-                                        <!-- Edit hotel name -->
-                                        <div class="form-group mb-2">
-                                            <label class="text-xs font-weight-bold text-uppercase mb-1">Hotel
-                                                Name</label>
-                                            <input type="text" class="form-control form-control-sm edit-hotel-name"
-                                                maxlength="255" required>
-                                        </div>
-                                        <!-- Edit check in hotel date and time -->
-                                        <div class="form-group mb-2">
-                                            <label class="text-xs font-weight-bold text-uppercase mb-1">Check-in</label>
-                                            <input type="datetime-local"
-                                                class="form-control form-control-sm edit-hotel-checkin" required>
-                                        </div>
-                                        <!-- Edit check out hotel date and time -->
-                                        <div class="form-group mb-3">
-                                            <label
-                                                class="text-xs font-weight-bold text-uppercase mb-1">Check-out</label>
-                                            <input type="datetime-local"
-                                                class="form-control form-control-sm edit-hotel-checkout" required>
+                                    <form class="hotel-edit-form d-none" novalidate>
+                                        <!-- Hotel Name Search -->
+                                        <div class="form-group mb-2 position-relative location-autocomplete-wrapper">
+                                            <label class="text-xs font-weight-bold text-uppercase mb-1">
+                                                Hotel Name
+                                            </label>
+
+                                            <!-- Specify that is a search for hotel -->
+                                            <input type="text"
+                                                class="form-control form-control-sm edit-hotel-name location-autocomplete-input"
+                                                placeholder="Search for a hotel..." maxlength="255" autocomplete="off"
+                                                data-search-type="hotel" required>
+
+                                            <div class="invalid-feedback edit-hotel-name-error"></div>
+
+                                            <ul class="list-group position-absolute w-100 d-none location-autocomplete-dropdown"></ul>
+
+                                            <!-- Added hidden coordinates for saving and validation -->
+                                            <input type="hidden" class="edit-hotel-lat location-autocomplete-lat">
+                                            <input type="hidden" class="edit-hotel-lon location-autocomplete-lon">
                                         </div>
 
-                                        <!-- Action button -->
+                                        <!-- Check-in -->
+                                        <div class="form-group mb-2">
+                                            <label class="text-xs font-weight-bold text-uppercase mb-1">
+                                                Check-in
+                                            </label>
+                                            <input type="datetime-local"
+                                                class="form-control form-control-sm edit-hotel-checkin" required>
+                                            <div class="invalid-feedback edit-hotel-checkin-error"></div>
+                                        </div>
+
+                                        <!-- Check-out -->
+                                        <div class="form-group mb-3">
+                                            <label class="text-xs font-weight-bold text-uppercase mb-1">
+                                                Check-out
+                                            </label>
+                                            <input type="datetime-local"
+                                                class="form-control form-control-sm edit-hotel-checkout" required>
+                                            <div class="invalid-feedback edit-hotel-checkout-error"></div>
+                                        </div>
+
+                                        <!-- Action Buttons -->
                                         <div>
-                                            <!-- Save hotel -->
-                                            <button type="submit" class="btn btn-sm btn-info save-hotel">Save</button>
-                                            <!-- Cancel edit hotel -->
-                                            <button type="button"
-                                                class="btn btn-sm btn-light cancel-hotel-edit border">Cancel</button>
+                                            <button type="submit" class="btn btn-sm btn-info save-hotel">
+                                                Save
+                                            </button>
+                                            <button type="button" class="btn btn-sm btn-light cancel-hotel-edit border">
+                                                Cancel
+                                            </button>
                                         </div>
                                     </form>
                                     <!-- End of edit hotel form -->
+
                                 </div>
                             </div>
                         </div>
@@ -426,43 +446,60 @@
 
                                         <div class="form-row">
                                             <!-- Edit flight departure airport-->
-                                            <div class="form-group col-md-6 mb-2">
-                                                <label class="text-xs font-weight-bold text-uppercase mb-1">Dep.
-                                                    Airport</label>
+                                            <div
+                                                class="form-group col-md-6 mb-2 position-relative location-autocomplete-wrapper">
+                                                <label class="text-xs font-weight-bold text-uppercase mb-1">Departure Airport</label>
+
                                                 <input type="text"
-                                                    class="form-control form-control-sm edit-flight-dep-airport"
-                                                    required>
+                                                    class="form-control form-control-sm edit-flight-dep-airport location-autocomplete-input"
+                                                    autocomplete="off" required>
                                                 <div class="invalid-feedback edit-flight-dep-airport-error"></div>
+
+                                                <ul class="list-group position-absolute w-100 d-none location-autocomplete-dropdown"></ul>
+
+                                                <input type="hidden"
+                                                    class="edit-flight-dep-lat location-autocomplete-lat">
+                                                <input type="hidden"
+                                                    class="edit-flight-dep-lon location-autocomplete-lon">
                                             </div>
+
                                             <!-- Edit flight arrival airport -->
-                                            <div class="form-group col-md-6 mb-2">
-                                                <label class="text-xs font-weight-bold text-uppercase mb-1">Arr.
-                                                    Airport</label>
+                                            <div
+                                                class="form-group col-md-6 mb-2 position-relative location-autocomplete-wrapper">
+                                                <label class="text-xs font-weight-bold text-uppercase mb-1">Arrival Airport</label>
+
                                                 <input type="text"
-                                                    class="form-control form-control-sm edit-flight-arr-airport"
-                                                    required>
+                                                    class="form-control form-control-sm edit-flight-arr-airport location-autocomplete-input"
+                                                    autocomplete="off" required>
                                                 <div class="invalid-feedback edit-flight-arr-airport-error"></div>
+
+                                                <ul class="list-group position-absolute w-100 d-none location-autocomplete-dropdown"></ul>
+
+                                                <input type="hidden"
+                                                    class="edit-flight-arr-lat location-autocomplete-lat">
+                                                <input type="hidden"
+                                                    class="edit-flight-arr-lon location-autocomplete-lon">
                                             </div>
                                         </div>
 
-                                        <div class="form-group mb-2">
-                                            <!-- Edit flight departure time -->
-                                            <label class="text-xs font-weight-bold text-uppercase mb-1">Departure
-                                                Time</label>
-                                            <input type="datetime-local"
-                                                class="form-control form-control-sm edit-flight-dep-time" required
-                                                data-min-datetime="now">
-                                            <div class="invalid-feedback edit-flight-dep-time-error"></div>
-                                        </div>
+                                        <div class="form-row">
+                                            <div class="form-group col-md-6 mb-2">
+                                                <!-- Edit flight departure time -->
+                                                <label class="text-xs font-weight-bold text-uppercase mb-1">Departure
+                                                    Time</label>
+                                                <input type="datetime-local"
+                                                    class="form-control form-control-sm edit-flight-dep-time" required>
+                                                <div class="invalid-feedback edit-flight-dep-time-error"></div>
+                                            </div>
 
-                                        <div class="form-group mb-3">
-                                            <!-- Edit flight arrival time -->
-                                            <label class="text-xs font-weight-bold text-uppercase mb-1">Arrival
-                                                Time</label>
-                                            <input type="datetime-local"
-                                                class="form-control form-control-sm edit-flight-arr-time" required
-                                                data-min-datetime="now">
-                                            <div class="invalid-feedback edit-flight-arr-time-error"></div>
+                                            <div class="form-group col-md-6 mb-2">
+                                                <!-- Edit flight arrival time -->
+                                                <label class="text-xs font-weight-bold text-uppercase mb-1">Arrival
+                                                    Time</label>
+                                                <input type="datetime-local"
+                                                    class="form-control form-control-sm edit-flight-arr-time" required>
+                                                <div class="invalid-feedback edit-flight-arr-time-error"></div>
+                                            </div>
                                         </div>
 
                                         <!-- Action button -->
@@ -495,7 +532,7 @@
     <script th:src="@{/vendor/bootstrap/js/bootstrap.bundle.min.js}"></script>
 
     <!-- Core plugin JavaScript-->
-    <script th:src="@{vendor/jquery-easing/jquery.easing.min.js}"></script>
+    <script th:src="@{/vendor/jquery-easing/jquery.easing.min.js}"></script>
 
     <!-- Custom script to manage itinerary -->
     <script th:src="@{/js/dateTimeValidation.js}"></script>

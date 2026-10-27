@@ -24,8 +24,6 @@
     <link th:href="@{/css/custom.css}" rel="stylesheet">
 </head>
 
-
-
 <body id="page-top">
 
     <!-- Page Wrapper -->
@@ -45,8 +43,7 @@
                     <!-- Page Heading -->
                     <div class="d-sm-flex align-items-center justify-content-between mb-4">
                         <h1 class="h3 mb-0 text-gray-800">Add Flight</h1>
-                        <a class="btn btn-secondary shadow-sm"
-                            th:href="@{/itinerary/view/{id}(id=${itineraryId})}">
+                        <a class="btn btn-secondary shadow-sm" th:href="@{/itinerary/view/{id}(id=${itineraryId})}">
                             <i class="fas fa-arrow-left fa-sm mr-2"></i> Back to Itinerary
                         </a>
                     </div>
@@ -73,31 +70,42 @@
                                 </div>
 
                                 <div class="form-row">
-                                    <div class="form-group col-md-6">
+                                    <!-- Departure Airport Search -->
+                                    <div class="form-group col-md-6 position-relative location-autocomplete-wrapper">
                                         <label for="departureAirport">Departure airport</label>
-                                        <input type="text" class="form-control" id="departureAirport"
-                                            maxlength="100">
+                                        <input type="text" class="form-control location-autocomplete-input"
+                                            id="departureAirport" maxlength="100" autocomplete="off">
                                         <div class="invalid-feedback" id="departureAirportError"></div>
+
+                                        <ul class="list-group position-absolute w-100 d-none location-autocomplete-dropdown"></ul>
+
+                                        <input type="hidden" id="departureLatitude" class="location-autocomplete-lat">
+                                        <input type="hidden" id="departureLongitude" class="location-autocomplete-lon">
                                     </div>
-                                    <div class="form-group col-md-6">
+
+                                    <!-- Arrival Airport Search -->
+                                    <div class="form-group col-md-6 position-relative location-autocomplete-wrapper">
                                         <label for="arrivalAirport">Arrival airport</label>
-                                        <input type="text" class="form-control" id="arrivalAirport"
-                                            maxlength="100">
+                                        <input type="text" class="form-control location-autocomplete-input"
+                                            id="arrivalAirport" maxlength="100" autocomplete="off">
                                         <div class="invalid-feedback" id="arrivalAirportError"></div>
+
+                                        <ul class="list-group position-absolute w-100 d-none location-autocomplete-dropdown"></ul>
+
+                                        <input type="hidden" id="arrivalLatitude" class="location-autocomplete-lat">
+                                        <input type="hidden" id="arrivalLongitude" class="location-autocomplete-lon">
                                     </div>
                                 </div>
 
                                 <div class="form-row">
                                     <div class="form-group col-md-6">
                                         <label for="departureTime">Departure date and time</label>
-                                        <input type="datetime-local" class="form-control" id="departureTime"
-                                            data-min-datetime="now">
+                                        <input type="datetime-local" class="form-control" id="departureTime">
                                         <div class="invalid-feedback" id="departureTimeError"></div>
                                     </div>
                                     <div class="form-group col-md-6">
                                         <label for="arrivalTime">Arrival date and time</label>
-                                        <input type="datetime-local" class="form-control" id="arrivalTime"
-                                            data-min-datetime="now">
+                                        <input type="datetime-local" class="form-control" id="arrivalTime">
                                         <div class="invalid-feedback" id="arrivalTimeError"></div>
                                     </div>
                                 </div>
@@ -118,9 +126,12 @@
     <script th:src="@{/vendor/bootstrap/js/bootstrap.bundle.min.js}"></script>
 
     <!-- Core plugin JavaScript-->
-    <script th:src="@{vendor/jquery-easing/jquery.easing.min.js}"></script>
+    <script th:src="@{/vendor/jquery-easing/jquery.easing.min.js}"></script>
 
+    <!-- Shared Utilities for date validation and location search -->
     <script th:src="@{/js/dateTimeValidation.js}"></script>
+    <script th:src="@{/js/detailedItinerary.js}"></script>
+    
     <script th:src="@{/js/newFlight.js}"></script>
 
     <!-- Custom scripts for all pages-->

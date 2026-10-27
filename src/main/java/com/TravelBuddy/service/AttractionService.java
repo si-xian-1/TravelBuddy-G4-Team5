@@ -11,13 +11,11 @@ import com.TravelBuddy.model.*;
 @Service
 public class AttractionService {
     private final ItineraryRepository itineraryRepository;
-    private final LocationService locationService;
-    private  final GdacsService gdacsService;
+    private final GdacsService gdacsService;
     private final AttractionRepository attractionRepository;
 
-    public AttractionService(ItineraryRepository itineraryRepository, LocationService locationService, GdacsService gdacsService, AttractionRepository attractionRepository) {
+    public AttractionService(ItineraryRepository itineraryRepository, GdacsService gdacsService, AttractionRepository attractionRepository) {
         this.itineraryRepository = itineraryRepository;
-        this.locationService = locationService;
         this.gdacsService = gdacsService;
         this.attractionRepository = attractionRepository;
     }
@@ -27,29 +25,21 @@ public class AttractionService {
      * @param itineraryId
      * @param userId
      * @param attraction
-     * @return Validation messages or the newly created attraction if successful
+     * @return attraction details created
      */
     public Attraction createAttraction(int itineraryId, int userId, Attraction attraction) {
         // Check that user has the permission to add attraction for this selected itinerary
         checkItineraryBelongToUser(itineraryId, userId);
 
-        // Get the coordinates of the attraction
-        LocationResponse location = locationService.getCoordinates(attraction.getAttractionName());
-        
-        // When API is unable to find coordinates of the user selected location
-        if (location == null || location.getLat() == null || location.getLon() == null) {
-            throw new InvalidInputsException("Could not find coordinates for location: " + attraction.getAttractionName());
+        // Ensure valid coordinates is inputted
+        if (attraction.getLatitude() == 0.0 && attraction.getLongitude() == 0.0) {
+            throw new InvalidInputsException("Valid location coordinates must be provided from the search results.");
         }
 
         attraction.setItineraryId(itineraryId);
-        attraction.setLatitude(Double.parseDouble(location.getLat()));
-        attraction.setLongitude(Double.parseDouble(location.getLon()));
 
         // Execute sql to add new attraction
-        Attraction savedAttraction = attractionRepository.createAttraction(itineraryId, attraction);
-
-        // If attraction creation is successful
-        return savedAttraction;
+        return attractionRepository.createAttraction(itineraryId, attraction);
     }
 
     /**
@@ -66,13 +56,13 @@ public class AttractionService {
 
     /**
      * Get all attractions belonging to an itinerary of the user
+     * @param itineraryId
      * @param userId
-     * @return all itineraries belonging to user
+     * @return list of attractions
      */
     public List<Attraction> getAllAttraction(int itineraryId, int userId) {
         checkItineraryBelongToUser(itineraryId, userId);
 
-        // Execute sql to add get attraction
         List<Attraction> attractions = attractionRepository.findAllAttractionsByItineraryId(itineraryId);
 
         // Disaster monitoring
@@ -92,13 +82,12 @@ public class AttractionService {
      * @param itineraryId
      * @param userId
      * @param attractionId
-     * @return selected 
+     * @return attraction details of the requested attraction id
      */
     public Attraction getSelectedAttraction(int itineraryId, int userId, int attractionId) {
         checkItineraryBelongToUser(itineraryId, userId);
         return attractionRepository.findSelectedAttractionByAttractionId(itineraryId, attractionId);
     }
-
 
     /**
      * Update selected attraction belonging to an itinerary of the user
@@ -106,22 +95,17 @@ public class AttractionService {
      * @param userId
      * @param attractionId
      * @param attraction
-     * @return number of rows updated in attractions
+     * @return rows of edited record
      */
     public int updateAttraction(int itineraryId, int userId, int attractionId, Attraction attraction) {
         checkItineraryBelongToUser(itineraryId, userId);
 
-        // Get the coordinates of the attraction
-        LocationResponse location = locationService.getCoordinates(attraction.getAttractionName());
-        
-        // When API is unable to find coordinates of the user selected location
-        if (location == null || location.getLat() == null || location.getLon() == null) {
-            throw new InvalidInputsException("Could not find coordinates for location: " + attraction.getAttractionName());
+        // Ensure valid coordinates is inputted
+        if (attraction.getLatitude() == 0.0 && attraction.getLongitude() == 0.0) {
+            throw new InvalidInputsException("Valid location coordinates must be provided from the search results.");
         }
 
         attraction.setItineraryId(itineraryId);
-        attraction.setLatitude(Double.parseDouble(location.getLat()));
-        attraction.setLongitude(Double.parseDouble(location.getLon()));
         
         return attractionRepository.updateAttraction(itineraryId, attractionId, attraction);
     }
@@ -131,7 +115,7 @@ public class AttractionService {
      * @param itineraryId
      * @param userId
      * @param attractionId
-     * @return number of rows updated in attractions
+     * @return 0 for unsuccessful delete, else return non-zero for successful delete
      */
     public int deleteAttraction(int itineraryId, int userId, int attractionId) {
         checkItineraryBelongToUser(itineraryId, userId);
