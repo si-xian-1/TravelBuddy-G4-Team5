@@ -17,107 +17,12 @@ document.addEventListener("DOMContentLoaded", async function () {
     const deleteConfirmButton = document.getElementById("confirmDeleteModalBtn");
     let attractionPendingDelete = null;
 
-    // Set timeout to prevent mutiple calls to api for searching attraction location
-    function setCallFrequency(func, delay) {
-        let timeout = null;
-
-        return function (event) {
-            clearTimeout(timeout);
-            timeout = setTimeout(() => {
-                func(event);
-            }, delay);
-        };
+    let itinerary = null;
+    try {
+        itinerary = await getItinerary(itineraryId);
+    } catch (e) {
+        console.error("Unable to load itinerary for attraction date validation:", e);
     }
-
-    // Handle typing in the attraction name input to search locations
-    attractionsList.addEventListener("input", setCallFrequency(async function (event) {
-        if (!event.target.matches(".edit-attraction-name")) {
-            return;
-        }
-
-        const input = event.target;
-        const card = input.closest(".attraction-card");
-        
-        // Create the attraction name search result
-        const dropdown = card.querySelector(".location-autocomplete-dropdown");
-        const latInput = card.querySelector(".edit-attraction-lat");
-        const lonInput = card.querySelector(".edit-attraction-lon");
-        const query = input.value.trim();
-
-        // Clear hidden coordinates when user typed a new location
-        if (latInput && lonInput) {
-            latInput.value = "";
-            lonInput.value = "";
-        }
-
-        if (query.length < 3) {
-            dropdown.classList.add("d-none");
-            return;
-        }
-
-        try {
-            // Call the location api to retrieve a list of location to return to user
-            const response = await fetch(`/api/location/search?query=${encodeURIComponent(query)}`);
-
-            if (!response.ok) {
-                throw new Error("Location search failed");
-            }
-
-            const locations = await response.json();
-            dropdown.replaceChildren();
-
-            if (locations.length === 0) {
-                // When no locations found
-                dropdown.innerHTML = '<li class="list-group-item text-muted text-xs">No locations found</li>';
-            } else {
-                // When there are some location found
-                for (const loc of locations) {
-                    const li = document.createElement("li");
-                    li.className = "list-group-item list-group-item-action text-sm autocomplete-item cursor-pointer";
-
-                    // Retrieve the response
-                    const fullAddress = loc.display_name || "Unknown Location";
-                    
-                    // Shorten location name display for readability
-                    const shortName = fullAddress.split(',')[0].trim();
-
-                    li.dataset.name = shortName;
-                    li.dataset.lat = loc.lat;
-                    li.dataset.lon = loc.lon;
-
-                    // Show the attraction name in bold, and the full address in small text below it
-                    li.innerHTML = `<strong>${shortName}</strong><br><small class="text-muted">${fullAddress}</small>`;
-
-                    dropdown.appendChild(li);
-                }
-            }
-            dropdown.classList.remove("d-none");
-        } catch (error) {
-            console.error("Autocomplete fetch error:", error);
-        }
-    }, 400));
-
-    // Handle selecting an item from the dropdown or closing it by clicking elsewhere
-    document.addEventListener("click", function (event) {
-        const item = event.target.closest(".autocomplete-item");
-
-        if (item) {
-            const card = item.closest(".attraction-card");
-            const nameInput = card.querySelector(".edit-attraction-name");
-
-            nameInput.value = item.dataset.name;
-            nameInput.classList.remove("is-invalid");
-
-            card.querySelector(".edit-attraction-lat").value = item.dataset.lat;
-            card.querySelector(".edit-attraction-lon").value = item.dataset.lon;
-            card.querySelector(".location-autocomplete-dropdown").classList.add("d-none");
-        } else {
-            // Close all search result
-            document.querySelectorAll(".location-autocomplete-dropdown:not(.d-none)").forEach(dropdown => {
-                dropdown.classList.add("d-none");
-            });
-        }
-    });
 
     // Fetches all attractions from the API and populates the UI cards
     async function loadAttractions() {
@@ -164,19 +69,16 @@ document.addEventListener("DOMContentLoaded", async function () {
                 card.querySelector(".attraction-visit-date").textContent = formatDateTime(attraction.visitDate);
                 card.querySelector(".edit-attraction-name").value = attraction.attractionName || "";
 
-                const latInput = card.querySelector(".edit-attraction-lat");
-                const lonInput = card.querySelector(".edit-attraction-lon");
-                
-                if (latInput) {
-                    latInput.value = attraction.latitude || "";
-                }
-                
-                if (lonInput) {
-                    lonInput.value = attraction.longitude || "";
-                }
+                card.querySelector(".edit-attraction-lat").value = attraction.latitude || "";
+                card.querySelector(".edit-attraction-lon").value = attraction.longitude || "";
 
-                card.querySelector(".edit-attraction-date").value = toDateTimeInputValue(attraction.visitDate);
-                DateTimeValidation.setMinimumNow(card.querySelector(".edit-attraction-date"));
+                const dateInput = card.querySelector(".edit-attraction-date");
+                dateInput.value = toDateTimeInputValue(attraction.visitDate);
+                
+                // Limit user to only select within the itinerary date period
+                if (itinerary) {
+                    DateTimeValidation.setItineraryLimits(dateInput, itinerary.startDate, itinerary.endDate);
+                }
 
                 if (attraction.disasterWarning && attraction.disasterWarning.trim() !== "") {
                     disasterAlert.innerHTML = `<i class="fas fa-exclamation-triangle mr-1"></i> ${attraction.disasterWarning}`;
@@ -203,16 +105,8 @@ document.addEventListener("DOMContentLoaded", async function () {
         const form = card.querySelector(".attraction-edit-form");
         form.querySelector(".edit-attraction-name").value = card.dataset.attractionName;
 
-        const latInput = form.querySelector(".edit-attraction-lat");
-        const lonInput = form.querySelector(".edit-attraction-lon");
-        
-        if (latInput) {
-            latInput.value = card.dataset.latitude;
-        }
-        
-        if (lonInput) {
-            lonInput.value = card.dataset.longitude;
-        }
+        form.querySelector(".edit-attraction-lat").value = card.dataset.latitude;
+        form.querySelector(".edit-attraction-lon").value = card.dataset.longitude;
 
         const dropdown = form.querySelector(".location-autocomplete-dropdown");
         if (dropdown) {
@@ -221,7 +115,11 @@ document.addEventListener("DOMContentLoaded", async function () {
 
         const dateInput = form.querySelector(".edit-attraction-date");
         dateInput.value = card.dataset.visitDate;
-        DateTimeValidation.setMinimumNow(dateInput);
+        
+        // Limit user to only select within the itinerary date period
+        if (itinerary) {
+            DateTimeValidation.setItineraryLimits(dateInput, itinerary.startDate, itinerary.endDate);
+        }
 
         card.querySelector(".attraction-edit-error").classList.add("d-none");
         clearFormValidation(form);
@@ -252,6 +150,22 @@ document.addEventListener("DOMContentLoaded", async function () {
             document.getElementById("confirmDeleteModalTitle").textContent = "Delete Attraction";
             document.getElementById("confirmDeleteModalBody").textContent = `Delete "${card.dataset.attractionName}"? This action cannot be undone.`;
             $(deleteModal).modal("show");
+        }
+    });
+
+    // Clear specific field errors when the user begins typing inside the inline edit form
+    attractionsList.addEventListener("input", function (event) {
+        const input = event.target;
+        if (input.classList.contains("form-control")) {
+            input.classList.remove("is-invalid");
+            
+            const identifierClass = Array.from(input.classList).find(cls => cls.startsWith("edit-attraction-") && !cls.endsWith("-lat") && !cls.endsWith("-lon"));
+            if (identifierClass) {
+                const errorElement = input.closest("form").querySelector(`.${identifierClass}-error`);
+                if (errorElement) {
+                    errorElement.textContent = "";
+                }
+            }
         }
     });
 
@@ -289,8 +203,10 @@ document.addEventListener("DOMContentLoaded", async function () {
         } catch (deleteError) {
             console.error("Unable to delete attraction:", deleteError);
             const error = attractionPendingDelete.querySelector(".attraction-edit-error");
-            error.textContent = deleteError.message || "Unable to delete this attraction.";
-            error.classList.remove("d-none");
+            if (error) {
+                error.textContent = deleteError.message || "Unable to delete this attraction.";
+                error.classList.remove("d-none");
+            }
             $(deleteModal).modal("hide");
             attractionPendingDelete = null;
         } finally {
@@ -333,8 +249,8 @@ document.addEventListener("DOMContentLoaded", async function () {
         if (!visitDate) {
             showFormFieldError(form, "edit-attraction-date", "Visit date and time is required.");
             isValid = false;
-        } else if (!DateTimeValidation.isNowOrLater(visitDate)) {
-            showFormFieldError(form, "edit-attraction-date", "Visit date and time must be now or later.");
+        } else if (itinerary && !DateTimeValidation.isWithinItinerary(visitDate, itinerary.startDate, itinerary.endDate)) {
+            showFormFieldError(form, "edit-attraction-date", "Visit date and time must be within the itinerary dates.");
             isValid = false;
         }
 
@@ -349,7 +265,12 @@ document.addEventListener("DOMContentLoaded", async function () {
                 method: "PUT",
                 headers: { "Content-Type": "application/json" },
                 credentials: "same-origin",
-                body: JSON.stringify({ attractionName, visitDate, latitude, longitude })
+                body: JSON.stringify({ 
+                    attractionName, 
+                    visitDate, 
+                    latitude: Number(latitude), 
+                    longitude: Number(longitude) 
+                })
             });
 
             if (!response.ok) {

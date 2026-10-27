@@ -5,10 +5,10 @@
 document.addEventListener("DOMContentLoaded", async function () {
     const page = document.getElementById("itineraryDetails");
     const deleteModal = document.getElementById("confirmDeleteModal");
-    
+
     // Ensure this script only runs on pages with the correct DOM elements
     if (!page || !deleteModal) {
-        return; 
+        return;
     }
 
     const itineraryId = page.dataset.itineraryId;
@@ -16,6 +16,13 @@ document.addEventListener("DOMContentLoaded", async function () {
     const flightTemplate = document.getElementById("flightCard");
     const deleteConfirmButton = document.getElementById("confirmDeleteModalBtn");
     let flightPendingDelete = null;
+
+    let itinerary = null;
+    try {
+        itinerary = await getItinerary(itineraryId);
+    } catch (e) {
+        console.error("Unable to load itinerary for flight date validation:", e);
+    }
 
     // Fetches all flights from the API and populates the UI cards
     async function loadFlights() {
@@ -31,16 +38,16 @@ document.addEventListener("DOMContentLoaded", async function () {
 
         try {
             const response = await fetch(`/api/itinerary/${encodeURIComponent(itineraryId)}/flights/all`, {
-                                credentials: "same-origin" });
-                                
+                credentials: "same-origin"
+            });
+
             if (!response.ok) {
                 throw new Error(`Failed to load flights (${response.status}).`);
             }
 
             const flights = await response.json();
             loadingMessage.classList.add("d-none");
-            
-            // Expand the accordion if flights exist
+
             setItinerarySectionExpanded("collapseFlights", flights.length > 0);
 
             if (flights.length === 0) {
@@ -60,9 +67,16 @@ document.addEventListener("DOMContentLoaded", async function () {
                 cardElement.dataset.flightNumber = flight.flightNumber || "";
                 cardElement.dataset.departureAirport = flight.departureAirport || "";
                 cardElement.dataset.arrivalAirport = flight.arrivalAirport || "";
-                cardElement.dataset.departureTime = toDateTimeInputValue(flight.departureTime);
-                cardElement.dataset.arrivalTime = toDateTimeInputValue(flight.arrivalTime);
-                
+                cardElement.dataset.departureLatitude = flight.departureLatitude || "";
+                cardElement.dataset.departureLongitude = flight.departureLongitude || "";
+                cardElement.dataset.arrivalLatitude = flight.arrivalLatitude || "";
+                cardElement.dataset.arrivalLongitude = flight.arrivalLongitude || "";
+
+                const depTimeStr = toDateTimeInputValue(flight.departureTime);
+                const arrTimeStr = toDateTimeInputValue(flight.arrivalTime);
+                cardElement.dataset.departureTime = depTimeStr;
+                cardElement.dataset.arrivalTime = arrTimeStr;
+
                 // Populate display text
                 card.querySelector(".flight-airline").textContent = flight.airline || "Airline";
                 card.querySelector(".flight-number").textContent = flight.flightNumber || "";
@@ -71,7 +85,7 @@ document.addEventListener("DOMContentLoaded", async function () {
                 card.querySelector(".flight-dep-time").textContent = formatDateTime(flight.departureTime);
                 card.querySelector(".flight-arr-time").textContent = formatDateTime(flight.arrivalTime);
 
-                // Handle disaster warnings (Red if warning exists, Green if safe)
+                // Handle disaster warnings
                 if (flight.disasterWarning && flight.disasterWarning.trim()) {
                     disasterAlert.innerHTML = `<i class="fas fa-exclamation-triangle mr-1"></i> ${flight.disasterWarning}`;
                     disasterAlert.classList.add("alert-danger");
@@ -87,12 +101,19 @@ document.addEventListener("DOMContentLoaded", async function () {
                 card.querySelector(".edit-flight-number").value = flight.flightNumber || "";
                 card.querySelector(".edit-flight-dep-airport").value = flight.departureAirport || "";
                 card.querySelector(".edit-flight-arr-airport").value = flight.arrivalAirport || "";
-                card.querySelector(".edit-flight-dep-time").value = toDateTimeInputValue(flight.departureTime);
-                card.querySelector(".edit-flight-arr-time").value = toDateTimeInputValue(flight.arrivalTime);
-                
-                // Enforce time restrictions on the newly created inputs
-                DateTimeValidation.setMinimumNow(card.querySelector(".edit-flight-dep-time"));
-                DateTimeValidation.setMinimumNow(card.querySelector(".edit-flight-arr-time"));
+
+                card.querySelector(".edit-flight-dep-lat").value = flight.departureLatitude || "";
+                card.querySelector(".edit-flight-dep-lon").value = flight.departureLongitude || "";
+                card.querySelector(".edit-flight-arr-lat").value = flight.arrivalLatitude || "";
+                card.querySelector(".edit-flight-arr-lon").value = flight.arrivalLongitude || "";
+
+                const depTimeInput = card.querySelector(".edit-flight-dep-time");
+                const arrTimeInput = card.querySelector(".edit-flight-arr-time");
+
+                if (itinerary) {
+                    DateTimeValidation.setItineraryLimits(depTimeInput, itinerary.startDate, itinerary.endDate);
+                    DateTimeValidation.setItineraryLimits(arrTimeInput, itinerary.startDate, itinerary.endDate);
+                }
 
                 flightsList.appendChild(card);
             }
@@ -112,13 +133,23 @@ document.addEventListener("DOMContentLoaded", async function () {
         form.querySelector(".edit-flight-dep-airport").value = card.dataset.departureAirport;
         form.querySelector(".edit-flight-arr-airport").value = card.dataset.arrivalAirport;
 
+        form.querySelector(".edit-flight-dep-lat").value = card.dataset.departureLatitude || "";
+        form.querySelector(".edit-flight-dep-lon").value = card.dataset.departureLongitude || "";
+        form.querySelector(".edit-flight-arr-lat").value = card.dataset.arrivalLatitude || "";
+        form.querySelector(".edit-flight-arr-lon").value = card.dataset.arrivalLongitude || "";
+
+        // Hide any open search dropdowns
+        form.querySelectorAll(".location-autocomplete-dropdown").forEach(dd => dd.classList.add("d-none"));
+
         const departureTimeInput = form.querySelector(".edit-flight-dep-time");
         const arrivalTimeInput = form.querySelector(".edit-flight-arr-time");
         departureTimeInput.value = card.dataset.departureTime;
         arrivalTimeInput.value = card.dataset.arrivalTime;
-        
-        DateTimeValidation.setMinimumNow(departureTimeInput);
-        DateTimeValidation.setMinimumNow(arrivalTimeInput);
+
+        if (itinerary) {
+            DateTimeValidation.setItineraryLimits(departureTimeInput, itinerary.startDate, itinerary.endDate);
+            DateTimeValidation.setItineraryLimits(arrivalTimeInput, itinerary.startDate, itinerary.endDate);
+        }
 
         card.querySelector(".flight-edit-error").classList.add("d-none");
         clearFormValidation(form);
@@ -127,28 +158,41 @@ document.addEventListener("DOMContentLoaded", async function () {
     // Event delegation: Listens for Edit, Cancel, and Delete clicks on any flight card
     flightsList.addEventListener("click", function (event) {
         const button = event.target.closest("button");
-        if (!button) return;
+        if (!button) {
+            return;
+        }
 
         const card = button.closest(".flight-card");
-        
+
         if (button.classList.contains("edit-flight")) {
-            // Show edit form, hide details
             resetFlightEditForm(card);
             card.querySelector(".flight-details").classList.add("d-none");
             card.querySelector(".flight-edit-error").classList.add("d-none");
             card.querySelector(".flight-edit-form").classList.remove("d-none");
         } else if (button.classList.contains("cancel-flight-edit")) {
-            // Revert changes, hide form, show details
             resetFlightEditForm(card);
             card.querySelector(".flight-edit-form").classList.add("d-none");
             card.querySelector(".flight-details").classList.remove("d-none");
         } else if (button.classList.contains("delete-flight")) {
-            // Store flight context and trigger Bootstrap confirmation modal
             flightPendingDelete = card;
             deleteModal.dataset.deleteType = "flight";
             document.getElementById("confirmDeleteModalTitle").textContent = "Delete Flight";
             document.getElementById("confirmDeleteModalBody").textContent = `Delete "${card.dataset.airline} ${card.dataset.flightNumber}"? This action cannot be undone.`;
             $(deleteModal).modal("show");
+        }
+    });
+
+    // Clear specific field errors when the user begins typing inside the inline edit form
+    flightsList.addEventListener("input", function (event) {
+        const input = event.target;
+        if (input.classList.contains("form-control")) {
+            input.classList.remove("is-invalid");
+
+            const identifierClass = Array.from(input.classList).find(cls => cls.startsWith("edit-flight-") && !cls.endsWith("-lat") && !cls.endsWith("-lon"));
+            if (identifierClass) {
+                const errorElement = input.closest("form").querySelector(`.${identifierClass}-error`);
+                if (errorElement) errorElement.textContent = "";
+            }
         }
     });
 
@@ -162,7 +206,9 @@ document.addEventListener("DOMContentLoaded", async function () {
 
     // Executes the actual deletion request to the API
     deleteConfirmButton.addEventListener("click", async function () {
-        if (deleteModal.dataset.deleteType !== "flight" || !flightPendingDelete) return;
+        if (deleteModal.dataset.deleteType !== "flight" || !flightPendingDelete) {
+            return;
+        }
 
         const flightId = flightPendingDelete.dataset.flightId;
         deleteConfirmButton.disabled = true; // Prevent double-clicks
@@ -184,8 +230,10 @@ document.addEventListener("DOMContentLoaded", async function () {
         } catch (deleteError) {
             console.error("Unable to delete flight:", deleteError);
             const error = flightPendingDelete.querySelector(".flight-edit-error");
-            error.textContent = deleteError.message || "Unable to delete this flight.";
-            error.classList.remove("d-none");
+            if (error) {
+                error.textContent = deleteError.message || "Unable to delete this flight.";
+                error.classList.remove("d-none");
+            }
             $(deleteModal).modal("hide");
             flightPendingDelete = null;
         } finally {
@@ -195,15 +243,19 @@ document.addEventListener("DOMContentLoaded", async function () {
 
     // Validates and submits the edit form for a flight
     flightsList.addEventListener("submit", async function (event) {
-        if (!event.target.matches(".flight-edit-form")) return;
-        event.preventDefault(); // Stop standard HTML form submission
+        // Check if edit form is the one submitted
+        if (!event.target.matches(".flight-edit-form")) {
+            return;
+        }
+
+        event.preventDefault();
 
         const form = event.target;
         const card = form.closest(".flight-card");
         const flightId = card.dataset.flightId;
         const error = card.querySelector(".flight-edit-error");
         const saveButton = form.querySelector(".save-flight");
-        
+
         // Gather input values
         const airline = form.querySelector(".edit-flight-airline").value.trim();
         const flightNumber = form.querySelector(".edit-flight-number").value.trim();
@@ -212,18 +264,20 @@ document.addEventListener("DOMContentLoaded", async function () {
         const departureTime = form.querySelector(".edit-flight-dep-time").value;
         const arrivalTime = form.querySelector(".edit-flight-arr-time").value;
 
+        // Gather coordinates
+        const departureLatitude = form.querySelector(".edit-flight-dep-lat").value;
+        const departureLongitude = form.querySelector(".edit-flight-dep-lon").value;
+        const arrivalLatitude = form.querySelector(".edit-flight-arr-lat").value;
+        const arrivalLongitude = form.querySelector(".edit-flight-arr-lon").value;
+
         error.classList.add("d-none");
         clearFormValidation(form);
         let isValid = true;
 
-        // Validation 1: Check for empty required fields
+        // Check for empty required text fields
         const requiredFields = [
             ["edit-flight-airline", airline],
-            ["edit-flight-number", flightNumber],
-            ["edit-flight-dep-airport", departureAirport],
-            ["edit-flight-arr-airport", arrivalAirport],
-            ["edit-flight-dep-time", departureTime],
-            ["edit-flight-arr-time", arrivalTime]
+            ["edit-flight-number", flightNumber]
         ];
 
         for (const [selector, value] of requiredFields) {
@@ -233,29 +287,57 @@ document.addEventListener("DOMContentLoaded", async function () {
             }
         }
 
-        // Validation 2: Ensure dates are not in the past
-        for (const [selector, value] of [["edit-flight-dep-time", departureTime], ["edit-flight-arr-time", arrivalTime]]) {
-            if (value && !DateTimeValidation.isNowOrLater(value)) {
-                showFormFieldError(form, selector, "Date and time must be now or later.");
-                isValid = false;
-            }
+        // Ensure Locations were selected from the dropdown
+        if (!departureAirport || !departureLatitude || !departureLongitude) {
+            showFormFieldError(form, "edit-flight-dep-airport", "Please select a valid departure airport from the search results.");
+            isValid = false;
         }
-
-        // Validation 3: Arrival must occur after departure
-        if (departureTime && arrivalTime && new Date(arrivalTime) <= new Date(departureTime)) {
-            showFormFieldError(form, "edit-flight-arr-time", "Arrival time must be after departure time.");
+        if (!arrivalAirport || !arrivalLatitude || !arrivalLongitude) {
+            showFormFieldError(form, "edit-flight-arr-airport", "Please select a valid arrival airport from the search results.");
             isValid = false;
         }
 
-        if (!isValid) return; // Halt submission if validation failed
+        // Ensure dates provided are within itinerary dates
+        if (!departureTime) {
+            showFormFieldError(form, "edit-flight-dep-time", "Departure time is required.");
+            isValid = false;
+        } else if (itinerary && !DateTimeValidation.isWithinItinerary(departureTime, itinerary.startDate, itinerary.endDate)) {
+            showFormFieldError(form, "edit-flight-dep-time", "Departure date and time must be within the itinerary dates.");
+            isValid = false;
+        }
+
+        if (!arrivalTime) {
+            showFormFieldError(form, "edit-flight-arr-time", "Arrival time is required.");
+            isValid = false;
+        } else if (itinerary && !DateTimeValidation.isWithinItinerary(arrivalTime, itinerary.startDate, itinerary.endDate)) {
+            showFormFieldError(form, "edit-flight-arr-time", "Arrival date and time must be within the itinerary dates.");
+            isValid = false;
+        }
+
+        if (!isValid) {
+            return; // Halt submission if validation failed
+        }
 
         saveButton.disabled = true; // Prevent multiple submissions
         try {
+            const flightData = {
+                airline,
+                flightNumber,
+                departureAirport,
+                arrivalAirport,
+                departureTime,
+                arrivalTime,
+                departureLatitude: Number(departureLatitude),
+                departureLongitude: Number(departureLongitude),
+                arrivalLatitude: Number(arrivalLatitude),
+                arrivalLongitude: Number(arrivalLongitude)
+            };
+
             const response = await fetch(`/api/itinerary/${encodeURIComponent(itineraryId)}/flights/${encodeURIComponent(flightId)}`, {
                 method: "PUT",
                 headers: { "Content-Type": "application/json" },
                 credentials: "same-origin",
-                body: JSON.stringify({ airline, flightNumber, departureAirport, arrivalAirport, departureTime, arrivalTime })
+                body: JSON.stringify(flightData)
             });
 
             if (!response.ok) {

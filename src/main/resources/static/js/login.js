@@ -1,10 +1,24 @@
+// Track whether a login request is already in progress to prevent duplicate clicks
+let isSubmitting = false;
+
 // Handle login form submission
 document.getElementById("loginForm").addEventListener("submit", async function (event) {
     event.preventDefault();
 
+    if (isSubmitting) {
+        return;
+    }
+
+    // Clear previous error alert and field errors
+    clearAlert();
+    clearError("username");
+    clearError("password");
+
     // Retrieve input values
-    const username = document.getElementById("username").value.trim();
-    const password = document.getElementById("password").value;
+    const usernameInput = document.getElementById("username");
+    const passwordInput = document.getElementById("password");
+    const username = usernameInput ? usernameInput.value.trim() : "";
+    const password = passwordInput ? passwordInput.value : "";
 
     // Validate login forms
     if (!validateLoginForm(username, password)) {
@@ -13,6 +27,16 @@ document.getElementById("loginForm").addEventListener("submit", async function (
 
     // Prepare input values to pass to backend
     const travelerLoginDetails = { username, password };
+
+    const loginBtn = document.getElementById("loginBtn");
+    const originalBtnHtml = loginBtn ? loginBtn.innerHTML : "Login";
+
+    // Disable button and show spinner to provide immediate feedback and prevent duplicate submissions
+    isSubmitting = true;
+    if (loginBtn) {
+        loginBtn.disabled = true;
+        loginBtn.innerHTML = '<span class="spinner-border spinner-border-sm mr-2" role="status" aria-hidden="true"></span>Logging in...';
+    }
 
     try {
         // Call POST method to authenticate this user
@@ -24,47 +48,87 @@ document.getElementById("loginForm").addEventListener("submit", async function (
         });
 
         if (response.ok) {
-            // When login successful, redirect to dashboard page
-            window.location.href = '/';
+            // Update button to indicate redirection while dashboard is loading
+            if (loginBtn) {
+                loginBtn.innerHTML = '<span class="spinner-border spinner-border-sm mr-2" role="status" aria-hidden="true"></span>Redirecting...';
+            }
+            // Redirect to dashboard page
+            window.location.replace('/');
             return;
         } else {
+            // Re-enable button on error
+            isSubmitting = false;
+            if (loginBtn) {
+                loginBtn.disabled = false;
+                loginBtn.innerHTML = originalBtnHtml;
+            }
+
             // When user inputs has some errors, display error message from backend
             const errData = await response.json().catch(() => ({}));
 
             // Handle invalid Credentials
             if (response.status === 401 || response.status === 403 || (response.status === 400 && errData.message && !errData.errors)) {
-                const alertBox = document.getElementById('loginErrAlert');
-                const alertMsg = document.getElementById('loginErrAlertMsg');
-                // Show alert invalid login credentials
-                if (alertBox && alertMsg) {
-                    alertMsg.textContent = "Invalid username or password.";
-                    alertBox.classList.remove('d-none');
-                }
+                showGeneralAlert(errData.message || "Invalid username or password.");
             }
             // Handle form field validation errors (Field Validation Errors from RestExceptionHandler)
             else if (response.status === 400 && errData && typeof errData === 'object') {
+                let hasFieldErrors = false;
                 for (const [field, message] of Object.entries(errData)) {
-                    showError(field, message);
+                    if (document.getElementById(field)) {
+                        showError(field, message);
+                        hasFieldErrors = true;
+                    }
+                }
+                if (!hasFieldErrors) {
+                    showGeneralAlert("Invalid username or password.");
                 }
             }
             // Handle other errors
             else {
                 // Log error debugging purposes
                 console.error("Server error details:", errData);
-
-                // Notify user of unknown error occured
-                alert("An unexpected error occurred. Please try again later.");
+                showGeneralAlert(errData.message || "An unexpected error occurred. Please try again later.");
             }
         }
     } catch (err) {
         console.error("Unable to complete login:", err);
+        isSubmitting = false;
+        if (loginBtn) {
+            loginBtn.disabled = false;
+            loginBtn.innerHTML = originalBtnHtml;
+        }
+        showGeneralAlert("Unable to connect to the server. Please check your connection and try again.");
     }
 });
+
+// Show the general error alert
+function showGeneralAlert(message) {
+    const alertBox = document.getElementById('loginErrAlert');
+    const alertMsg = document.getElementById('loginErrAlertMsg');
+    if (alertBox && alertMsg) {
+        alertMsg.textContent = message;
+        alertBox.classList.remove('d-none');
+    }
+}
+
+// Clear the general error alert
+function clearAlert() {
+    const alertBox = document.getElementById('loginErrAlert');
+    const alertMsg = document.getElementById('loginErrAlertMsg');
+    if (alertBox) {
+        alertBox.classList.add('d-none');
+    }
+    if (alertMsg) {
+        alertMsg.textContent = '';
+    }
+}
 
 // Show the error message
 function showError(fieldId, message) {
     const inputElement = document.getElementById(fieldId);
-    inputElement.classList.add('is-invalid');
+    if (inputElement) {
+        inputElement.classList.add('is-invalid');
+    }
 
     const feedbackElement = document.getElementById(fieldId + 'ErrMsg');
     if (feedbackElement) {
@@ -77,6 +141,10 @@ function clearError(fieldId) {
     const inputElement = document.getElementById(fieldId);
     if (inputElement) {
         inputElement.classList.remove('is-invalid');
+    }
+    const feedbackElement = document.getElementById(fieldId + 'ErrMsg');
+    if (feedbackElement) {
+        feedbackElement.textContent = '';
     }
 }
 
@@ -109,7 +177,18 @@ function validateLoginForm(username, password) {
     return isValidUsername && isValidPassword;
 }
 
+// Clear error message and alert when user types in inputs
+['username', 'password'].forEach(id => {
+    const input = document.getElementById(id);
+    if (input) {
+        input.addEventListener('input', function () {
+            clearError(id);
+            clearAlert();
+        });
+    }
+});
+
 // Allow alert to re-appear again if user continues to submit invalid crediential details
 document.getElementById('loginErrAlertClose')?.addEventListener('click', function () {
-    document.getElementById('loginErrAlert')?.classList.add('d-none');
+    clearAlert();
 });
