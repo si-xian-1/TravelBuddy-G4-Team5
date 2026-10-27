@@ -13,6 +13,13 @@ public class SabreFlightSearchRequest {
     @JsonPropertyDescription("Departure date in YYYY-MM-DD format")
     private String departureDate;
 
+    public SabreFlightSearchRequest() {};
+
+    public SabreFlightSearchRequest(String origin, String destination, String departureDate) {
+        this.origin = origin;
+        this.destination = destination;
+        this.departureDate = departureDate;
+    }
     // Getters and Setters
     public String getOrigin() { return origin; }
     public void setOrigin(String origin) { this.origin = origin; }

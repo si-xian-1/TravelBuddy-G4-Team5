@@ -19,6 +19,12 @@ public class SabreHotelSearchRequest {
 
     public SabreHotelSearchRequest() {}
 
+    public SabreHotelSearchRequest(String location, String checkInDate, String checkOutDate) {
+        this.location = location;
+        this.checkInDate = checkInDate;
+        this.checkOutDate = checkOutDate;
+    }
+
     public String getLocation() { return location; }
     public void setLocation(String location) { this.location = location; }
 

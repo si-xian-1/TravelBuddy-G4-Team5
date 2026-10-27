@@ -66,4 +66,12 @@ public class DashboardViewController {
     public String Profile() {
         return "myProfile";
     }
+
+    /**
+     * Render the mock booking page for AI Replan checkout
+     */
+    @GetMapping("/mockBooking")
+    public String mockBooking() {
+        return "mockBooking";
+    }
 }

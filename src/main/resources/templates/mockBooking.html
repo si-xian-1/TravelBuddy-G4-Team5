@@ -1,0 +1,131 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="[https://www.thymeleaf.org/](https://www.thymeleaf.org/)">
+
+<head>
+    <meta charset="utf-8">
+    <title>TravelBuddy - Secure Checkout</title>
+    <link th:href="@{/vendor/fontawesome-free/css/all.min.css}" rel="stylesheet" type="text/css">
+    <link th:href="@{/css/sb-admin-2.min.css}" rel="stylesheet">
+</head>
+
+<body class="bg-light">
+    <div class="container mt-5">
+        <div class="row justify-content-center">
+            <div class="col-lg-6">
+                <div class="card shadow-lg border-0 rounded-lg">
+                    <div class="card-header bg-primary text-white text-center py-4">
+                        <h3 class="font-weight-light mb-0"><i class="fas fa-lock mr-2"></i>Secure Mock Checkout</h3>
+                    </div>
+                    <div class="card-body p-5">
+                        <h5 class="mb-4">You are booking: <strong id="bookingItemName" class="text-primary"></strong>
+                        </h5>
+                        <form id="mockPaymentForm">
+                            <div class="form-group">
+                                <label>Cardholder Name</label>
+                                <input type="text" class="form-control" value="John Doe" required>
+                            </div>
+                            <div class="form-group">
+                                <label>Card Number</label>
+                                <input type="text" class="form-control" value="**** **** **** 4242" required>
+                            </div>
+                            <div class="form-row">
+                                <div class="form-group col-md-6">
+                                    <label>Expiry Date</label>
+                                    <input type="text" class="form-control" value="12/28" required>
+                                </div>
+                                <div class="form-group col-md-6">
+                                    <label>CVV</label>
+                                    <input type="text" class="form-control" value="123" required>
+                                </div>
+                            </div>
+                            <button type="button" class="btn btn-success btn-block mt-4" onclick="processPayment()">
+                                Simulate Payment
+                            </button>
+                        </form>
+                        <div id="paymentSuccess" class="alert alert-success mt-4 d-none">
+                            <i class="fas fa-check-circle mr-2"></i> Booking Confirmed! Your itinerary has been updated.
+                            <br><a href="/" class="btn btn-sm btn-outline-success mt-2">Return to Dashboard</a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <script>
+        // 1. Retrieve the saved data from sessionStorage
+        const itineraryId = sessionStorage.getItem('replanItineraryId');
+        const itemType = sessionStorage.getItem('replanItemType');
+        const originalItemId = sessionStorage.getItem('replanOriginalItemId');
+
+        // Parse the JSON string the AI put in the radio button value
+        let selectedAlt = { newName: "Alternative Trip", price: "" };
+        try {
+            selectedAlt = JSON.parse(sessionStorage.getItem('selectedAlternative'));
+        } catch (e) {
+            selectedAlt.newName = sessionStorage.getItem('selectedAlternative');
+        }
+
+        document.getElementById('bookingItemName').innerText = selectedAlt.newName + " " + selectedAlt.price;
+
+        async function processPayment() {
+            // Disable button to prevent double clicks
+            const btn = document.querySelector('button.btn-success');
+            btn.disabled = true;
+            btn.innerText = "Processing...";
+
+            try {
+                // 2. Build the payload for the database update based on type
+                let endpoint = "";
+                let payload = {};
+
+                if (itemType === "HOTEL") {
+                    endpoint = `/api/itinerary/${itineraryId}/hotels/${originalItemId}`;
+                    payload = {
+                        hotelName: selectedAlt.newName,
+                        // Using static mock dates/coords for the prototype update to satisfy @Valid
+                        checkIn: "2026-10-20T14:00:00",
+                        checkOut: "2026-10-22T11:00:00",
+                        latitude: 25.0330,
+                        longitude: 121.5654
+                    };
+                } else if (itemType === "FLIGHT") {
+                    endpoint = `/api/itinerary/${itineraryId}/flights/${originalItemId}`;
+                    payload = {
+                        airline: selectedAlt.newName.split(" ")[0], // Rough extraction
+                        flightNumber: selectedAlt.newName.split(" ")[1] || "000",
+                        departureAirport: "Affected Airport",
+                        arrivalAirport: "Safe Airport",
+                        departureTime: "2026-10-20T14:00:00",
+                        arrivalTime: "2026-10-20T18:00:00"
+                    };
+                }
+
+                // 3. Send PUT request to update the database
+                if (endpoint) {
+                    const response = await fetch(endpoint, {
+                        method: 'PUT',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify(payload)
+                    });
+
+                    if (!response.ok) throw new Error("Database update failed");
+                }
+
+                // 4. Show Success
+                document.getElementById('mockPaymentForm').classList.add('d-none');
+                document.getElementById('paymentSuccess').classList.remove('d-none');
+
+                // Clear session storage
+                sessionStorage.clear();
+
+            } catch (error) {
+                console.error(error);
+                alert("Payment simulated, but failed to update database.");
+                btn.disabled = false;
+                btn.innerText = "Simulate Payment";
+            }
+        }
+    </script>
+</body>
+
+</html>

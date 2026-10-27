@@ -42,7 +42,7 @@ public class SabreFlightService {
 
             // 2. Call Sabre REST API using relative path (base URL is pre-configured in restClient)
             Map<?, ?> response = restClient.get()
-                    .uri("/v1/shop/flights?origin={origin}&destination={dest}&departuredate={date}",
+                    .uri("/v1/shop/flightShop?origin={origin}&destination={dest}&departuredate={date}",
                             request.getOrigin(), request.getDestination(), request.getDepartureDate())
                     .header(HttpHeaders.AUTHORIZATION, "Bearer " + accessToken)
                     .accept(MediaType.APPLICATION_JSON)
