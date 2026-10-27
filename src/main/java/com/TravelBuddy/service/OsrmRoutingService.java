@@ -9,6 +9,9 @@ import com.TravelBuddy.model.OsrmResponse;
 
 @Service
 public class OsrmRoutingService {
+    private static final String DEFAULT_PROFILE = "driving";
+    private static final double MAX_ROUTE_COORDINATE_DELTA = 5.0;
+
     private final RestClient restClient;
     private final String baseUrl = "https://router.project-osrm.org";
 
@@ -22,15 +25,13 @@ public class OsrmRoutingService {
     public String getRouteAlternatives(double userLat, double userLon, double destLat, double destLon, String profile) {
         double latDiff = Math.abs(userLat - destLat);
         double lonDiff = Math.abs(userLon - destLon);
-        if (latDiff > 5.0 || lonDiff > 5.0) {
+        if (latDiff > MAX_ROUTE_COORDINATE_DELTA || lonDiff > MAX_ROUTE_COORDINATE_DELTA) {
             return "Destination shelter is outside terrestrial navigation range (>500km).";
         }
 
-        String effectiveProfile = ("foot".equalsIgnoreCase(profile) || "walking".equalsIgnoreCase(profile))
-                ? "driving" : profile;
-        if (!"driving".equalsIgnoreCase(effectiveProfile)) {
-            effectiveProfile = "driving";
-        }
+        // The public route contract accepts walking/foot, but OSRM is queried
+        // through the application's supported driving profile for both options.
+        String effectiveProfile = normalizeProfile(profile);
 
         try {
             String coordString = String.format(Locale.US, "%.5f,%.5f;%.5f,%.5f", userLon, userLat, destLon, destLat);
@@ -69,5 +70,13 @@ public class OsrmRoutingService {
             System.err.println("[OSRM Error] Routing call failed: " + e.getMessage());
             return "OSRM API temporarily unavailable.";
         }
+    }
+
+    /**
+     * Keeps unsupported or blank profiles from producing an invalid OSRM URL.
+     * Walking requests intentionally retain the existing driving fallback.
+     */
+    private String normalizeProfile(String profile) {
+        return DEFAULT_PROFILE;
     }
 }

@@ -11,7 +11,37 @@ var activeAiAbortController = null;
 var aiProgressInterval = null;
 var currentAiRequestId = null;
 
-// Expose cancellation globally so inline onclick="cancelAiGeneration()" works
+/**
+ * Changes one CSS property when an element exists.
+ *
+ * @param {HTMLElement|null} element element to update
+ * @param {string} property CSS property name
+ * @param {string} value CSS property value
+ * @return {void}
+ */
+function setElementStyle(element, property, value) {
+    if (element) {
+        element.style[property] = value;
+    }
+}
+
+/**
+ * Changes one DOM property when an element exists.
+ *
+ * @param {HTMLElement|null} element element to update
+ * @param {string} property property name, such as textContent
+ * @param {*} value value to assign
+ * @return {void}
+ */
+function setElementText(element, property, value) {
+    if (element) {
+        element[property] = value;
+    }
+}
+
+/**
+ * Cancels the active AI request and restores the appropriate assessment view.
+ */
 window.cancelAiGeneration = function () {
     if (activeAiAbortController) {
         activeAiAbortController.abort();
@@ -37,19 +67,19 @@ window.cancelAiGeneration = function () {
     var errorSection = document.getElementById("aiErrorSection");
     var refreshBanner = document.getElementById("aiRefreshingBanner");
 
-    if (refreshBanner) refreshBanner.style.display = "none";
+    setElementStyle(refreshBanner, "display", "none");
 
     if (latestAiAssessment != null) {
         // Report already exists: KEEP IT VISIBLE
-        if (loadingSection) loadingSection.style.display = "none";
-        if (errorSection) errorSection.style.display = "none";
-        if (contentSection) contentSection.style.display = "block";
+        setElementStyle(loadingSection, "display", "none");
+        setElementStyle(errorSection, "display", "none");
+        setElementStyle(contentSection, "display", "block");
     } else {
         // Initial generation cancelled: return to placeholder
-        if (loadingSection) loadingSection.style.display = "none";
-        if (errorSection) errorSection.style.display = "none";
-        if (contentSection) contentSection.style.display = "none";
-        if (placeholderSection) placeholderSection.style.display = "block";
+        setElementStyle(loadingSection, "display", "none");
+        setElementStyle(errorSection, "display", "none");
+        setElementStyle(contentSection, "display", "none");
+        setElementStyle(placeholderSection, "display", "block");
     }
 
     var btnRefresh = document.getElementById("btnRefreshAi");
@@ -64,6 +94,11 @@ window.cancelAiGeneration = function () {
     }
 };
 
+/**
+ * Creates the dashboard map, wires controls, and starts initial disaster loading.
+ *
+ * @return {void}
+ */
 document.addEventListener("DOMContentLoaded", function () {
     // 1. Initialize Leaflet map and base tile layer
     var map = L.map('dashboardMap').setView([20.0, 0.0], 2);
@@ -90,7 +125,9 @@ document.addEventListener("DOMContentLoaded", function () {
         cachedDisasters = disasters;
     });
 
-    // 2. Request traveler coordinates via HTML5 Geolocation API
+    /**
+     * Requests the browser's current location and updates the map layers.
+     */
     function requestTravelerLocation() {
         if (!navigator.geolocation) {
             return;
@@ -159,7 +196,7 @@ document.addEventListener("DOMContentLoaded", function () {
 
     requestTravelerLocation();
 
-    // 3. "My Location" Recenter Button Handler
+    // "My Location" Recenter Button Handler
     var btnRecenter = document.getElementById("btnRecenterLocation");
     if (btnRecenter) {
         btnRecenter.addEventListener("click", function () {
@@ -182,7 +219,7 @@ document.addEventListener("DOMContentLoaded", function () {
         });
     }
 
-    // 4. "Generate Assessment" and "Refresh Assessment" Button Handlers
+    // "Generate Assessment" and "Refresh Assessment" Button Handlers
     var btnGenerateAi = document.getElementById("btnGenerateAi");
     if (btnGenerateAi) {
         btnGenerateAi.addEventListener("click", function () {
@@ -197,7 +234,7 @@ document.addEventListener("DOMContentLoaded", function () {
         });
     }
 
-    // 5. Evacuation Route Selection Handlers
+    // Evacuation Route Selection Handlers
     var btnSelectFoot = document.getElementById("btnSelectFootRoute");
     if (btnSelectFoot) {
         btnSelectFoot.addEventListener("click", function (e) {
@@ -228,7 +265,7 @@ document.addEventListener("DOMContentLoaded", function () {
         });
     }
 
-    // 6. Clear Route Button Handler
+    // Clear Route Button Handler
     var btnClearRoute = document.getElementById("btnClearRoute");
     if (btnClearRoute) {
         btnClearRoute.addEventListener("click", function () {
@@ -236,7 +273,7 @@ document.addEventListener("DOMContentLoaded", function () {
         });
     }
 
-    // 7. Retry AI Generation Button Handler
+    // Retry AI Generation Button Handler
     var btnRetryAi = document.getElementById("btnRetryAi");
     if (btnRetryAi) {
         btnRetryAi.addEventListener("click", function () {
@@ -254,10 +291,15 @@ document.addEventListener("DOMContentLoaded", function () {
     });
 
     /**
-     * Renders evacuation route onto the Leaflet map.
+     * Renders a selected evacuation route on the Leaflet map.
+     *
+     * @param {string} routeType "foot" or "vehicle"
+     * @return {void}
      */
     function showEvacuationRouteOnMap(routeType) {
-        if (!map || !routeLayerGroup) return;
+        if (!map || !routeLayerGroup) {
+            return;
+        }
 
         var startLat = travelerCoords.lat;
         var startLon = travelerCoords.lon;
@@ -275,8 +317,12 @@ document.addEventListener("DOMContentLoaded", function () {
         var btnVehicle = document.getElementById("btnSelectVehicleRoute");
         var btnClear = document.getElementById("btnClearRoute");
 
-        if (footCard) footCard.classList.remove("active-route");
-        if (vehicleCard) vehicleCard.classList.remove("active-route");
+        if (footCard) {
+            footCard.classList.remove("active-route");
+        }
+        if (vehicleCard) {
+            vehicleCard.classList.remove("active-route");
+        }
         if (btnFoot) {
             btnFoot.innerHTML = '<i class="fas fa-walking mr-1"></i> Follow This Route (Show on Map)';
             btnFoot.className = 'btn btn-sm btn-outline-success btn-block mt-3 font-weight-bold';
@@ -302,13 +348,17 @@ document.addEventListener("DOMContentLoaded", function () {
             : '<div class="route-dest-marker route-dest-vehicle"><i class="fas fa-car"></i></div>';
 
         if (isFoot) {
-            if (footCard) footCard.classList.add("active-route");
+            if (footCard) {
+                footCard.classList.add("active-route");
+            }
             if (btnFoot) {
                 btnFoot.innerHTML = '<i class="fas fa-check-circle mr-1"></i> Active Route on Map';
                 btnFoot.className = 'btn btn-sm btn-success btn-block mt-3 font-weight-bold';
             }
         } else {
-            if (vehicleCard) vehicleCard.classList.add("active-route");
+            if (vehicleCard) {
+                vehicleCard.classList.add("active-route");
+            }
             if (btnVehicle) {
                 btnVehicle.innerHTML = '<i class="fas fa-check-circle mr-1"></i> Active Route on Map';
                 btnVehicle.className = 'btn btn-sm btn-primary btn-block mt-3 font-weight-bold';
@@ -397,6 +447,9 @@ document.addEventListener("DOMContentLoaded", function () {
         }
     }
 
+    /**
+     * Removes the active evacuation route and resets route controls.
+     */
     function clearEvacuationRoute() {
         if (routeLayerGroup) {
             routeLayerGroup.clearLayers();
@@ -410,8 +463,12 @@ document.addEventListener("DOMContentLoaded", function () {
         var btnFoot = document.getElementById("btnSelectFootRoute");
         var btnVehicle = document.getElementById("btnSelectVehicleRoute");
 
-        if (footCard) footCard.classList.remove("active-route");
-        if (vehicleCard) vehicleCard.classList.remove("active-route");
+        if (footCard) {
+            footCard.classList.remove("active-route");
+        }
+        if (vehicleCard) {
+            vehicleCard.classList.remove("active-route");
+        }
         if (btnFoot) {
             btnFoot.innerHTML = '<i class="fas fa-walking mr-1"></i> Follow This Route (Show on Map)';
             btnFoot.className = 'btn btn-sm btn-outline-success btn-block mt-3 font-weight-bold';
@@ -423,6 +480,12 @@ document.addEventListener("DOMContentLoaded", function () {
     }
 });
 
+/**
+ * Converts a GDACS event code into a readable disaster type.
+ *
+ * @param {string|null} rawType GDACS event code or name
+ * @return {string} readable disaster type
+ */
 function getDisasterTypeName(rawType) {
     var eventTypeMap = {
         'TC': 'Tropical Cyclone',
@@ -435,6 +498,12 @@ function getDisasterTypeName(rawType) {
     return eventTypeMap[rawType] || rawType || 'Disaster';
 }
 
+/**
+ * Selects colors and badge classes for an alert level.
+ *
+ * @param {string|null} alertLevel GDACS alert level
+ * @return {{hexColor: string, badgeClass: string, markerClass: string}} display settings
+ */
 function getAlertConfig(alertLevel) {
     var level = String(alertLevel || '').toLowerCase();
     if (level === 'green') {
@@ -458,6 +527,21 @@ function getAlertConfig(alertLevel) {
     };
 }
 
+/**
+ * Builds the HTML shown when a disaster marker or circle is opened.
+ *
+ * @param {string} disasterTitle disaster name shown in the popup
+ * @param {string} country affected country or countries
+ * @param {string} alertLevel disaster alert level
+ * @param {Object} alertConfig colors and CSS classes for the alert
+ * @param {number} disasterLat disaster latitude
+ * @param {number} disasterLon disaster longitude
+ * @param {number|null} userLat traveler latitude
+ * @param {number|null} userLon traveler longitude
+ * @param {number|null} distanceKm distance from traveler to disaster
+ * @param {boolean} isWithinDangerZone whether the traveler is within 120 km
+ * @return {string} popup HTML
+ */
 function buildDisasterPopupHtml(disasterTitle, country, alertLevel, alertConfig, disasterLat, disasterLon, userLat, userLon, distanceKm, isWithinDangerZone) {
     var distanceSection = '';
 
@@ -496,6 +580,15 @@ function buildDisasterPopupHtml(disasterTitle, country, alertLevel, alertConfig,
     '</div>';
 }
 
+/**
+ * Replaces the disaster layer with markers and danger-radius circles.
+ *
+ * @param {L.LayerGroup} layerGroup Leaflet layer group to populate
+ * @param {Array<Object>} disasters disaster records from the backend
+ * @param {number|null} userLat traveler latitude
+ * @param {number|null} userLon traveler longitude
+ * @return {void}
+ */
 function renderDisasterMarkers(layerGroup, disasters, userLat, userLon) {
     layerGroup.clearLayers();
 
@@ -567,6 +660,14 @@ function renderDisasterMarkers(layerGroup, disasters, userLat, userLon) {
     });
 }
 
+/**
+ * Updates the sidebar status using proximity information.
+ *
+ * @param {Object} data dashboard proximity response
+ * @param {number|null} userLat traveler latitude
+ * @param {number|null} userLon traveler longitude
+ * @return {void}
+ */
 function updateSidebarAlerts(data, userLat, userLon) {
     var alertBox = document.getElementById("userProximityAlert");
     var alertTitle = document.getElementById("proximityAlertTitle");
@@ -600,6 +701,16 @@ function updateSidebarAlerts(data, userLat, userLon) {
     }
 }
 
+/**
+ * Loads disaster data, renders the map, and updates the proximity sidebar.
+ *
+ * @param {L.Map} map Leaflet map instance
+ * @param {L.LayerGroup} disasterLayerGroup layer group for disaster overlays
+ * @param {number|null} userLat traveler latitude
+ * @param {number|null} userLon traveler longitude
+ * @param {function(Array<Object>): void} onSuccess callback receiving disasters
+ * @return {Promise<void>} promise resolved after the request finishes
+ */
 async function loadDisasterMapData(map, disasterLayerGroup, userLat, userLon, onSuccess) {
     try {
         var params = new URLSearchParams();
@@ -639,6 +750,11 @@ async function loadDisasterMapData(map, disasterLayerGroup, userLat, userLon, on
     }
 }
 
+/**
+ * Stops the AI progress timer.
+ *
+ * @return {void}
+ */
 function stopAiProgressAnimation() {
     if (aiProgressInterval) {
         clearInterval(aiProgressInterval);
@@ -646,6 +762,11 @@ function stopAiProgressAnimation() {
     }
 }
 
+/**
+ * Starts the earlier AI progress animation used by the dashboard.
+ *
+ * @return {void}
+ */
 function startAiProgressAnimation() {
     stopAiProgressAnimation();
 
@@ -672,11 +793,23 @@ function startAiProgressAnimation() {
     var barElem = document.getElementById("aiProgressBar");
     var refreshStepText = document.getElementById("aiRefreshStepText");
 
+    /**
+     * Renders one progress step in the earlier AI progress animation.
+     *
+     * @param {number} idx index of the progress step
+     * @return {void}
+     */
     function applyStep(idx) {
         var s = steps[idx];
-        if (stepBadge && s.badge) stepBadge.innerHTML = s.badge;
-        if (msgElem && s.msg) msgElem.textContent = s.msg;
-        if (barElem && s.pct) barElem.style.width = s.pct + "%";
+        if (stepBadge && s.badge) {
+            stepBadge.innerHTML = s.badge;
+        }
+        if (msgElem && s.msg) {
+            msgElem.textContent = s.msg;
+        }
+        if (barElem && s.pct) {
+            barElem.style.width = s.pct + "%";
+        }
         if (refreshStepText && s.msg) {
             refreshStepText.innerHTML = '<i class="fas fa-spinner fa-spin mr-1"></i> ' + s.msg;
         }
@@ -694,8 +827,16 @@ function startAiProgressAnimation() {
     }, 600);
 }
 
+/**
+ * Displays the risk result, route cards, checklist, and disclaimer.
+ *
+ * @param {Object|null} data risk assessment response
+ * @return {void}
+ */
 function renderAiAssessmentView(data) {
-    if (!data) return;
+    if (!data) {
+        return;
+    }
 
     var riskBadge = document.getElementById("aiRiskBadge");
     var toolBadge = document.getElementById("aiToolBadge");
@@ -733,10 +874,10 @@ function renderAiAssessmentView(data) {
 
     // Toggle between safe zone confirmation and evacuation routes
     if (data.inSafeZone) {
-        if (safeZoneSection) safeZoneSection.style.display = "block";
-        if (escapeRoutesSection) escapeRoutesSection.style.display = "none";
+        setElementStyle(safeZoneSection, "display", "block");
+        setElementStyle(escapeRoutesSection, "display", "none");
     } else {
-        if (safeZoneSection) safeZoneSection.style.display = "none";
+        setElementStyle(safeZoneSection, "display", "none");
         if (footCard && footCard.parentElement) {
             footCard.parentElement.style.display = footOption ? "" : "none";
         }
@@ -754,11 +895,18 @@ function renderAiAssessmentView(data) {
             var footRoute = document.getElementById("footRoute");
             var footTips = document.getElementById("footTips");
 
-            if (footTitle) footTitle.textContent = footOption.title || "Option 1: Nearby Shelter (On Foot)";
-            if (footBadge) footBadge.textContent = footOption.estimatedDistance || "N/A";
-            if (footDest) footDest.textContent = footOption.destination || "Designated safe shelter";
-            if (footRoute) footRoute.textContent = footOption.routeAdvice || "Proceed towards destination.";
-            if (footTips) footTips.textContent = footOption.safetyTips || "Stay alert and follow emergency instructions.";
+            updateRouteOptionCard(footOption, {
+                title: footTitle,
+                badge: footBadge,
+                destination: footDest,
+                route: footRoute,
+                tips: footTips
+            }, {
+                title: "Option 1: Nearby Shelter (On Foot)",
+                destination: "Designated safe shelter",
+                route: "Proceed towards destination.",
+                tips: "Stay alert and follow emergency instructions."
+            });
         }
 
         if (vehicleOption) {
@@ -768,11 +916,18 @@ function renderAiAssessmentView(data) {
             var vehRoute = document.getElementById("vehicleRoute");
             var vehTips = document.getElementById("vehicleTips");
 
-            if (vehTitle) vehTitle.textContent = vehicleOption.title || "Option 2: Regional Evacuation (By Vehicle)";
-            if (vehBadge) vehBadge.textContent = vehicleOption.estimatedDistance || "N/A";
-            if (vehDest) vehDest.textContent = vehicleOption.destination || "Designated regional haven";
-            if (vehRoute) vehRoute.textContent = vehicleOption.routeAdvice || "Follow primary evacuation corridors.";
-            if (vehTips) vehTips.textContent = vehicleOption.safetyTips || "Keep fuel tank full and check road passability.";
+            updateRouteOptionCard(vehicleOption, {
+                title: vehTitle,
+                badge: vehBadge,
+                destination: vehDest,
+                route: vehRoute,
+                tips: vehTips
+            }, {
+                title: "Option 2: Regional Evacuation (By Vehicle)",
+                destination: "Designated regional haven",
+                route: "Follow primary evacuation corridors.",
+                tips: "Keep fuel tank full and check road passability."
+            });
         }
     }
 
@@ -801,6 +956,29 @@ function renderAiAssessmentView(data) {
     }
 }
 
+// Populate either route card using the same fallback and DOM-update rules.
+/**
+ * Fills a route card using its option data and fallback text.
+ *
+ * @param {Object} option route option returned by the backend
+ * @param {Object} elements DOM elements belonging to the card
+ * @param {Object} defaults fallback text for missing option values
+ * @return {void}
+ */
+function updateRouteOptionCard(option, elements, defaults) {
+    setElementText(elements.title, "textContent", option.title || defaults.title);
+    setElementText(elements.badge, "textContent", option.estimatedDistance || "N/A");
+    setElementText(elements.destination, "textContent", option.destination || defaults.destination);
+    setElementText(elements.route, "textContent", option.routeAdvice || defaults.route);
+    setElementText(elements.tips, "textContent", option.safetyTips || defaults.tips);
+}
+
+/**
+ * Checks whether a route has valid destination coordinates.
+ *
+ * @param {Object|null} routeOption route option to validate
+ * @return {boolean} true when both coordinates are within valid ranges
+ */
 function isRenderableRouteOption(routeOption) {
     if (!routeOption) {
         return false;
@@ -816,6 +994,12 @@ function isRenderableRouteOption(routeOption) {
         && destinationLon <= 180;
 }
 
+/**
+ * Shows the route error modal, or logs the error if the modal is unavailable.
+ *
+ * @param {string} message message shown to the traveler
+ * @return {void}
+ */
 function showRouteErrorModal(message) {
     var modal = document.getElementById("routeErrorModal");
     var modalMessage = document.getElementById("routeErrorModalMessage");
@@ -831,6 +1015,13 @@ function showRouteErrorModal(message) {
     $(modal).modal("show");
 }
 
+/**
+ * Requests an AI risk assessment and updates the loading/result/error UI.
+ *
+ * @param {number|null} userLat traveler latitude
+ * @param {number|null} userLon traveler longitude
+ * @return {Promise<void>} promise resolved after the assessment is handled
+ */
 async function fetchAiRiskAssessment(userLat, userLon) {
     var placeholderSection = document.getElementById("aiPlaceholderSection");
     var loadingSection = document.getElementById("aiLoadingSection");
@@ -842,11 +1033,11 @@ async function fetchAiRiskAssessment(userLat, userLon) {
     var btnGenerate = document.getElementById("btnGenerateAi");
 
     // Show full loading view for both initial generation and refresh
-    if (placeholderSection) placeholderSection.style.display = "none";
-    if (contentSection) contentSection.style.display = "none";
-    if (errorSection) errorSection.style.display = "none";
-    if (refreshBanner) refreshBanner.style.display = "none";
-    if (loadingSection) loadingSection.style.display = "block";
+    setElementStyle(placeholderSection, "display", "none");
+    setElementStyle(contentSection, "display", "none");
+    setElementStyle(errorSection, "display", "none");
+    setElementStyle(refreshBanner, "display", "none");
+    setElementStyle(loadingSection, "display", "block");
 
     if (btnRefresh) {
         btnRefresh.style.display = "inline-block";
@@ -901,7 +1092,7 @@ async function fetchAiRiskAssessment(userLat, userLon) {
         // SUCCESS: Stop progress animation and snap to 100%
         stopAiProgressAnimation();
         var barElem = document.getElementById("aiProgressBar");
-        if (barElem) barElem.style.width = "100%";
+        setElementStyle(barElem, "width", "100%");
 
         latestAiAssessment = data;
 
@@ -912,8 +1103,8 @@ async function fetchAiRiskAssessment(userLat, userLon) {
         // Configure frontend view and display formatting from assessment data
         renderAiAssessmentView(data);
 
-        if (loadingSection) loadingSection.style.display = "none";
-        if (contentSection) contentSection.style.display = "block";
+        setElementStyle(loadingSection, "display", "none");
+        setElementStyle(contentSection, "display", "block");
 
     } catch (err) {
         if (err.name === "AbortError") {
@@ -923,10 +1114,10 @@ async function fetchAiRiskAssessment(userLat, userLon) {
         console.error("AI risk assessment error:", err);
         stopAiProgressAnimation();
 
-        if (loadingSection) loadingSection.style.display = "none";
-        if (contentSection) contentSection.style.display = "none";
-        if (placeholderSection) placeholderSection.style.display = "none";
-        if (errorSection) errorSection.style.display = "block";
+        setElementStyle(loadingSection, "display", "none");
+        setElementStyle(contentSection, "display", "none");
+        setElementStyle(placeholderSection, "display", "none");
+        setElementStyle(errorSection, "display", "block");
         
         if (errorMessageElem) {
             errorMessageElem.textContent = err.message || "AI assessment could not be generated at this time. Please retry later.";
@@ -935,9 +1126,7 @@ async function fetchAiRiskAssessment(userLat, userLon) {
         currentAiRequestId = null;
         stopAiProgressAnimation();
         var currentRefreshBanner = document.getElementById("aiRefreshingBanner");
-        if (currentRefreshBanner) {
-            currentRefreshBanner.style.display = "none";
-        }
+        setElementStyle(currentRefreshBanner, "display", "none");
 
         if (btnRefresh) {
             btnRefresh.disabled = false;
@@ -950,7 +1139,11 @@ async function fetchAiRiskAssessment(userLat, userLon) {
     }
 }
 
-// Helper to display real-time animated stage updates while awaiting AI assessment
+/**
+ * Displays staged progress while the AI assessment is being generated.
+ *
+ * @return {void}
+ */
 function startControlledProgress() {
     stopAiProgressAnimation();
     var barElem = document.getElementById("aiProgressBar");
@@ -976,11 +1169,17 @@ function startControlledProgress() {
     ];
 
     var stageIndex = 0;
+    /**
+     * Applies one staged progress update to the assessment UI.
+     *
+     * @param {number} idx index of the current progress stage
+     * @return {void}
+     */
     function applyStage(idx) {
         var s = stages[idx];
-        if (barElem) barElem.style.width = s.pct + "%";
-        if (msgElem) msgElem.textContent = s.msg;
-        if (stepBadge) stepBadge.innerHTML = s.badge;
+        setElementStyle(barElem, "width", s.pct + "%");
+        setElementText(msgElem, "textContent", s.msg);
+        setElementText(stepBadge, "innerHTML", s.badge);
     }
 
     applyStage(0);

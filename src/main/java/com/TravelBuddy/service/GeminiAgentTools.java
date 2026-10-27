@@ -40,11 +40,7 @@ public class GeminiAgentTools {
         }
 
         ProximitySummary summary = getProximitySummary(request);
-        String threat = summary.getNearestDistanceKm() != null
-                && summary.getNearestDistanceKm() <= 30.0
-                        ? "CRITICAL"
-                        : "MODERATE";
-        
+        String threat = getThreatLevel(summary);
         return new ProximityResult(summary.inDangerZone(), summary.getNearestDisasterName(), summary.getNearestDistanceKm(), threat);
     }
 
@@ -100,11 +96,9 @@ public class GeminiAgentTools {
             return List.of();
         }
 
-        String expectedCountry = country.trim().toLowerCase(Locale.ROOT);
+        String expectedCountry = normalizeCountry(country);
         return shelterRepository.getAllShelters().stream()
-                .filter(shelter -> shelter.getCountry() != null
-                        && shelter.getCountry().trim().toLowerCase(Locale.ROOT)
-                                .equals(expectedCountry))
+                .filter(shelter -> expectedCountry.equals(normalizeCountry(shelter.getCountry())))
                 .toList();
     }
 
@@ -127,5 +121,22 @@ public class GeminiAgentTools {
 
     private ProximitySummary getProximitySummary(ChatRequest.LocationRequest request) {
         return gdacsService.calculateProximitySummary(request.getUserLat(), request.getUserLon());
+    }
+
+    /**
+     * Uses the nearest-distance threshold already established for critical alerts.
+     */
+    private String getThreatLevel(ProximitySummary summary) {
+        return summary.getNearestDistanceKm() != null
+                && summary.getNearestDistanceKm() <= 30.0
+                        ? "CRITICAL"
+                        : "MODERATE";
+    }
+
+    /**
+     * Normalizes country names once so shelter filtering is case-insensitive and null-safe.
+     */
+    private String normalizeCountry(String country) {
+        return country == null ? "" : country.trim().toLowerCase(Locale.ROOT);
     }
 }

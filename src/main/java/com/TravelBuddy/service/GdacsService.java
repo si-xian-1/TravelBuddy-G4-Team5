@@ -28,10 +28,10 @@ public class GdacsService {
             .configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false)
             .registerModule(new JavaTimeModule());
     private final ResourceLoader resourceLoader;
-    private final String base_url = "https://www.gdacs.org/gdacsapi/api";
-    // If disaster is 120km away from the itienarary plan, user should be alerted
-    private final double danger_distance_Km = 120.0;
-    // Stores all the disastes gathered
+    private static final String BASE_URL = "https://www.gdacs.org/gdacsapi/api";
+    // A disaster within this radius is relevant to the traveler's safety assessment.
+    private static final double DANGER_DISTANCE_KM = 120.0;
+    // Cached events are reused by dashboard and AI tool requests.
     private List<DisasterEvents> activeDisasters = List.of();
 
     // For demo purpose to stimulate scenario
@@ -60,7 +60,7 @@ public class GdacsService {
         try {
             // Attempt to connect to gdacs api to retrieve results before using mock as fallback
             Disaster response = restClient.get()
-                    .uri(base_url + "/Events/geteventlist/events4app")
+                    .uri(BASE_URL + "/Events/geteventlist/events4app")
                     .header("Accept", "application/json")
                     .header("User-Agent", "TravelBuddy/1.0 (student-lab-project)")
                     .retrieve()
@@ -178,14 +178,8 @@ public class GdacsService {
         DisasterEvents nearestEvent = null;
 
         for (DisasterEvents disaster : activeDisasters) {
-            // Check through if data is valid
-            if (disaster.getLocationCoordinates() == null
-                    || disaster.getLocationCoordinates().getCoordinates() == null) {
-                continue;
-            }
-
-            double[] coords = disaster.getLocationCoordinates().getCoordinates();
-            if (coords.length < 2) {
+            double[] coords = getCoordinates(disaster);
+            if (coords == null) {
                 continue;
             }
 
@@ -195,7 +189,7 @@ public class GdacsService {
             double dist = Math.sqrt((longDiff * longDiff) + (latDiff * latDiff)) * 111.0;
             double roundedDist = (double) Math.round(dist);
             disaster.setDistanceKm(roundedDist);
-            disaster.setInDangerZone(roundedDist <= danger_distance_Km);
+            disaster.setInDangerZone(roundedDist <= DANGER_DISTANCE_KM);
 
             // Compute which disaster zone user is closest to
             if (dist < minDistance) {
@@ -219,7 +213,7 @@ public class GdacsService {
         // Compute selected disaster closest to user
         Double nearestDist = (minDistance == Double.MAX_VALUE) ? null : (double) Math.round(minDistance);
         boolean isDanger = (warning != null && !warning.isEmpty())
-                || (nearestDist != null && nearestDist <= danger_distance_Km);
+                || (nearestDist != null && nearestDist <= DANGER_DISTANCE_KM);
 
         return new ProximitySummary(isDanger, warning, nearestDist, nearestName, nearestEvent);
     }
@@ -236,15 +230,9 @@ public class GdacsService {
             double latitude, double longtitude, LocalDateTime startDate, LocalDateTime endDate) {
         //List<DisasterEvents> disasters = getActiveDisasters();
         for (DisasterEvents disaster : activeDisasters) {
-            // Check valid coordinates
-            if (disaster.getLocationCoordinates() == null
-                    || disaster.getLocationCoordinates().getCoordinates() == null) {
-                continue;
-            }
-
             // Pythagoras theorem to calculate distance of itinerary locations to each disasters location
-            double[] disasterCoordinates = disaster.getLocationCoordinates().getCoordinates();
-            if (disasterCoordinates.length < 2) {
+            double[] disasterCoordinates = getCoordinates(disaster);
+            if (disasterCoordinates == null) {
                 continue;
             }
             double longtitudeDiff = longtitude - disasterCoordinates[0];
@@ -253,7 +241,7 @@ public class GdacsService {
                     * 111.0;
 
             // Check if the itinerary location is in the danger zone
-            if (proximityDistance > danger_distance_Km) {
+            if (proximityDistance > DANGER_DISTANCE_KM) {
                 continue;
             }
 
@@ -296,5 +284,18 @@ public class GdacsService {
 
         // When itinerary is not affected by any disaster
         return null;
+    }
+
+    /**
+     * Returns usable longitude/latitude coordinates or null for incomplete GDACS data.
+     * Keeping this guard in one place prevents the proximity calculations from drifting.
+     */
+    private double[] getCoordinates(DisasterEvents disaster) {
+        if (disaster == null || disaster.getLocationCoordinates() == null
+                || disaster.getLocationCoordinates().getCoordinates() == null
+                || disaster.getLocationCoordinates().getCoordinates().length < 2) {
+            return null;
+        }
+        return disaster.getLocationCoordinates().getCoordinates();
     }
 }

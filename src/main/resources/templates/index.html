@@ -89,48 +89,6 @@
                                 </div>
                             </div>
 
-                            <!-- 2. Brief Itinerary Impact Overview -->
-                            <div class="card shadow mb-4">
-                                <div class="card-header py-3 d-flex justify-content-between align-items-center">
-                                    <h6 class="m-0 font-weight-bold text-gray-900">
-                                        <i class="fas fa-route mr-1"></i> Upcoming Itineraries
-                                    </h6>
-                                    <a th:href="@{/allItineraries}" class="small font-weight-bold">View All</a>
-                                </div>
-                                <div class="card-body">
-                                    <p class="text-xs text-muted mb-3">
-                                        Summary of upcoming trips. To view affected hotels, attractions, or flights,
-                                        check the detailed itinerary page.
-                                    </p>
-
-                                    <div th:if="${#lists.isEmpty(itineraries)}" class="text-center text-muted py-3">
-                                        No upcoming itineraries found.
-                                    </div>
-
-                                    <!-- Itinerary Brief Cards -->
-                                    <div th:each="itinerary : ${itineraries}" class="border rounded p-3 mb-2"
-                                         th:classappend="${itinerary.hasDisasterWarnings} ? 'border-left-danger bg-light' : 'border-left-success'">
-                                        <div class="d-flex justify-content-between align-items-center">
-                                            <h6 class="font-weight-bold mb-1" th:text="${itinerary.itineraryName}">Trip Name</h6>
-                                            <span th:if="${itinerary.hasDisasterWarnings}" class="badge badge-danger">Warning</span>
-                                            <span th:unless="${itinerary.hasDisasterWarnings}" class="badge badge-success">Safe</span>
-                                        </div>
-                                        <div class="small text-muted mb-2">
-                                            <i class="far fa-calendar-alt mr-1"></i>
-                                            <span th:text="${itinerary.startDate}"></span> to <span th:text="${itinerary.endDate}"></span>
-                                        </div>
-
-                                        <div th:if="${itinerary.hasDisasterWarnings}" class="text-danger small mb-2 font-weight-bold">
-                                            <i class="fas fa-exclamation-circle mr-1"></i> Potential disaster impact detected.
-                                        </div>
-
-                                        <a th:href="@{/itinerary/view/{id}(id=${itinerary.itineraryId})}"
-                                           class="btn btn-sm btn-outline-secondary py-0 px-2 text-xs">
-                                            Inspect Details & Alternatives <i class="fas fa-chevron-right ml-1"></i>
-                                        </a>
-                                    </div>
-                                </div>
-                            </div>
                         </div>
                     </div>
 
