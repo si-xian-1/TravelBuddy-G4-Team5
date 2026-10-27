@@ -263,7 +263,7 @@ document.addEventListener("DOMContentLoaded", function () {
         var startLon = travelerCoords.lon;
 
         if (startLat == null || startLon == null) {
-            alert("Please click 'My Location' or enable location access so TravelBuddy can plot an evacuation route from your position.");
+            showRouteErrorModal("Please click 'My Location' or enable location access so TravelBuddy can plot an evacuation route from your position.");
             return;
         }
 
@@ -290,8 +290,8 @@ document.addEventListener("DOMContentLoaded", function () {
             ? (latestAiAssessment && latestAiAssessment.footOption)
             : (latestAiAssessment && latestAiAssessment.vehicleOption);
 
-        if (!routeOption) {
-            alert("No evacuation route available for this selection.");
+        if (!isRenderableRouteOption(routeOption)) {
+            showRouteErrorModal("No evacuation route is available for this selection.");
             return;
         }
 
@@ -318,7 +318,7 @@ document.addEventListener("DOMContentLoaded", function () {
         var destLat = Number(routeOption.destinationLat);
         var destLon = Number(routeOption.destinationLon);
         if (!Number.isFinite(destLat) || !Number.isFinite(destLon)) {
-            alert("The selected route has no valid destination coordinates.");
+            showRouteErrorModal("The selected route has no valid destination coordinates.");
             return;
         }
 
@@ -704,6 +704,10 @@ function renderAiAssessmentView(data) {
     var safeZoneSection = document.getElementById("aiSafeZoneSection");
     var escapeRoutesSection = document.getElementById("aiEscapeRoutesSection");
     var checklistContainer = document.getElementById("aiChecklistContainer");
+    var footCard = document.getElementById("cardFootRoute");
+    var vehicleCard = document.getElementById("cardVehicleRoute");
+    var footOption = isRenderableRouteOption(data.footOption) ? data.footOption : null;
+    var vehicleOption = isRenderableRouteOption(data.vehicleOption) ? data.vehicleOption : null;
 
     var level = String(data.riskLevel || "LOW").toUpperCase();
     if (riskBadge) {
@@ -733,34 +737,42 @@ function renderAiAssessmentView(data) {
         if (escapeRoutesSection) escapeRoutesSection.style.display = "none";
     } else {
         if (safeZoneSection) safeZoneSection.style.display = "none";
-        if (escapeRoutesSection) escapeRoutesSection.style.display = "flex";
+        if (footCard && footCard.parentElement) {
+            footCard.parentElement.style.display = footOption ? "" : "none";
+        }
+        if (vehicleCard && vehicleCard.parentElement) {
+            vehicleCard.parentElement.style.display = vehicleOption ? "" : "none";
+        }
+        if (escapeRoutesSection) {
+            escapeRoutesSection.style.display = footOption || vehicleOption ? "flex" : "none";
+        }
 
-        if (data.footOption) {
+        if (footOption) {
             var footTitle = document.getElementById("footOptionTitle");
             var footBadge = document.getElementById("footDistanceBadge");
             var footDest = document.getElementById("footDestination");
             var footRoute = document.getElementById("footRoute");
             var footTips = document.getElementById("footTips");
 
-            if (footTitle) footTitle.textContent = data.footOption.title || "Option 1: Nearby Shelter (On Foot)";
-            if (footBadge) footBadge.textContent = data.footOption.estimatedDistance || "N/A";
-            if (footDest) footDest.textContent = data.footOption.destination || "Designated safe shelter";
-            if (footRoute) footRoute.textContent = data.footOption.routeAdvice || "Proceed towards destination.";
-            if (footTips) footTips.textContent = data.footOption.safetyTips || "Stay alert and follow emergency instructions.";
+            if (footTitle) footTitle.textContent = footOption.title || "Option 1: Nearby Shelter (On Foot)";
+            if (footBadge) footBadge.textContent = footOption.estimatedDistance || "N/A";
+            if (footDest) footDest.textContent = footOption.destination || "Designated safe shelter";
+            if (footRoute) footRoute.textContent = footOption.routeAdvice || "Proceed towards destination.";
+            if (footTips) footTips.textContent = footOption.safetyTips || "Stay alert and follow emergency instructions.";
         }
 
-        if (data.vehicleOption) {
+        if (vehicleOption) {
             var vehTitle = document.getElementById("vehicleOptionTitle");
             var vehBadge = document.getElementById("vehicleDistanceBadge");
             var vehDest = document.getElementById("vehicleDestination");
             var vehRoute = document.getElementById("vehicleRoute");
             var vehTips = document.getElementById("vehicleTips");
 
-            if (vehTitle) vehTitle.textContent = data.vehicleOption.title || "Option 2: Regional Evacuation (By Vehicle)";
-            if (vehBadge) vehBadge.textContent = data.vehicleOption.estimatedDistance || "N/A";
-            if (vehDest) vehDest.textContent = data.vehicleOption.destination || "Designated regional haven";
-            if (vehRoute) vehRoute.textContent = data.vehicleOption.routeAdvice || "Follow primary evacuation corridors.";
-            if (vehTips) vehTips.textContent = data.vehicleOption.safetyTips || "Keep fuel tank full and check road passability.";
+            if (vehTitle) vehTitle.textContent = vehicleOption.title || "Option 2: Regional Evacuation (By Vehicle)";
+            if (vehBadge) vehBadge.textContent = vehicleOption.estimatedDistance || "N/A";
+            if (vehDest) vehDest.textContent = vehicleOption.destination || "Designated regional haven";
+            if (vehRoute) vehRoute.textContent = vehicleOption.routeAdvice || "Follow primary evacuation corridors.";
+            if (vehTips) vehTips.textContent = vehicleOption.safetyTips || "Keep fuel tank full and check road passability.";
         }
     }
 
@@ -775,6 +787,7 @@ function renderAiAssessmentView(data) {
                 checklistContainer.appendChild(pill);
             });
         }
+
     }
 
     // Display AI disclaimer
@@ -786,6 +799,36 @@ function renderAiAssessmentView(data) {
             disclaimerText.textContent = data.aiDisclaimer;
         }
     }
+}
+
+function isRenderableRouteOption(routeOption) {
+    if (!routeOption) {
+        return false;
+    }
+
+    var destinationLat = Number(routeOption.destinationLat);
+    var destinationLon = Number(routeOption.destinationLon);
+    return Number.isFinite(destinationLat)
+        && destinationLat >= -90
+        && destinationLat <= 90
+        && Number.isFinite(destinationLon)
+        && destinationLon >= -180
+        && destinationLon <= 180;
+}
+
+function showRouteErrorModal(message) {
+    var modal = document.getElementById("routeErrorModal");
+    var modalMessage = document.getElementById("routeErrorModalMessage");
+
+    if (!modal || typeof $ !== "function") {
+        console.error("Route error modal is unavailable:", message);
+        return;
+    }
+
+    if (modalMessage) {
+        modalMessage.textContent = message;
+    }
+    $(modal).modal("show");
 }
 
 async function fetchAiRiskAssessment(userLat, userLon) {

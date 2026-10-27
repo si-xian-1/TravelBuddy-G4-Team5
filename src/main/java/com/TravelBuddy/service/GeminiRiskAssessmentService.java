@@ -98,14 +98,26 @@ public class GeminiRiskAssessmentService {
                   "riskSummary": "A meaningful 3-5 sentence analysis covering the nearest hazard, distance, risk level, likely local impact, uncertainty, and why a route was or was not recommended.",
                   "recommendedAction": "The main safety instruction.",
                   "inSafeZone": true or false,
-                  "footOption": route metadata or null,
-                  "vehicleOption": route metadata or null,
+                  "footOption": {
+                    "title": "...",
+                    "destination": "...",
+                    "estimatedDistance": "...",
+                    "estimatedDuration": "...",
+                    "destinationLat": 0.0,
+                    "destinationLon": 0.0,
+                    "routeAdvice": "...",
+                    "safetyTips": "Concise advice as a single text string (NOT an array).",
+                    "routeVerified": true,
+                    "roadBlocked": false,
+                    "blockedHazardName": null
+                  } or null,
+                  "vehicleOption": route metadata matching the footOption schema or null,
                   "emergencyChecklist": ["Practical step 1", "Practical step 2"]
                 }
-                EvacuationRouteOption fields are:
-                title, destination, estimatedDistance, estimatedDuration,
-                destinationLat, destinationLon, routeAdvice, safetyTips,
-                routeVerified, roadBlocked, blockedHazardName.
+                EvacuationRouteOption fields: title (string), destination (string), estimatedDistance (string),
+                estimatedDuration (string), destinationLat (number), destinationLon (number), routeAdvice (string),
+                safetyTips (must be a single string, NEVER an array or list),
+                routeVerified (boolean), roadBlocked (boolean), blockedHazardName (string or null).
                 Do not include coordinates. The application attaches the verified
                 road geometry after receiving your response.
                 Set both route options to null for safe-zone users and whenever

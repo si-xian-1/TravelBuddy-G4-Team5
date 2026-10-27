@@ -10,8 +10,6 @@ import org.springframework.ai.tool.annotation.Tool;
 import com.TravelBuddy.model.ChatRequest;
 import com.TravelBuddy.model.ChatResult.ForecastResult;
 import com.TravelBuddy.model.ChatResult.ProximityResult;
-import com.TravelBuddy.model.EvacuationRouteOption;
-import com.TravelBuddy.model.OsrmResponse;
 import com.TravelBuddy.model.ProximitySummary;
 import com.TravelBuddy.model.Shelter;
 
