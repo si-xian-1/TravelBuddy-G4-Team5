@@ -19,18 +19,22 @@ import com.TravelBuddy.model.Disaster.DisasterEvents;
 import com.TravelBuddy.model.ProximitySummary;
 import com.TravelBuddy.service.GdacsService;
 import com.TravelBuddy.service.GeminiRiskAssessmentService;
+import com.TravelBuddy.service.OsrmRoutingService;
 
 @RestController
 @RequestMapping("/api/dashboard")
 public class DashboardController {
     private final GdacsService gdacsService;
     private final GeminiRiskAssessmentService geminiRiskAssessmentService;
+    private final OsrmRoutingService osrmRoutingService;
 
     public DashboardController(
             GdacsService gdacsService,
-            GeminiRiskAssessmentService geminiRiskAssessmentService) {
+            GeminiRiskAssessmentService geminiRiskAssessmentService,
+            OsrmRoutingService osrmRoutingService) {
         this.gdacsService = gdacsService;
         this.geminiRiskAssessmentService = geminiRiskAssessmentService;
+        this.osrmRoutingService = osrmRoutingService;
     }
 
     /**
@@ -84,6 +88,26 @@ public class DashboardController {
                 userLat, userLong, currentUser, requestId);
 
         return ResponseEntity.ok(assessment);
+    }
+
+    /**
+     * Retrieves road geometry only when the traveler chooses to display a route.
+     * This keeps mapping separate from the Gemini assessment and its token budget.
+     */
+    @GetMapping("/route-geometry")
+    public ResponseEntity<List<List<Double>>> getRouteGeometry(
+            @RequestParam double userLat,
+            @RequestParam double userLon,
+            @RequestParam double destLat,
+            @RequestParam double destLon,
+            @RequestParam(defaultValue = "vehicle") String transportMode) {
+
+        String profile = "foot".equalsIgnoreCase(transportMode) ? "foot" : "vehicle";
+        List<List<Double>> geometry = osrmRoutingService.getRouteGeometry(
+                userLat, userLon, destLat, destLon, profile);
+        return geometry.isEmpty()
+                ? ResponseEntity.notFound().build()
+                : ResponseEntity.ok(geometry);
     }
 
     /**

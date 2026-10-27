@@ -296,7 +296,7 @@ document.addEventListener("DOMContentLoaded", function () {
      * @param {string} routeType "foot" or "vehicle"
      * @return {void}
      */
-    function showEvacuationRouteOnMap(routeType) {
+    async function showEvacuationRouteOnMap(routeType) {
         if (!map || !routeLayerGroup) {
             return;
         }
@@ -372,9 +372,40 @@ document.addEventListener("DOMContentLoaded", function () {
             return;
         }
 
-        var routeLatLngs = [];
-        if (Array.isArray(routeOption.coordinates)) {
-            routeLatLngs = routeOption.coordinates
+        // Request the actual road geometry only when the traveler selects a route.
+        // This keeps the geometry out of the Gemini response and avoids extra tokens.
+        var geometryUrl = '/api/dashboard/route-geometry?' + new URLSearchParams({
+            userLat: startLat,
+            userLon: startLon,
+            destLat: destLat,
+            destLon: destLon,
+            transportMode: isFoot ? 'foot' : 'vehicle'
+        }).toString();
+
+        var routeCoordinates;
+        try {
+            var geometryResponse = await fetch(geometryUrl, {
+                method: "GET",
+                headers: {
+                    "Accept": "application/json"
+                },
+                credentials: "same-origin"
+            });
+
+            if (!geometryResponse.ok) {
+                throw new Error("Route geometry request failed: HTTP " + geometryResponse.status);
+            }
+
+            routeCoordinates = await geometryResponse.json();
+        } catch (error) {
+            console.error("Failed to load road route geometry:", error);
+            clearEvacuationRoute();
+            showRouteErrorModal("The road route could not be loaded. Please try again.");
+            return;
+        }
+
+        var routeLatLngs = Array.isArray(routeCoordinates)
+            ? routeCoordinates
                 .filter(function (coordinate) {
                     return Array.isArray(coordinate)
                         && coordinate.length >= 2
@@ -383,10 +414,13 @@ document.addEventListener("DOMContentLoaded", function () {
                 })
                 .map(function (coordinate) {
                     return [Number(coordinate[1]), Number(coordinate[0])];
-                });
-        }
+                })
+            : [];
+
         if (routeLatLngs.length < 2) {
-            routeLatLngs = [[startLat, startLon], [destLat, destLon]];
+            clearEvacuationRoute();
+            showRouteErrorModal("The route service returned no usable road geometry.");
+            return;
         }
 
         var routeLine = L.polyline(routeLatLngs, {

@@ -1,6 +1,7 @@
 package com.TravelBuddy.service;
 
 import java.util.Locale;
+import java.util.List;
 
 import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestClient;
@@ -23,9 +24,7 @@ public class OsrmRoutingService {
      * Requests 3 OSRM route alternatives between the user and the AI-selected destination.
      */
     public String getRouteAlternatives(double userLat, double userLon, double destLat, double destLon, String profile) {
-        double latDiff = Math.abs(userLat - destLat);
-        double lonDiff = Math.abs(userLon - destLon);
-        if (latDiff > MAX_ROUTE_COORDINATE_DELTA || lonDiff > MAX_ROUTE_COORDINATE_DELTA) {
+        if (!isWithinRoutingRange(userLat, userLon, destLat, destLon)) {
             return "Destination shelter is outside terrestrial navigation range (>500km).";
         }
 
@@ -34,14 +33,7 @@ public class OsrmRoutingService {
         String effectiveProfile = normalizeProfile(profile);
 
         try {
-            String coordString = String.format(Locale.US, "%.5f,%.5f;%.5f,%.5f", userLon, userLat, destLon, destLat);
-            OsrmResponse response = restClient.get()
-                    .uri(baseUrl + "/route/v1/" + effectiveProfile + "/" + coordString
-                            + "?overview=full&geometries=geojson&steps=true&alternatives=3")
-                    .header("Accept-Encoding", "identity")
-                    .header("User-Agent", "TravelBuddy/1.0")
-                    .retrieve()
-                    .body(OsrmResponse.class);
+            OsrmResponse response = requestRouteResponse(userLat, userLon, destLat, destLon, effectiveProfile);
             if (response == null || !"Ok".equalsIgnoreCase(response.getCode())
                     || response.getRoutes() == null || response.getRoutes().isEmpty()) {
                 return "No valid " + profile + " routes found to the destination.";
@@ -70,6 +62,54 @@ public class OsrmRoutingService {
             System.err.println("[OSRM Error] Routing call failed: " + e.getMessage());
             return "OSRM API temporarily unavailable.";
         }
+    }
+
+    /**
+     * Gets the road geometry for the first available route without involving Gemini.
+     * The browser uses these longitude/latitude pairs to draw the actual road path.
+     *
+     * @return OSRM GeoJSON coordinates, or an empty list when no route is available
+     */
+    public List<List<Double>> getRouteGeometry(
+            double userLat, double userLon, double destLat, double destLon, String profile) {
+        if (!isWithinRoutingRange(userLat, userLon, destLat, destLon)) {
+            return List.of();
+        }
+
+        try {
+            OsrmResponse response = requestRouteResponse(
+                    userLat, userLon, destLat, destLon, normalizeProfile(profile));
+            if (response == null || !"Ok".equalsIgnoreCase(response.getCode())
+                    || response.getRoutes() == null || response.getRoutes().isEmpty()) {
+                return List.of();
+            }
+
+            OsrmResponse.Geometry geometry = response.getRoutes().get(0).getGeometry();
+            return geometry == null || geometry.getCoordinates() == null
+                    ? List.of()
+                    : geometry.getCoordinates();
+        } catch (Exception e) {
+            System.err.println("[OSRM Error] Route geometry call failed: " + e.getMessage());
+            return List.of();
+        }
+    }
+
+    private OsrmResponse requestRouteResponse(
+            double userLat, double userLon, double destLat, double destLon, String profile) {
+        String coordString = String.format(Locale.US, "%.5f,%.5f;%.5f,%.5f", userLon, userLat, destLon, destLat);
+        return restClient.get()
+                .uri(baseUrl + "/route/v1/" + profile + "/" + coordString
+                        + "?overview=full&geometries=geojson&steps=true&alternatives=3")
+                .header("Accept-Encoding", "identity")
+                .header("User-Agent", "TravelBuddy/1.0")
+                .retrieve()
+                .body(OsrmResponse.class);
+    }
+
+    private boolean isWithinRoutingRange(double userLat, double userLon, double destLat, double destLon) {
+        double latDiff = Math.abs(userLat - destLat);
+        double lonDiff = Math.abs(userLon - destLon);
+        return latDiff <= MAX_ROUTE_COORDINATE_DELTA && lonDiff <= MAX_ROUTE_COORDINATE_DELTA;
     }
 
     /**
