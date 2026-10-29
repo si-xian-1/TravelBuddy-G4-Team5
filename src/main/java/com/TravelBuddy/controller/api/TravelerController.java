@@ -95,13 +95,17 @@ public class TravelerController {
     @PutMapping("/updateProfile")
     public String updateUser(
             @AuthenticationPrincipal User currentUser,
-            @Valid @RequestBody User user) {
+            @Valid @RequestBody User user,
+            HttpServletRequest request,
+            HttpServletResponse response) {
         if (travelerService.updateUser(currentUser.getUserId(), user) == 0) {
             throw new ResponseStatusException(
                     HttpStatus.NOT_FOUND,
                     "Traveler not found");
         }
 
+        currentUser.setUsername(user.getUsername());
+        securityContextRepository.saveContext(SecurityContextHolder.getContext(), request, response);
         return "User updated successfully";
     }
 

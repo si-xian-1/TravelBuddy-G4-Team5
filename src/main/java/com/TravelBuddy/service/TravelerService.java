@@ -73,6 +73,9 @@ public class TravelerService {
      * @return rows updated
      */
     public int updateUser(int userId, User user) {
+        if (user.getMobileNumber() != null && user.getMobileNumber().isBlank()) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Mobile number is required");
+        }
         // Prevent mask from overwriting actual password if passed during update
         if (User.PASSWORD_MASK.equals(user.getPassword())) {
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Invalid password");
