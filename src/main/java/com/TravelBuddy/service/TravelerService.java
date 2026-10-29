@@ -76,18 +76,10 @@ public class TravelerService {
         if (user.getMobileNumber() != null && user.getMobileNumber().isBlank()) {
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Mobile number is required");
         }
-        // Prevent mask from overwriting actual password if passed during update
-        if (User.PASSWORD_MASK.equals(user.getPassword())) {
-            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Invalid password");
+        if (user.getPassword() != null && !user.getPassword().isBlank()) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Use Change Password to update your password");
         }
-
-        // Preserve the existing password when no replacement is provided.
-        String password = user.getPassword();
-        if (password == null || password.isBlank()) {
-            user.setPassword(null);
-        } else {
-            user.setPassword(passwordEncoder.encode(password));
-        }
+        user.setPassword(null);
 
         try {
             return travelerRepository.updateUser(userId, user);
@@ -102,6 +94,28 @@ public class TravelerService {
      * @param userId
      * @return delete status
      */
+    public void changePassword(int userId, String newPassword, String confirmPassword) {
+        if (newPassword == null || newPassword.isBlank()) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "New password is required");
+        }
+        if (newPassword.length() > 255) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Password can be at most 255 characters");
+        }
+        if (!newPassword.equals(confirmPassword)) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Passwords must match");
+        }
+        String oldHash = travelerRepository.getPasswordHash(userId);
+        if (oldHash == null) {
+            throw new ResponseStatusException(HttpStatus.NOT_FOUND, "Traveler not found");
+        }
+        if (passwordEncoder.matches(newPassword, oldHash)) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "New password cannot be the same as your old password");
+        }
+        if (travelerRepository.updatePassword(userId, oldHash, passwordEncoder.encode(newPassword)) == 0) {
+            throw new ResponseStatusException(HttpStatus.CONFLICT, "Password changed since this request. Please try again.");
+        }
+    }
+
     public int deleteUser(int userId) {
         return travelerRepository.deleteUser(userId);
     }

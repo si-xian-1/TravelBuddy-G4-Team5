@@ -53,11 +53,38 @@
 
                     <div class="card shadow mb-4">
                         <div class="card-header py-3 d-flex align-items-center justify-content-between">
-                            <h6 class="m-0 font-weight-bold text-primary">Traveler Details</h6>
+                            <h6 id="travelerDetailsTitle" class="m-0 font-weight-bold text-primary">Traveler Details</h6>
                             <button id="editProfile" type="button" class="btn btn-primary btn-sm" disabled>Edit Profile</button>
                         </div>
                         <div class="card-body">
                             <div id="profileSuccess" class="alert alert-success d-none" role="status">Profile updated successfully.</div>
+                                <form id="passwordForm" class="d-none" novalidate>
+                                    <div>
+                                        <div id="passwordError" class="alert alert-danger d-none" role="alert"></div>
+                                        <div class="form-group">
+                                            <label for="newPassword">New Password</label>
+                                            <div class="password-field">
+                                                <input id="newPassword" type="password" class="form-control" autocomplete="new-password" required maxlength="255" aria-describedby="newPasswordErrMsg">
+                                                <button type="button" class="password-eye" data-password-toggle="newPassword" aria-controls="newPassword" aria-label="Show new password" aria-pressed="false">
+                                                    <i class="fas fa-eye" aria-hidden="true"></i>
+                                                </button>
+                                                <div id="newPasswordErrMsg" class="invalid-feedback"></div>
+                                            </div>
+                                        </div>
+                                        <div class="form-group">
+                                            <label for="confirmPassword">Confirm New Password</label>
+                                            <div class="password-field">
+                                                <input id="confirmPassword" type="password" class="form-control" autocomplete="new-password" required maxlength="255" aria-describedby="confirmPasswordErrMsg">
+                                                <button type="button" class="password-eye" data-password-toggle="confirmPassword" aria-controls="confirmPassword" aria-label="Show confirm new password" aria-pressed="false">
+                                                    <i class="fas fa-eye" aria-hidden="true"></i>
+                                                </button>
+                                                <div id="confirmPasswordErrMsg" class="invalid-feedback"></div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <button id="changePasswordButton" type="submit" class="btn btn-primary">Save Changes</button>
+                                    <button id="cancelPasswordChange" type="button" class="btn btn-secondary">Cancel</button>
+                                </form>
                             <form id="profileForm" class="d-none" novalidate>
                                 <div id="saveError" class="alert alert-danger d-none" role="alert"></div>
                                 <div class="form-group">
@@ -116,6 +143,8 @@
                             </div>
                         </div>
                     </div>
+                    <div id="passwordSuccess" class="alert alert-success d-none" role="status">Password changed successfully.</div>
+                    <button id="openChangePassword" type="button" class="btn btn-primary mb-4">Change Password</button>
                 </div>
             </div>
         </div>
@@ -168,9 +197,11 @@
             });
             function toggleEditing(editing) {
                 clearErrors();
+                document.getElementById("passwordSuccess").classList.add("d-none");
                 form.classList.toggle("d-none", !editing);
                 document.getElementById("profileDetails").classList.toggle("d-none", editing);
                 editButton.classList.toggle("d-none", editing);
+                document.getElementById("openChangePassword").classList.toggle("d-none", editing);
                 saveError.classList.add("d-none");
             }
             function renderProfile() {
@@ -282,6 +313,8 @@
             }
         });
     </script>
+
+    <script th:src="@{/js/changePassword.js}"></script>
 
     <!-- Custom scripts for all pages-->
     <script th:src="@{/js/sb-admin-2.min.js}"></script>

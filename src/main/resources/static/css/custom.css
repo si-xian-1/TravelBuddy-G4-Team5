@@ -38,3 +38,39 @@ To add own customized styling to overwrite existing styling
     transform: translateY(-3px);
     box-shadow: 0 0.5rem 1rem rgba(0, 0, 0, 0.15) !important;
 }
+
+/* Keep password visibility controls inside the input border. */
+.password-field {
+    position: relative;
+}
+
+.password-field .form-control {
+    padding-right: 3rem;
+}
+
+.password-field .form-control.is-invalid {
+    background-image: none;
+}
+
+.password-eye {
+    position: absolute;
+    top: 0;
+    right: 0;
+    height: calc(1.5em + .75rem + 2px);
+    width: 2.75rem;
+    padding: 0;
+    border: 0;
+    background: transparent;
+    color: #858796;
+    cursor: pointer;
+}
+
+.password-eye:hover {
+    color: #4e73df;
+}
+
+.password-eye:focus-visible {
+    outline: 2px solid #4e73df;
+    outline-offset: -5px;
+    border-radius: .35rem;
+}
