@@ -442,7 +442,7 @@ document.addEventListener("DOMContentLoaded", function () {
 
         var navInfo;
         if (routeOption.routeVerified) {
-            navInfo = '<div class="small text-success mt-1"><i class="fas fa-shield-alt mr-1"></i><strong>OSRM Verified Route:</strong> ' +
+            navInfo = '<div class="small text-success mt-1"><i class="fas fa-shield-alt mr-1"></i><strong>Mapbox Verified Route:</strong> ' +
                 (routeOption.estimatedDistance || '') + ' - Navigation corridor cleared against active hazards.</div>';
         } else if (routeOption.roadBlocked) {
             navInfo = '<div class="small text-warning mt-1"><i class="fas fa-exclamation-triangle mr-1"></i><strong>Detour Advice:</strong> Route bypasses ' +

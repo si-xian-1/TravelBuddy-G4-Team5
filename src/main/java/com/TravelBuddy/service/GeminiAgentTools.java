@@ -20,11 +20,11 @@ import com.TravelBuddy.model.Shelter;
 public class GeminiAgentTools {
     private final ShelterRepository shelterRepository;
     private final GdacsService gdacsService;
-    private final OsrmRoutingService osrmRoutingService;
+    private final MapboxRoutingService mapboxRoutingService;
 
-    public GeminiAgentTools(GdacsService gdacsService, OsrmRoutingService osrmRoutingService, ShelterRepository shelterRepository) {
+    public GeminiAgentTools(GdacsService gdacsService, MapboxRoutingService mapboxRoutingService, ShelterRepository shelterRepository) {
         this.gdacsService = gdacsService;
-        this.osrmRoutingService = osrmRoutingService;
+        this.mapboxRoutingService = mapboxRoutingService;
         this.shelterRepository = shelterRepository;
     }
 
@@ -102,21 +102,19 @@ public class GeminiAgentTools {
                 .toList();
     }
 
-    // Get route from OSRM api
-    @Tool(description = "Gets OSRM route alternatives to a specific safe shelter destination. Mode must be 'foot' or 'vehicle'.")
+    // Get route alternatives from MapBox api
+    @Tool(description = "Gets route alternatives to a specific safe shelter destination. Mode must be 'foot' or 'vehicle'.")
     public String getEvacuationRoute(ChatRequest.RouteToShelterRequest request) {
         if (request == null) {
             return "Route unavailable: invalid request parameters.";
         }
 
-        String profile = "foot".equalsIgnoreCase(request.getTransportMode()) ? "foot" : "driving";
-
-        return osrmRoutingService.getRouteAlternatives(
+        return mapboxRoutingService.getRouteAlternatives(
                 request.getUserLat(),
                 request.getUserLon(),
                 request.getDestLat(),
                 request.getDestLon(),
-                profile);
+                request.getTransportMode());
     }
 
     private ProximitySummary getProximitySummary(ChatRequest.LocationRequest request) {

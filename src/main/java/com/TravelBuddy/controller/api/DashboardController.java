@@ -19,22 +19,22 @@ import com.TravelBuddy.model.Disaster.DisasterEvents;
 import com.TravelBuddy.model.ProximitySummary;
 import com.TravelBuddy.service.GdacsService;
 import com.TravelBuddy.service.GeminiRiskAssessmentService;
-import com.TravelBuddy.service.OsrmRoutingService;
+import com.TravelBuddy.service.MapboxRoutingService;
 
 @RestController
 @RequestMapping("/api/dashboard")
 public class DashboardController {
     private final GdacsService gdacsService;
     private final GeminiRiskAssessmentService geminiRiskAssessmentService;
-    private final OsrmRoutingService osrmRoutingService;
+    private final MapboxRoutingService mapboxRoutingService;
 
     public DashboardController(
             GdacsService gdacsService,
             GeminiRiskAssessmentService geminiRiskAssessmentService,
-            OsrmRoutingService osrmRoutingService) {
+            MapboxRoutingService mapboxRoutingService) {
         this.gdacsService = gdacsService;
         this.geminiRiskAssessmentService = geminiRiskAssessmentService;
-        this.osrmRoutingService = osrmRoutingService;
+        this.mapboxRoutingService = mapboxRoutingService;
     }
 
     /**
@@ -103,7 +103,7 @@ public class DashboardController {
             @RequestParam(defaultValue = "vehicle") String transportMode) {
 
         String profile = "foot".equalsIgnoreCase(transportMode) ? "foot" : "vehicle";
-        List<List<Double>> geometry = osrmRoutingService.getRouteGeometry(
+        List<List<Double>> geometry = mapboxRoutingService.getRouteGeometry(
                 userLat, userLon, destLat, destLon, profile);
         return geometry.isEmpty()
                 ? ResponseEntity.notFound().build()

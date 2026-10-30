@@ -3,37 +3,41 @@ package com.TravelBuddy.service;
 import java.util.Locale;
 import java.util.List;
 
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestClient;
 
-import com.TravelBuddy.model.OsrmResponse;
+import com.TravelBuddy.model.MapboxResponse;
 
 @Service
-public class OsrmRoutingService {
-    private static final String DEFAULT_PROFILE = "driving";
+public class MapboxRoutingService {
+    private static final String DEFAULT_PROFILE = "mapbox/driving";
     private static final double MAX_ROUTE_COORDINATE_DELTA = 5.0;
 
     private final RestClient restClient;
-    private final String baseUrl = "https://router.project-osrm.org";
+    private final String mapboxApiKey;
+    private final String baseUrl = "https://api.mapbox.com/directions/v5";
 
-    public OsrmRoutingService(RestClient.Builder restClientBuilder) {
+    public MapboxRoutingService(
+            RestClient.Builder restClientBuilder,
+            @Value("${mapbox.api.key}") String mapboxApiKey) {
         this.restClient = restClientBuilder.build();
+        this.mapboxApiKey = mapboxApiKey;
     }
 
     /**
-     * Requests 3 OSRM route alternatives between the user and the AI-selected destination.
+     * Requests route alternatives between the user and the AI-selected
+     * destination.
      */
     public String getRouteAlternatives(double userLat, double userLon, double destLat, double destLon, String profile) {
         if (!isWithinRoutingRange(userLat, userLon, destLat, destLon)) {
             return "Destination shelter is outside terrestrial navigation range (>500km).";
         }
 
-        // The public route contract accepts walking/foot, but OSRM is queried
-        // through the application's supported driving profile for both options.
         String effectiveProfile = normalizeProfile(profile);
 
         try {
-            OsrmResponse response = requestRouteResponse(userLat, userLon, destLat, destLon, effectiveProfile);
+            MapboxResponse response = requestRouteResponse(userLat, userLon, destLat, destLon, effectiveProfile);
             if (response == null || !"Ok".equalsIgnoreCase(response.getCode())
                     || response.getRoutes() == null || response.getRoutes().isEmpty()) {
                 return "No valid " + profile + " routes found to the destination.";
@@ -41,7 +45,7 @@ public class OsrmRoutingService {
 
             StringBuilder routeSummaries = new StringBuilder("Available " + profile + " routes:\n");
             int optionNum = 1;
-            for (OsrmResponse.Route route : response.getRoutes()) {
+            for (MapboxResponse.Route route : response.getRoutes()) {
                 double distKm = route.getDistance() != null ? route.getDistance() / 1000.0 : 0;
                 long mins = route.getDuration() != null ? Math.round(route.getDuration() / 60.0) : 0;
                 routeSummaries.append(String.format("Route %d: %.1f km (%d mins). ", optionNum++, distKm, mins));
@@ -59,16 +63,17 @@ public class OsrmRoutingService {
             }
             return routeSummaries.toString();
         } catch (Exception e) {
-            System.err.println("[OSRM Error] Routing call failed: " + e.getMessage());
-            return "OSRM API temporarily unavailable.";
+            System.err.println("[Mapbox Error] Routing call failed: " + e.getMessage());
+            return "Mapbox API temporarily unavailable.";
         }
     }
 
     /**
-     * Gets the road geometry for the first available route without involving Gemini.
+     * Gets the route geometry for the first available route without involving
+     * Gemini.
      * The browser uses these longitude/latitude pairs to draw the actual road path.
      *
-     * @return OSRM GeoJSON coordinates, or an empty list when no route is available
+     * @return Mapbox GeoJSON coordinates, or an empty list when no route is available
      */
     public List<List<Double>> getRouteGeometry(
             double userLat, double userLon, double destLat, double destLon, String profile) {
@@ -77,33 +82,34 @@ public class OsrmRoutingService {
         }
 
         try {
-            OsrmResponse response = requestRouteResponse(
+            MapboxResponse response = requestRouteResponse(
                     userLat, userLon, destLat, destLon, normalizeProfile(profile));
             if (response == null || !"Ok".equalsIgnoreCase(response.getCode())
                     || response.getRoutes() == null || response.getRoutes().isEmpty()) {
                 return List.of();
             }
 
-            OsrmResponse.Geometry geometry = response.getRoutes().get(0).getGeometry();
+            MapboxResponse.Geometry geometry = response.getRoutes().get(0).getGeometry();
             return geometry == null || geometry.getCoordinates() == null
                     ? List.of()
                     : geometry.getCoordinates();
         } catch (Exception e) {
-            System.err.println("[OSRM Error] Route geometry call failed: " + e.getMessage());
+            System.err.println("[Mapbox Error] Route geometry call failed: " + e.getMessage());
             return List.of();
         }
     }
 
-    private OsrmResponse requestRouteResponse(
+    private MapboxResponse requestRouteResponse(
             double userLat, double userLon, double destLat, double destLon, String profile) {
         String coordString = String.format(Locale.US, "%.5f,%.5f;%.5f,%.5f", userLon, userLat, destLon, destLat);
         return restClient.get()
-                .uri(baseUrl + "/route/v1/" + profile + "/" + coordString
-                        + "?overview=full&geometries=geojson&steps=true&alternatives=3")
+                .uri(baseUrl + "/" + profile + "/" + coordString
+                        + "?overview=full&geometries=geojson&steps=true&alternatives=true"
+                        + "&access_token=" + mapboxApiKey)
                 .header("Accept-Encoding", "identity")
                 .header("User-Agent", "TravelBuddy/1.0")
                 .retrieve()
-                .body(OsrmResponse.class);
+                .body(MapboxResponse.class);
     }
 
     private boolean isWithinRoutingRange(double userLat, double userLon, double destLat, double destLon) {
@@ -113,10 +119,18 @@ public class OsrmRoutingService {
     }
 
     /**
-     * Keeps unsupported or blank profiles from producing an invalid OSRM URL.
-     * Walking requests intentionally retain the existing driving fallback.
+     * Keeps unsupported or blank profiles from producing an invalid Mapbox URL.
      */
     private String normalizeProfile(String profile) {
+        if ("foot".equalsIgnoreCase(profile)) {
+            return "mapbox/walking";
+        }
+
+        if ("vehicle".equalsIgnoreCase(profile)
+                || "driving".equalsIgnoreCase(profile)) {
+            return "mapbox/driving";
+        }
+
         return DEFAULT_PROFILE;
     }
 }

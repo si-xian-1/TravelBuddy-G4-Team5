@@ -141,8 +141,9 @@ public class GeminiRiskAssessmentService {
                    shelters registered in the relevant disaster country.
                 5. Select a returned local shelter using its exact name and
                    coordinates. Never select a shelter from another country.
-                6. Call getEvacuationRoute twice using the exact selected shelter
-                   data: once with foot and once with vehicle.
+                6. Call getEvacuationRoute exactly twice for the same shelter:
+                   first with transportMode "foot", then with transportMode "vehicle".
+                   Keep the results separate.
                 7. If getSafeShelters returns no local shelters, do not call the
                    route tool. Explain that no valid local route is available.
                 8. Never invent a shelter, distance, duration, route, or coordinate.
