@@ -873,7 +873,6 @@ function renderAiAssessmentView(data) {
     }
 
     var riskBadge = document.getElementById("aiRiskBadge");
-    var toolBadge = document.getElementById("aiToolBadge");
     var riskSummary = document.getElementById("aiRiskSummary");
     var actionText = document.getElementById("aiActionText");
     var safeZoneSection = document.getElementById("aiSafeZoneSection");
@@ -892,10 +891,6 @@ function renderAiAssessmentView(data) {
             level === "HIGH" ? "badge-risk-high" :
             level === "MODERATE" ? "badge-risk-moderate" : "badge-risk-low"
         );
-    }
-
-    if (toolBadge) {
-        toolBadge.textContent = data.modelUsed || "Gemini AI Agent";
     }
 
     if (riskSummary) {
