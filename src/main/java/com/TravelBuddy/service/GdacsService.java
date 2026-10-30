@@ -275,7 +275,7 @@ public class GdacsService {
                             disaster.getDisasterDetails().getAlertLevel());
                 } else {
                     return String.format(
-                            "NOTICE - Disaster type: %s recently occurred at %s. You can still proceed with this itinerary item but due to potential infrastructure damage, you may wish to review it.",
+                            "NOTICE - Disaster type: %s recently occurred at %s. Potential infrastructure damage, you may wish to review your travel plans.",
                             disasterType,
                             disaster.getDisasterDetails().getAffectedCountries());
                 }
