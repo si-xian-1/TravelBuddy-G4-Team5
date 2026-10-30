@@ -29,12 +29,198 @@ To add own customized styling to overwrite existing styling
 
 /* Custom hover effect for cards to pop up for clickable cards */
 .card-hover {
-    transition: transform 0.2s ease-in-out, box-shadow 0.2s ease-in-out;
-    text-decoration: none !important;
-    cursor: pointer;
+  transition: transform 0.2s ease-in-out, box-shadow 0.2s ease-in-out;
+  text-decoration: none !important;
+  cursor: pointer;
 }
 
 .card-hover:hover {
-    transform: translateY(-3px);
-    box-shadow: 0 0.5rem 1rem rgba(0, 0, 0, 0.15) !important;
+  transform: translateY(-3px);
+  box-shadow: 0 0.5rem 1rem rgba(0, 0, 0, 0.15) !important;
+}
+
+/* Styling of map display */
+#dashboardMap {
+  height: 580px;
+  width: 100%;
+  border-radius: 0.35rem;
+  z-index: 1;
+}
+
+/* ========================================================
+   Disaster Map Marker & Popup Custom Styles
+   ======================================================== */
+
+/* Card container for disaster popup windows */
+.disaster-popup-card {
+  min-width: 180px;
+  max-width: 260px;
+  word-wrap: break-word;
+  font-family: 'Nunito', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+  line-height: 1.4;
+}
+
+/* Title of disaster event inside popup */
+.disaster-popup-title {
+  font-weight: 700;
+  font-size: 0.95rem;
+  margin-bottom: 0.25rem;
+}
+
+/* Country and regional location in popup */
+.disaster-popup-location {
+  color: #5a5c69;
+  font-size: 0.8rem;
+  margin-bottom: 0.35rem;
+  line-height: 1.35;
+}
+
+/* Alert level container in popup */
+.disaster-popup-meta {
+  font-size: 0.8rem;
+  margin-bottom: 0.35rem;
+}
+
+/* Dynamic distance readout line calculated via Pythagorean theorem */
+.disaster-popup-distance {
+  font-size: 0.8rem;
+  padding-top: 0.35rem;
+  border-top: 1px solid #e3e6f0;
+  margin-top: 0.35rem;
+}
+
+/* Base style for map epicenter marker dot */
+.disaster-marker-dot {
+  width: 12px;
+  height: 12px;
+  border-radius: 50%;
+  border: 2px solid #ffffff;
+  box-shadow: 0 0 4px rgba(0, 0, 0, 0.45);
+}
+
+/* Red indicator for high-priority or standard hazards */
+.disaster-marker-red {
+  background-color: #dc3545;
+}
+
+/* Orange indicator for medium-severity hazards */
+.disaster-marker-orange {
+  background-color: #fd7e14;
+}
+
+/* Green indicator for low-severity or advisory events */
+.disaster-marker-green {
+  background-color: #28a745;
+}
+
+/* Traveler location pin dot with subtle glowing ring */
+.user-marker-dot {
+  width: 16px;
+  height: 16px;
+  border-radius: 50%;
+  background-color: #007bff;
+  border: 3px solid #ffffff;
+  box-shadow: 0 0 0 3px rgba(0, 123, 255, 0.35), 0 0 8px rgba(0, 0, 0, 0.3);
+}
+
+/* ========================================================
+   AI Risk Assessment & Escape Routes Styles
+   ======================================================== */
+
+/* Escape route option card */
+.ai-escape-card {
+  border: 1px solid #e3e6f0;
+  border-radius: 0.5rem;
+  background-color: #ffffff;
+  transition: all 0.25s ease-in-out;
+  cursor: pointer;
+  position: relative;
+}
+
+.ai-escape-card:hover {
+  border-color: #b7b9cc;
+  box-shadow: 0 0.35rem 0.85rem rgba(0, 0, 0, 0.08);
+  transform: translateY(-2px);
+}
+
+/* Accent borders for foot vs vehicle options */
+.ai-escape-foot {
+  border-left: 4px solid #1cc88a !important;
+}
+
+.ai-escape-vehicle {
+  border-left: 4px solid #4e73df !important;
+}
+
+/* Active route card selection highlight */
+.ai-escape-foot.active-route {
+  border-color: #1cc88a !important;
+  box-shadow: 0 0 0 3px rgba(28, 200, 138, 0.35) !important;
+  background-color: #f6fcf9;
+}
+
+.ai-escape-vehicle.active-route {
+  border-color: #4e73df !important;
+  box-shadow: 0 0 0 3px rgba(78, 115, 223, 0.35) !important;
+  background-color: #f8faff;
+}
+
+/* Map route destination pin */
+.route-dest-icon-wrapper {
+  background: transparent;
+  border: none;
+}
+
+.route-dest-marker {
+  width: 28px;
+  height: 28px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #ffffff;
+  font-size: 13px;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.35);
+}
+
+.route-dest-foot {
+  background-color: #1cc88a;
+  border: 2px solid #ffffff;
+}
+
+.route-dest-vehicle {
+  background-color: #4e73df;
+  border: 2px solid #ffffff;
+}
+
+/* Badge styling for risk levels */
+.badge-risk-critical {
+  background-color: #e74a3b;
+  color: #ffffff;
+}
+
+.badge-risk-high {
+  background-color: #e74a3b;
+  color: #ffffff;
+}
+
+.badge-risk-moderate {
+  background-color: #fd7e14;
+  color: #ffffff;
+}
+
+.badge-risk-low {
+  background-color: #1cc88a;
+  color: #ffffff;
+}
+
+/* Emergency checklist badge pill */
+.ai-checklist-pill {
+  font-size: 0.75rem;
+  background-color: #eaecf4;
+  color: #4e73df;
+  border-radius: 10rem;
+  padding: 0.25rem 0.6rem;
+  display: inline-block;
+  margin: 0.2rem 0.2rem;
 }
