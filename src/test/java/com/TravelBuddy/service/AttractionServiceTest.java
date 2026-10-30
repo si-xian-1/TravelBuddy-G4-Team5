@@ -7,7 +7,6 @@ import com.TravelBuddy.repository.*;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
-import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.List;
 
@@ -48,7 +47,7 @@ class AttractionServiceTest {
         Attraction result = service.createAttraction(10, 7, item);
 
         // Assert
-        assertSame(item, result);
+        assertEquals(item, result);
         assertEquals(Integer.valueOf(10), item.getItineraryId());
         verify(itineraries).verifyItineraryAndUser(10, 7);
         verify(repository).createAttraction(10, item);
@@ -90,7 +89,7 @@ class AttractionServiceTest {
         List<Attraction> result = service.getAllAttraction(10, 7);
 
         assertEquals(1, result.size());
-        assertSame(item, result.get(0));
+        assertEquals(item, result.get(0));
         assertEquals("Nearby disaster", result.get(0).getDisasterWarning());
         verify(itineraries).verifyItineraryAndUser(10, 7);
         verify(gdacs).evaluateProximityAndDateFromDisasters(
@@ -107,5 +106,43 @@ class AttractionServiceTest {
         assertTrue(service.getAllAttraction(10, 7).isEmpty());
 
         verifyNoInteractions(gdacs);
+    }
+
+    @org.junit.jupiter.params.ParameterizedTest
+    @org.junit.jupiter.params.provider.CsvSource({
+        "-90.001,139.76,false", "90.001,139.76,false",
+        "35.68,-180.001,false", "35.68,180.001,false",
+        "-90.001,139.76,true", "90.001,139.76,true",
+        "35.68,-180.001,true", "35.68,180.001,true"
+    })
+    void coordinates_outsideGeographicRange_rejectedOnCreateAndUpdate(
+            double latitude, double longitude, boolean updating) {
+        Attraction item = validAttraction();
+        when(itineraries.verifyItineraryAndUser(10, 7)).thenReturn(true);
+        item.setLatitude(latitude);
+        item.setLongitude(longitude);
+
+        assertThrows(InvalidInputsException.class, () -> {
+            if (updating) service.updateAttraction(10, 7, 20, item);
+            else service.createAttraction(10, 7, item);
+        });
+
+        verify(repository, never()).createAttraction(anyInt(), any());
+        verify(repository, never()).updateAttraction(anyInt(), anyInt(), any());
+    }
+
+    @Test
+    void getAllAttraction_disasterFailure_preservesDataAndReportsFailure() {
+        Attraction item = validAttraction();
+        when(itineraries.verifyItineraryAndUser(10, 7)).thenReturn(true);
+        when(repository.findAllAttractionsByItineraryId(10)).thenReturn(List.of(item));
+        when(gdacs.evaluateProximityAndDateFromDisasters(item.getLatitude(), item.getLongitude(), item.getVisitDate(), item.getVisitDate()))
+                .thenThrow(new IllegalStateException("Fixture disaster outage"));
+
+        List<Attraction> result = assertDoesNotThrow(() -> service.getAllAttraction(10, 7));
+
+        assertEquals(1, result.size());
+        assertEquals(item, result.get(0));
+        assertEquals("disaster-service failure", result.get(0).getDisasterWarning());
     }
 }

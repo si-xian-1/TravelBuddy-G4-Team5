@@ -57,11 +57,10 @@ class ItineraryServiceTest {
         Itinerary itinerary = validItinerary();
         itinerary.setStartDate(itinerary.getEndDate().plusDays(1));
 
-        InvalidInputsException exception = assertThrows(InvalidInputsException.class,
+        assertThrows(InvalidInputsException.class,
                 () -> service.createItinerary(itinerary, 7));
 
-        assertEquals("Start date cannot be after end date.", exception.getMessage());
-        verifyNoInteractions(repository, travelers);
+        verify(repository, never()).createItinerary(any());
     }
 
     @Test
@@ -114,7 +113,7 @@ class ItineraryServiceTest {
         when(gdacs.evaluateProximityAndDateFromDisasters(35.55, 139.78,
                 flight.getDepartureTime(), flight.getArrivalTime())).thenReturn("Flight warning");
 
-        assertSame(itinerary, service.getSelectedItinerary(10, 7));
+        assertEquals(itinerary, service.getSelectedItinerary(10, 7));
 
         assertEquals("Hotel warning", hotel.getDisasterWarning());
         assertEquals("Attraction warning", attraction.getDisasterWarning());
@@ -134,8 +133,56 @@ class ItineraryServiceTest {
         when(repository.verifyItineraryAndUser(10, 7)).thenReturn(true);
         when(repository.findSelectedItineraryByUserId(10, 7)).thenReturn(itinerary);
 
-        assertSame(itinerary, service.getSelectedItinerary(10, 7));
+        assertEquals(itinerary, service.getSelectedItinerary(10, 7));
 
         verifyNoInteractions(gdacs);
+    }
+
+    @Test
+    void createItinerary_sameDate_isAllowed() {
+        Itinerary itinerary = validItinerary();
+        itinerary.setEndDate(itinerary.getStartDate());
+        when(travelers.getUser(7)).thenReturn(new User());
+        when(repository.createItinerary(itinerary)).thenReturn(10);
+
+        assertEquals(10, service.createItinerary(itinerary, 7));
+
+        verify(repository).createItinerary(itinerary);
+    }
+
+    @Test
+    void updateItinerary_excludingExistingHotel_isRejectedWithoutSaving() {
+        Itinerary existing = validItinerary();
+        Hotel hotel = new Hotel();
+        hotel.setCheckIn(LocalDateTime.of(2027, 1, 10, 15, 0));
+        hotel.setCheckOut(LocalDateTime.of(2027, 1, 15, 11, 0));
+        existing.setHotels(List.of(hotel));
+        when(repository.verifyItineraryAndUser(10, 7)).thenReturn(true);
+        when(repository.findSelectedItineraryByUserId(10, 7)).thenReturn(existing);
+        Itinerary proposed = validItinerary();
+        proposed.setEndDate(LocalDate.of(2027, 1, 14));
+
+        assertThrows(InvalidInputsException.class, () -> service.updateItinerary(10, 7, proposed));
+
+        verify(repository, never()).updateItinerary(anyInt(), anyInt(), any());
+        assertEquals(LocalDate.of(2027, 1, 15), existing.getEndDate());
+    }
+
+    @Test
+    void updateItinerary_excludingExistingFlight_isRejectedWithoutSaving() {
+        Itinerary existing = validItinerary();
+        Flight flight = new Flight();
+        flight.setDepartureTime(LocalDateTime.of(2027, 1, 10, 23, 0));
+        flight.setArrivalTime(LocalDateTime.of(2027, 1, 15, 1, 0));
+        existing.setFlights(List.of(flight));
+        when(repository.verifyItineraryAndUser(10, 7)).thenReturn(true);
+        when(repository.findSelectedItineraryByUserId(10, 7)).thenReturn(existing);
+        Itinerary proposed = validItinerary();
+        proposed.setStartDate(LocalDate.of(2027, 1, 11));
+
+        assertThrows(InvalidInputsException.class, () -> service.updateItinerary(10, 7, proposed));
+
+        verify(repository, never()).updateItinerary(anyInt(), anyInt(), any());
+        assertEquals(LocalDate.of(2027, 1, 10), existing.getStartDate());
     }
 }

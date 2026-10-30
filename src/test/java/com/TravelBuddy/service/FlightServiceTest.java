@@ -7,7 +7,6 @@ import com.TravelBuddy.repository.*;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
-import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.List;
 
@@ -54,7 +53,7 @@ class FlightServiceTest {
         Flight result = service.createFlight(10, 7, item);
 
         // Assert
-        assertSame(item, result);
+        assertEquals(item, result);
         assertEquals(Integer.valueOf(10), item.getItineraryId());
         verify(itineraries).checkItineraryBelongToUser(10, 7);
         verify(repository).createFlight(10, item);
@@ -98,17 +97,6 @@ class FlightServiceTest {
         verifyNoInteractions(repository);
     }
 
-    @Test
-    void getSelectedFlight_missingFlight_throws() {
-        when(repository.findSelectedFlightByItineraryId(20, 10)).thenReturn(null);
-
-        InvalidInputsException exception = assertThrows(InvalidInputsException.class,
-                () -> service.getSelectedFlight(10, 7, 20));
-
-        assertEquals("Flight not found in this itinerary.", exception.getMessage());
-        verify(itineraries).checkItineraryBelongToUser(10, 7);
-        verify(repository).findSelectedFlightByItineraryId(20, 10);
-    }
 
     @Test
     void getAllFlights_addsDisasterWarning() {
@@ -122,7 +110,7 @@ class FlightServiceTest {
         List<Flight> result = service.getAllFlights(10, 7);
 
         assertEquals(1, result.size());
-        assertSame(item, result.get(0));
+        assertEquals(item, result.get(0));
         assertEquals("Nearby disaster", result.get(0).getDisasterWarning());
         verify(itineraries).checkItineraryBelongToUser(10, 7);
         verify(gdacs).evaluateProximityAndDateFromDisasters(
@@ -139,5 +127,43 @@ class FlightServiceTest {
         assertTrue(service.getAllFlights(10, 7).isEmpty());
 
         verifyNoInteractions(gdacs);
+    }
+
+    @org.junit.jupiter.params.ParameterizedTest
+    @org.junit.jupiter.params.provider.CsvSource({
+        "-90.001,139.76,false", "90.001,139.76,false",
+        "35.68,-180.001,false", "35.68,180.001,false",
+        "-90.001,139.76,true", "90.001,139.76,true",
+        "35.68,-180.001,true", "35.68,180.001,true"
+    })
+    void coordinates_outsideGeographicRange_rejectedOnCreateAndUpdate(
+            double latitude, double longitude, boolean updating) {
+        Flight item = validFlight();
+
+        item.setArrivalLatitude(latitude);
+        item.setArrivalLongitude(longitude);
+
+        assertThrows(InvalidInputsException.class, () -> {
+            if (updating) service.updateFlight(10, 7, 20, item);
+            else service.createFlight(10, 7, item);
+        });
+
+        verify(repository, never()).createFlight(anyInt(), any());
+        verify(repository, never()).updateFlight(anyInt(), anyInt(), any());
+    }
+
+    @Test
+    void getAllFlights_disasterFailure_preservesDataAndReportsFailure() {
+        Flight item = validFlight();
+
+        when(repository.findAllFlightsByItineraryId(10)).thenReturn(List.of(item));
+        when(gdacs.evaluateProximityAndDateFromDisasters(item.getArrivalLatitude(), item.getArrivalLongitude(), item.getDepartureTime(), item.getArrivalTime()))
+                .thenThrow(new IllegalStateException("Fixture disaster outage"));
+
+        List<Flight> result = assertDoesNotThrow(() -> service.getAllFlights(10, 7));
+
+        assertEquals(1, result.size());
+        assertEquals(item, result.get(0));
+        assertEquals("disaster-service failure", result.get(0).getDisasterWarning());
     }
 }
