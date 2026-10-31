@@ -132,6 +132,40 @@ document.addEventListener("click", function (event) {
     }
 });
 
+/**
+ * Shared Itinerary Data Cache
+ * Caches the itinerary fetch promise so multiple scripts don't refetch the same data.
+ */
+let itineraryPromise = null;
+let cachedItineraryId = null;
+
+function getItinerary(itineraryId) {
+    if (!itineraryId) {
+        return Promise.reject(new Error("No itinerary ID provided"));
+    }
+    if (itineraryPromise && cachedItineraryId === String(itineraryId)) {
+        return itineraryPromise;
+    }
+    cachedItineraryId = String(itineraryId);
+    itineraryPromise = fetch(`/api/itinerary/${encodeURIComponent(itineraryId)}`, { credentials: "same-origin" })
+        .then(response => {
+            if (!response.ok) {
+                throw new Error(`Failed to load itinerary (${response.status}).`);
+            }
+            return response.json();
+        })
+        .catch(err => {
+            itineraryPromise = null;
+            cachedItineraryId = null;
+            throw err;
+        });
+    return itineraryPromise;
+}
+
+/**
+ * Page initialization
+ * Fetches and displays the top-level itinerary summary (Name and Overall Dates).
+ */
 document.addEventListener("DOMContentLoaded", async function () {
     const page = document.getElementById("itineraryDetails");
     if (!page) return;
@@ -142,10 +176,8 @@ document.addEventListener("DOMContentLoaded", async function () {
     const summary = document.getElementById("itinerarySummary");
 
     try {
-        const response = await fetch(`/api/itinerary/${encodeURIComponent(itineraryId)}`, { credentials: "same-origin" });
-        if (!response.ok) throw new Error(`Failed to load travel details (${response.status}).`);
-
-        const itinerary = await response.json();
+        // Fetch core itinerary details
+        const itinerary = await getItinerary(itineraryId);
         document.getElementById("itineraryName").textContent = itinerary.itineraryName || "Unnamed itinerary";
         const startDate = itinerary.startDate ? new Date(itinerary.startDate).toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric' }) : "Not provided";
         const endDate = itinerary.endDate ? new Date(itinerary.endDate).toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric' }) : "Not provided";

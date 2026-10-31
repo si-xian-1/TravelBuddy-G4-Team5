@@ -26,6 +26,49 @@
         return !Number.isNaN(selected.getTime()) && selected >= getMinimumDateTime();
     }
 
+    // Restricts datetime inputs to stay within an itinerary's start and end dates
+    function setItineraryLimits(input, startDate, endDate) {
+        if (!input || !startDate || !endDate) {
+            return;
+        }
+
+        const startStr = typeof startDate === "string" ? startDate.slice(0, 10) : "";
+        const endStr = typeof endDate === "string" ? endDate.slice(0, 10) : "";
+        
+        if (startStr) {
+            input.min = `${startStr}T00:00`;
+        }
+
+        if (endStr) {
+            input.max = `${endStr}T23:59`;
+        }
+    }
+
+    // Validates if a given datetime value falls within an itinerary's date range
+    function isWithinItinerary(value, startDate, endDate) {
+        if (!value || !startDate || !endDate) {
+            return false;
+        }
+
+        const startStr = typeof startDate === "string" ? startDate.slice(0, 10) : "";
+        const endStr = typeof endDate === "string" ? endDate.slice(0, 10) : "";
+        
+        if (!startStr || !endStr) {
+            return false;
+        }
+
+        const selected = new Date(value);
+
+        if (Number.isNaN(selected.getTime())) {
+            return false;
+        }
+
+        const minDate = new Date(`${startStr}T00:00:00`);
+        const maxDate = new Date(`${endStr}T23:59:59.999`);
+
+        return selected >= minDate && selected <= maxDate;
+    }
+
     document.querySelectorAll('[data-min-datetime="now"]').forEach(setMinimumNow);
     
     // Update the minimum time the exact moment the user clicks into the input box
@@ -36,5 +79,5 @@
     });
 
     // Expose only the necessary functions to the rest of the application
-    window.DateTimeValidation = { setMinimumNow, isNowOrLater };
+    window.DateTimeValidation = { setMinimumNow, isNowOrLater, setItineraryLimits, isWithinItinerary };
 })();

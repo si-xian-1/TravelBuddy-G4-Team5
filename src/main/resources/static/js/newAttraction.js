@@ -1,4 +1,4 @@
-document.addEventListener("DOMContentLoaded", function () {
+document.addEventListener("DOMContentLoaded", async function () {
     const form = document.getElementById("attractionForm");
     const nameInput = document.getElementById("attractionName");
     const latInput = document.getElementById("attractionLatitude");
@@ -6,6 +6,17 @@ document.addEventListener("DOMContentLoaded", function () {
     const visitDateInput = document.getElementById("visitDate");
     const errorAlert = document.getElementById("attractionError");
     const saveButton = document.getElementById("saveAttractionBtn");
+
+    const itineraryId = form.dataset.itineraryId;
+    let itinerary = null;
+    try {
+        itinerary = await getItinerary(itineraryId);
+        if (itinerary) {
+            DateTimeValidation.setItineraryLimits(visitDateInput, itinerary.startDate, itinerary.endDate);
+        }
+    } catch (e) {
+        console.error("Unable to load itinerary for attraction date validation:", e);
+    }
 
     // Display an error under a specific field
     function showFieldError(input, errorId, message) {
@@ -31,7 +42,6 @@ document.addEventListener("DOMContentLoaded", function () {
 
         clearValidationErrors();
 
-        const itineraryId = form.dataset.itineraryId;
         const attractionName = nameInput.value.trim();
         const visitDate = visitDateInput.value;
         const latitude = latInput ? latInput.value : "";
@@ -52,8 +62,8 @@ document.addEventListener("DOMContentLoaded", function () {
         if (!visitDate) {
             showFieldError(visitDateInput, "visitDateError", "Visit date and time is required.");
             isValid = false;
-        } else if (!DateTimeValidation.isNowOrLater(visitDate)) {
-            showFieldError(visitDateInput, "visitDateError", "Visit date and time must be now or later.");
+        } else if (itinerary && !DateTimeValidation.isWithinItinerary(visitDate, itinerary.startDate, itinerary.endDate)) {
+            showFieldError(visitDateInput, "visitDateError", "Visit date and time must be within the itinerary dates.");
             isValid = false;
         }
 

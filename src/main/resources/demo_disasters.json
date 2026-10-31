@@ -1,0 +1,1688 @@
+{
+  "features": [
+    {
+      "geometry": {
+        "coordinates": [
+          -93.817,
+          16.3977
+        ]
+      },
+      "properties": {
+        "eventtype": "EQ",
+        "eventid": 1574133,
+        "alertlevel": "Green",
+        "country": "Mexico",
+        "name": "Earthquakes - Mexico",
+        "fromdate": "2026-10-27T12:01:11",
+        "todate": "2026-10-27T12:01:11",
+        "affectedcountries": [
+          {
+            "iso3": "MEX",
+            "countryname": "Mexico"
+          }
+        ]
+      }
+    },
+    {
+      "geometry": {
+        "coordinates": [
+          -66.6616,
+          -23.1819
+        ]
+      },
+      "properties": {
+        "eventtype": "EQ",
+        "eventid": 1574130,
+        "alertlevel": "Green",
+        "country": "Argentina",
+        "name": "Earthquakes - Argentina",
+        "fromdate": "2026-10-27T11:41:22",
+        "todate": "2026-10-27T11:41:22",
+        "affectedcountries": [
+          {
+            "iso3": "ARG",
+            "countryname": "Argentina"
+          }
+        ]
+      }
+    },
+    {
+      "geometry": {
+        "coordinates": [
+          114.5047,
+          46.4431
+        ]
+      },
+      "properties": {
+        "eventtype": "WF",
+        "eventid": 1033256,
+        "alertlevel": "Green",
+        "country": "Mongolia",
+        "name": "Wild Fires - Mongolia",
+        "fromdate": "2026-10-27T00:00:00",
+        "todate": "2026-10-27T00:00:00",
+        "affectedcountries": [
+          {
+            "iso3": "MNG",
+            "countryname": "Mongolia"
+          }
+        ]
+      }
+    },
+    {
+      "geometry": {
+        "coordinates": [
+          129.1148,
+          -20.9786
+        ]
+      },
+      "properties": {
+        "eventtype": "WF",
+        "eventid": 1033244,
+        "alertlevel": "Green",
+        "country": "Australia",
+        "name": "Wild Fires - Australia",
+        "fromdate": "2026-10-26T00:00:00",
+        "todate": "2026-10-27T00:00:00",
+        "affectedcountries": [
+          {
+            "iso3": "AUS",
+            "countryname": "Australia"
+          }
+        ]
+      }
+    },
+    {
+      "geometry": {
+        "coordinates": [
+          133.0989,
+          -18.475
+        ]
+      },
+      "properties": {
+        "eventtype": "WF",
+        "eventid": 1033217,
+        "alertlevel": "Green",
+        "country": "Australia",
+        "name": "Wild Fires - Australia",
+        "fromdate": "2026-10-25T00:00:00",
+        "todate": "2026-10-27T00:00:00",
+        "affectedcountries": [
+          {
+            "iso3": "AUS",
+            "countryname": "Australia"
+          }
+        ]
+      }
+    },
+    {
+      "geometry": {
+        "coordinates": [
+          126.4415,
+          47.1335
+        ]
+      },
+      "properties": {
+        "eventtype": "WF",
+        "eventid": 1033177,
+        "alertlevel": "Green",
+        "country": "China",
+        "name": "Wild Fires - China",
+        "fromdate": "2026-10-24T00:00:00",
+        "todate": "2026-10-27T00:00:00",
+        "affectedcountries": [
+          {
+            "iso3": "CHN",
+            "countryname": "China"
+          }
+        ]
+      }
+    },
+    {
+      "geometry": {
+        "coordinates": [
+          -0.9933,
+          13.4138
+        ]
+      },
+      "properties": {
+        "eventtype": "WF",
+        "eventid": 1033212,
+        "alertlevel": "Green",
+        "country": "Burkina Faso",
+        "name": "Wild Fires - Burkina Faso",
+        "fromdate": "2026-10-24T00:00:00",
+        "todate": "2026-10-27T00:00:00",
+        "affectedcountries": [
+          {
+            "iso3": "BFA",
+            "countryname": "Burkina Faso"
+          }
+        ]
+      }
+    },
+    {
+      "geometry": {
+        "coordinates": [
+          129.8319,
+          -16.0295
+        ]
+      },
+      "properties": {
+        "eventtype": "WF",
+        "eventid": 1033227,
+        "alertlevel": "Green",
+        "country": "Australia",
+        "name": "Wild Fires - Australia",
+        "fromdate": "2026-10-24T00:00:00",
+        "todate": "2026-10-27T00:00:00",
+        "affectedcountries": [
+          {
+            "iso3": "AUS",
+            "countryname": "Australia"
+          }
+        ]
+      }
+    },
+    {
+      "geometry": {
+        "coordinates": [
+          22.3085,
+          -23.4417
+        ]
+      },
+      "properties": {
+        "eventtype": "WF",
+        "eventid": 1033228,
+        "alertlevel": "Green",
+        "country": "Botswana",
+        "name": "Wild Fires - Botswana",
+        "fromdate": "2026-10-24T00:00:00",
+        "todate": "2026-10-27T00:00:00",
+        "affectedcountries": [
+          {
+            "iso3": "BWA",
+            "countryname": "Botswana"
+          }
+        ]
+      }
+    },
+    {
+      "geometry": {
+        "coordinates": [
+          -0.5027,
+          12.7716
+        ]
+      },
+      "properties": {
+        "eventtype": "WF",
+        "eventid": 1033232,
+        "alertlevel": "Green",
+        "country": "Burkina Faso",
+        "name": "Wild Fires - Burkina Faso",
+        "fromdate": "2026-10-24T00:00:00",
+        "todate": "2026-10-27T00:00:00",
+        "affectedcountries": [
+          {
+            "iso3": "BFA",
+            "countryname": "Burkina Faso"
+          }
+        ]
+      }
+    },
+    {
+      "geometry": {
+        "coordinates": [
+          25.2435,
+          9.6118
+        ]
+      },
+      "properties": {
+        "eventtype": "WF",
+        "eventid": 1033234,
+        "alertlevel": "Green",
+        "country": "South Sudan",
+        "name": "Wild Fires - South Sudan",
+        "fromdate": "2026-10-24T00:00:00",
+        "todate": "2026-10-27T00:00:00",
+        "affectedcountries": [
+          {
+            "iso3": "SSD",
+            "countryname": "South Sudan"
+          }
+        ]
+      }
+    },
+    {
+      "geometry": {
+        "coordinates": [
+          0.2712,
+          13.8035
+        ]
+      },
+      "properties": {
+        "eventtype": "WF",
+        "eventid": 1033245,
+        "alertlevel": "Green",
+        "country": "Niger",
+        "name": "Wild Fires - Niger, Burkina Faso",
+        "fromdate": "2026-10-24T00:00:00",
+        "todate": "2026-10-27T00:00:00",
+        "affectedcountries": [
+          {
+            "iso3": "NER",
+            "countryname": "Niger"
+          },
+          {
+            "iso3": "BFA",
+            "countryname": "Burkina Faso"
+          }
+        ]
+      }
+    },
+    {
+      "geometry": {
+        "coordinates": [
+          126.3254,
+          -16.094
+        ]
+      },
+      "properties": {
+        "eventtype": "WF",
+        "eventid": 1033135,
+        "alertlevel": "Green",
+        "country": "Australia",
+        "name": "Wild Fires - Australia",
+        "fromdate": "2026-10-22T00:00:00",
+        "todate": "2026-10-27T00:00:00",
+        "affectedcountries": [
+          {
+            "iso3": "AUS",
+            "countryname": "Australia"
+          }
+        ]
+      }
+    },
+    {
+      "geometry": {
+        "coordinates": [
+          128.3319,
+          -19.3091
+        ]
+      },
+      "properties": {
+        "eventtype": "WF",
+        "eventid": 1033139,
+        "alertlevel": "Green",
+        "country": "Australia",
+        "name": "Wild Fires - Australia",
+        "fromdate": "2026-10-22T00:00:00",
+        "todate": "2026-10-27T00:00:00",
+        "affectedcountries": [
+          {
+            "iso3": "AUS",
+            "countryname": "Australia"
+          }
+        ]
+      }
+    },
+    {
+      "geometry": {
+        "coordinates": [
+          123.9112,
+          -18.7638
+        ]
+      },
+      "properties": {
+        "eventtype": "WF",
+        "eventid": 1033140,
+        "alertlevel": "Green",
+        "country": "Australia",
+        "name": "Wild Fires - Australia",
+        "fromdate": "2026-10-22T00:00:00",
+        "todate": "2026-10-27T00:00:00",
+        "affectedcountries": [
+          {
+            "iso3": "AUS",
+            "countryname": "Australia"
+          }
+        ]
+      }
+    },
+    {
+      "geometry": {
+        "coordinates": [
+          20.8914,
+          12.0601
+        ]
+      },
+      "properties": {
+        "eventtype": "WF",
+        "eventid": 1033149,
+        "alertlevel": "Green",
+        "country": "Chad",
+        "name": "Wild Fires - Chad",
+        "fromdate": "2026-10-22T00:00:00",
+        "todate": "2026-10-27T00:00:00",
+        "affectedcountries": [
+          {
+            "iso3": "TCD",
+            "countryname": "Chad"
+          }
+        ]
+      }
+    },
+    {
+      "geometry": {
+        "coordinates": [
+          -10.3837,
+          15.0737
+        ]
+      },
+      "properties": {
+        "eventtype": "WF",
+        "eventid": 1033205,
+        "alertlevel": "Green",
+        "country": "Mali",
+        "name": "Wild Fires - Mali",
+        "fromdate": "2026-10-22T00:00:00",
+        "todate": "2026-10-27T00:00:00",
+        "affectedcountries": [
+          {
+            "iso3": "MLI",
+            "countryname": "Mali"
+          }
+        ]
+      }
+    },
+    {
+      "geometry": {
+        "coordinates": [
+          142.3834,
+          -12.5894
+        ]
+      },
+      "properties": {
+        "eventtype": "WF",
+        "eventid": 1033206,
+        "alertlevel": "Green",
+        "country": "Australia",
+        "name": "Wild Fires - Australia",
+        "fromdate": "2026-10-22T00:00:00",
+        "todate": "2026-10-27T00:00:00",
+        "affectedcountries": [
+          {
+            "iso3": "AUS",
+            "countryname": "Australia"
+          }
+        ]
+      }
+    },
+    {
+      "geometry": {
+        "coordinates": [
+          127.8276,
+          46.3253
+        ]
+      },
+      "properties": {
+        "eventtype": "WF",
+        "eventid": 1033222,
+        "alertlevel": "Green",
+        "country": "China",
+        "name": "Wild Fires - China",
+        "fromdate": "2026-10-22T00:00:00",
+        "todate": "2026-10-27T00:00:00",
+        "affectedcountries": [
+          {
+            "iso3": "CHN",
+            "countryname": "China"
+          }
+        ]
+      }
+    },
+    {
+      "geometry": {
+        "coordinates": [
+          21.4709,
+          -23.5554
+        ]
+      },
+      "properties": {
+        "eventtype": "WF",
+        "eventid": 1033239,
+        "alertlevel": "Green",
+        "country": "Botswana",
+        "name": "Wild Fires - Botswana",
+        "fromdate": "2026-10-22T00:00:00",
+        "todate": "2026-10-27T00:00:00",
+        "affectedcountries": [
+          {
+            "iso3": "BWA",
+            "countryname": "Botswana"
+          }
+        ]
+      }
+    },
+    {
+      "geometry": {
+        "coordinates": [
+          143.0932,
+          -16.9381
+        ]
+      },
+      "properties": {
+        "eventtype": "WF",
+        "eventid": 1033247,
+        "alertlevel": "Green",
+        "country": "Australia",
+        "name": "Wild Fires - Australia",
+        "fromdate": "2026-10-22T00:00:00",
+        "todate": "2026-10-27T00:00:00",
+        "affectedcountries": [
+          {
+            "iso3": "AUS",
+            "countryname": "Australia"
+          }
+        ]
+      }
+    },
+    {
+      "geometry": {
+        "coordinates": [
+          -11.1585,
+          15.1749
+        ]
+      },
+      "properties": {
+        "eventtype": "WF",
+        "eventid": 1033259,
+        "alertlevel": "Green",
+        "country": "Mali",
+        "name": "Wild Fires - Mali, Mauritania",
+        "fromdate": "2026-10-22T00:00:00",
+        "todate": "2026-10-27T00:00:00",
+        "affectedcountries": [
+          {
+            "iso3": "MLI",
+            "countryname": "Mali"
+          },
+          {
+            "iso3": "MRT",
+            "countryname": "Mauritania"
+          }
+        ]
+      }
+    },
+    {
+      "geometry": {
+        "coordinates": [
+          126.8199,
+          -16.8999
+        ]
+      },
+      "properties": {
+        "eventtype": "WF",
+        "eventid": 1033133,
+        "alertlevel": "Green",
+        "country": "Australia",
+        "name": "Wild Fires - Australia",
+        "fromdate": "2026-10-23T00:00:00",
+        "todate": "2026-10-27T00:00:00",
+        "affectedcountries": [
+          {
+            "iso3": "AUS",
+            "countryname": "Australia"
+          }
+        ]
+      }
+    },
+    {
+      "geometry": {
+        "coordinates": [
+          128.8673,
+          -20.9747
+        ]
+      },
+      "properties": {
+        "eventtype": "WF",
+        "eventid": 1033134,
+        "alertlevel": "Green",
+        "country": "Australia",
+        "name": "Wild Fires - Australia",
+        "fromdate": "2026-10-23T00:00:00",
+        "todate": "2026-10-27T00:00:00",
+        "affectedcountries": [
+          {
+            "iso3": "AUS",
+            "countryname": "Australia"
+          }
+        ]
+      }
+    },
+    {
+      "geometry": {
+        "coordinates": [
+          128.6395,
+          -20.9716
+        ]
+      },
+      "properties": {
+        "eventtype": "WF",
+        "eventid": 1033146,
+        "alertlevel": "Green",
+        "country": "Australia",
+        "name": "Wild Fires - Australia",
+        "fromdate": "2026-10-23T00:00:00",
+        "todate": "2026-10-27T00:00:00",
+        "affectedcountries": [
+          {
+            "iso3": "AUS",
+            "countryname": "Australia"
+          }
+        ]
+      }
+    },
+    {
+      "geometry": {
+        "coordinates": [
+          128.328,
+          -16.9207
+        ]
+      },
+      "properties": {
+        "eventtype": "WF",
+        "eventid": 1033165,
+        "alertlevel": "Green",
+        "country": "Australia",
+        "name": "Wild Fires - Australia",
+        "fromdate": "2026-10-23T00:00:00",
+        "todate": "2026-10-27T00:00:00",
+        "affectedcountries": [
+          {
+            "iso3": "AUS",
+            "countryname": "Australia"
+          }
+        ]
+      }
+    },
+    {
+      "geometry": {
+        "coordinates": [
+          139.8373,
+          -19.923
+        ]
+      },
+      "properties": {
+        "eventtype": "WF",
+        "eventid": 1033204,
+        "alertlevel": "Green",
+        "country": "Australia",
+        "name": "Wild Fires - Australia",
+        "fromdate": "2026-10-23T00:00:00",
+        "todate": "2026-10-27T00:00:00",
+        "affectedcountries": [
+          {
+            "iso3": "AUS",
+            "countryname": "Australia"
+          }
+        ]
+      }
+    },
+    {
+      "geometry": {
+        "coordinates": [
+          -55.952,
+          1.4678
+        ]
+      },
+      "properties": {
+        "eventtype": "WF",
+        "eventid": 1033218,
+        "alertlevel": "Green",
+        "country": "Brazil",
+        "name": "Wild Fires - Brazil",
+        "fromdate": "2026-10-23T00:00:00",
+        "todate": "2026-10-27T00:00:00",
+        "affectedcountries": [
+          {
+            "iso3": "BRA",
+            "countryname": "Brazil"
+          }
+        ]
+      }
+    },
+    {
+      "geometry": {
+        "coordinates": [
+          126.6258,
+          46.1782
+        ]
+      },
+      "properties": {
+        "eventtype": "WF",
+        "eventid": 1033219,
+        "alertlevel": "Green",
+        "country": "China",
+        "name": "Wild Fires - China",
+        "fromdate": "2026-10-23T00:00:00",
+        "todate": "2026-10-27T00:00:00",
+        "affectedcountries": [
+          {
+            "iso3": "CHN",
+            "countryname": "China"
+          }
+        ]
+      }
+    },
+    {
+      "geometry": {
+        "coordinates": [
+          132.5551,
+          -17.8649
+        ]
+      },
+      "properties": {
+        "eventtype": "WF",
+        "eventid": 1033229,
+        "alertlevel": "Green",
+        "country": "Australia",
+        "name": "Wild Fires - Australia",
+        "fromdate": "2026-10-23T00:00:00",
+        "todate": "2026-10-27T00:00:00",
+        "affectedcountries": [
+          {
+            "iso3": "AUS",
+            "countryname": "Australia"
+          }
+        ]
+      }
+    },
+    {
+      "geometry": {
+        "coordinates": [
+          126.4822,
+          -16.1887
+        ]
+      },
+      "properties": {
+        "eventtype": "WF",
+        "eventid": 1033230,
+        "alertlevel": "Green",
+        "country": "Australia",
+        "name": "Wild Fires - Australia",
+        "fromdate": "2026-10-23T00:00:00",
+        "todate": "2026-10-27T00:00:00",
+        "affectedcountries": [
+          {
+            "iso3": "AUS",
+            "countryname": "Australia"
+          }
+        ]
+      }
+    },
+    {
+      "geometry": {
+        "coordinates": [
+          -10.5874,
+          14.7843
+        ]
+      },
+      "properties": {
+        "eventtype": "WF",
+        "eventid": 1033237,
+        "alertlevel": "Green",
+        "country": "Mali",
+        "name": "Wild Fires - Mali",
+        "fromdate": "2026-10-23T00:00:00",
+        "todate": "2026-10-27T00:00:00",
+        "affectedcountries": [
+          {
+            "iso3": "MLI",
+            "countryname": "Mali"
+          }
+        ]
+      }
+    },
+    {
+      "geometry": {
+        "coordinates": [
+          34.233,
+          -9.3303
+        ]
+      },
+      "properties": {
+        "eventtype": "WF",
+        "eventid": 1033238,
+        "alertlevel": "Green",
+        "country": "Tanzania",
+        "name": "Wild Fires - Tanzania, Malawi",
+        "fromdate": "2026-10-23T00:00:00",
+        "todate": "2026-10-27T00:00:00",
+        "affectedcountries": [
+          {
+            "iso3": "TZA",
+            "countryname": "Tanzania"
+          },
+          {
+            "iso3": "MWI",
+            "countryname": "Malawi"
+          }
+        ]
+      }
+    },
+    {
+      "geometry": {
+        "coordinates": [
+          126.5295,
+          46.2587
+        ]
+      },
+      "properties": {
+        "eventtype": "WF",
+        "eventid": 1033249,
+        "alertlevel": "Green",
+        "country": "China",
+        "name": "Wild Fires - China",
+        "fromdate": "2026-10-23T00:00:00",
+        "todate": "2026-10-27T00:00:00",
+        "affectedcountries": [
+          {
+            "iso3": "CHN",
+            "countryname": "China"
+          }
+        ]
+      }
+    },
+    {
+      "geometry": {
+        "coordinates": [
+          24.654,
+          10.2029
+        ]
+      },
+      "properties": {
+        "eventtype": "WF",
+        "eventid": 1033257,
+        "alertlevel": "Green",
+        "country": "Sudan",
+        "name": "Wild Fires - Sudan",
+        "fromdate": "2026-10-23T00:00:00",
+        "todate": "2026-10-27T00:00:00",
+        "affectedcountries": [
+          {
+            "iso3": "SDN",
+            "countryname": "Sudan"
+          }
+        ]
+      }
+    },
+    {
+      "geometry": {
+        "coordinates": [
+          37.4506,
+          -8.0955
+        ]
+      },
+      "properties": {
+        "eventtype": "WF",
+        "eventid": 1033258,
+        "alertlevel": "Green",
+        "country": "Tanzania",
+        "name": "Wild Fires - Tanzania",
+        "fromdate": "2026-10-23T00:00:00",
+        "todate": "2026-10-27T00:00:00",
+        "affectedcountries": [
+          {
+            "iso3": "TZA",
+            "countryname": "Tanzania"
+          }
+        ]
+      }
+    },
+    {
+      "geometry": {
+        "coordinates": [
+          124.9662,
+          -17.8955
+        ]
+      },
+      "properties": {
+        "eventtype": "WF",
+        "eventid": 1032996,
+        "alertlevel": "Green",
+        "country": "Australia",
+        "name": "Wild Fires - Australia",
+        "fromdate": "2026-10-19T00:00:00",
+        "todate": "2026-10-27T00:00:00",
+        "affectedcountries": [
+          {
+            "iso3": "AUS",
+            "countryname": "Australia"
+          }
+        ]
+      }
+    },
+    {
+      "geometry": {
+        "coordinates": [
+          127.1427,
+          -18.2142
+        ]
+      },
+      "properties": {
+        "eventtype": "WF",
+        "eventid": 1033053,
+        "alertlevel": "Green",
+        "country": "Australia",
+        "name": "Wild Fires - Australia",
+        "fromdate": "2026-10-19T00:00:00",
+        "todate": "2026-10-27T00:00:00",
+        "affectedcountries": [
+          {
+            "iso3": "AUS",
+            "countryname": "Australia"
+          }
+        ]
+      }
+    },
+    {
+      "geometry": {
+        "coordinates": [
+          135.2331,
+          -14.777
+        ]
+      },
+      "properties": {
+        "eventtype": "WF",
+        "eventid": 1033185,
+        "alertlevel": "Green",
+        "country": "Australia",
+        "name": "Wild Fires - Australia",
+        "fromdate": "2026-10-19T00:00:00",
+        "todate": "2026-10-27T00:00:00",
+        "affectedcountries": [
+          {
+            "iso3": "AUS",
+            "countryname": "Australia"
+          }
+        ]
+      }
+    },
+    {
+      "geometry": {
+        "coordinates": [
+          26.1682,
+          9.2379
+        ]
+      },
+      "properties": {
+        "eventtype": "WF",
+        "eventid": 1033241,
+        "alertlevel": "Green",
+        "country": "South Sudan",
+        "name": "Wild Fires - South Sudan",
+        "fromdate": "2026-10-19T00:00:00",
+        "todate": "2026-10-27T00:00:00",
+        "affectedcountries": [
+          {
+            "iso3": "SSD",
+            "countryname": "South Sudan"
+          }
+        ]
+      }
+    },
+    {
+      "geometry": {
+        "coordinates": [
+          126.6716,
+          -16.1335
+        ]
+      },
+      "properties": {
+        "eventtype": "WF",
+        "eventid": 1033093,
+        "alertlevel": "Green",
+        "country": "Australia",
+        "name": "Wild Fires - Australia",
+        "fromdate": "2026-10-20T00:00:00",
+        "todate": "2026-10-27T00:00:00",
+        "affectedcountries": [
+          {
+            "iso3": "AUS",
+            "countryname": "Australia"
+          }
+        ]
+      }
+    },
+    {
+      "geometry": {
+        "coordinates": [
+          129.2185,
+          -15.7561
+        ]
+      },
+      "properties": {
+        "eventtype": "WF",
+        "eventid": 1033170,
+        "alertlevel": "Green",
+        "country": "Australia",
+        "name": "Wild Fires - Australia",
+        "fromdate": "2026-10-20T00:00:00",
+        "todate": "2026-10-27T00:00:00",
+        "affectedcountries": [
+          {
+            "iso3": "AUS",
+            "countryname": "Australia"
+          }
+        ]
+      }
+    },
+    {
+      "geometry": {
+        "coordinates": [
+          -57.8792,
+          6.4593
+        ]
+      },
+      "properties": {
+        "eventtype": "WF",
+        "eventid": 1033209,
+        "alertlevel": "Green",
+        "country": "Guyana",
+        "name": "Wild Fires - Guyana",
+        "fromdate": "2026-10-20T00:00:00",
+        "todate": "2026-10-27T00:00:00",
+        "affectedcountries": [
+          {
+            "iso3": "GUY",
+            "countryname": "Guyana"
+          }
+        ]
+      }
+    },
+    {
+      "geometry": {
+        "coordinates": [
+          -50.2279,
+          -3.5551
+        ]
+      },
+      "properties": {
+        "eventtype": "WF",
+        "eventid": 1033251,
+        "alertlevel": "Green",
+        "country": "Brazil",
+        "name": "Wild Fires - Brazil",
+        "fromdate": "2026-10-20T00:00:00",
+        "todate": "2026-10-27T00:00:00",
+        "affectedcountries": [
+          {
+            "iso3": "BRA",
+            "countryname": "Brazil"
+          }
+        ]
+      }
+    },
+    {
+      "geometry": {
+        "coordinates": [
+          -50.2052,
+          -3.2649
+        ]
+      },
+      "properties": {
+        "eventtype": "WF",
+        "eventid": 1033252,
+        "alertlevel": "Green",
+        "country": "Brazil",
+        "name": "Wild Fires - Brazil",
+        "fromdate": "2026-10-20T00:00:00",
+        "todate": "2026-10-27T00:00:00",
+        "affectedcountries": [
+          {
+            "iso3": "BRA",
+            "countryname": "Brazil"
+          }
+        ]
+      }
+    },
+    {
+      "geometry": {
+        "coordinates": [
+          128.3595,
+          -16.3678
+        ]
+      },
+      "properties": {
+        "eventtype": "WF",
+        "eventid": 1033253,
+        "alertlevel": "Green",
+        "country": "Australia",
+        "name": "Wild Fires - Australia",
+        "fromdate": "2026-10-20T00:00:00",
+        "todate": "2026-10-27T00:00:00",
+        "affectedcountries": [
+          {
+            "iso3": "AUS",
+            "countryname": "Australia"
+          }
+        ]
+      }
+    },
+    {
+      "geometry": {
+        "coordinates": [
+          129.2109,
+          -20.66
+        ]
+      },
+      "properties": {
+        "eventtype": "WF",
+        "eventid": 1033090,
+        "alertlevel": "Green",
+        "country": "Australia",
+        "name": "Wild Fires - Australia",
+        "fromdate": "2026-10-21T00:00:00",
+        "todate": "2026-10-27T00:00:00",
+        "affectedcountries": [
+          {
+            "iso3": "AUS",
+            "countryname": "Australia"
+          }
+        ]
+      }
+    },
+    {
+      "geometry": {
+        "coordinates": [
+          125.2415,
+          -18.831
+        ]
+      },
+      "properties": {
+        "eventtype": "WF",
+        "eventid": 1033092,
+        "alertlevel": "Green",
+        "country": "Australia",
+        "name": "Wild Fires - Australia",
+        "fromdate": "2026-10-21T00:00:00",
+        "todate": "2026-10-27T00:00:00",
+        "affectedcountries": [
+          {
+            "iso3": "AUS",
+            "countryname": "Australia"
+          }
+        ]
+      }
+    },
+    {
+      "geometry": {
+        "coordinates": [
+          29.233,
+          -16.2345
+        ]
+      },
+      "properties": {
+        "eventtype": "WF",
+        "eventid": 1033106,
+        "alertlevel": "Green",
+        "country": "Zimbabwe",
+        "name": "Wild Fires - Zimbabwe",
+        "fromdate": "2026-10-21T00:00:00",
+        "todate": "2026-10-27T00:00:00",
+        "affectedcountries": [
+          {
+            "iso3": "ZWE",
+            "countryname": "Zimbabwe"
+          }
+        ]
+      }
+    },
+    {
+      "geometry": {
+        "coordinates": [
+          129.0291,
+          -15.2001
+        ]
+      },
+      "properties": {
+        "eventtype": "WF",
+        "eventid": 1033141,
+        "alertlevel": "Green",
+        "country": "Australia",
+        "name": "Wild Fires - Australia",
+        "fromdate": "2026-10-21T00:00:00",
+        "todate": "2026-10-27T00:00:00",
+        "affectedcountries": [
+          {
+            "iso3": "AUS",
+            "countryname": "Australia"
+          }
+        ]
+      }
+    },
+    {
+      "geometry": {
+        "coordinates": [
+          128.7829,
+          -19.2232
+        ]
+      },
+      "properties": {
+        "eventtype": "WF",
+        "eventid": 1033168,
+        "alertlevel": "Green",
+        "country": "Australia",
+        "name": "Wild Fires - Australia",
+        "fromdate": "2026-10-21T00:00:00",
+        "todate": "2026-10-27T00:00:00",
+        "affectedcountries": [
+          {
+            "iso3": "AUS",
+            "countryname": "Australia"
+          }
+        ]
+      }
+    },
+    {
+      "geometry": {
+        "coordinates": [
+          142.4704,
+          -13.7408
+        ]
+      },
+      "properties": {
+        "eventtype": "WF",
+        "eventid": 1033174,
+        "alertlevel": "Green",
+        "country": "Australia",
+        "name": "Wild Fires - Australia",
+        "fromdate": "2026-10-21T00:00:00",
+        "todate": "2026-10-27T00:00:00",
+        "affectedcountries": [
+          {
+            "iso3": "AUS",
+            "countryname": "Australia"
+          }
+        ]
+      }
+    },
+    {
+      "geometry": {
+        "coordinates": [
+          -10.7604,
+          14.767
+        ]
+      },
+      "properties": {
+        "eventtype": "WF",
+        "eventid": 1033191,
+        "alertlevel": "Green",
+        "country": "Mali",
+        "name": "Wild Fires - Mali",
+        "fromdate": "2026-10-21T00:00:00",
+        "todate": "2026-10-27T00:00:00",
+        "affectedcountries": [
+          {
+            "iso3": "MLI",
+            "countryname": "Mali"
+          }
+        ]
+      }
+    },
+    {
+      "geometry": {
+        "coordinates": [
+          -0.8748,
+          14.4325
+        ]
+      },
+      "properties": {
+        "eventtype": "WF",
+        "eventid": 1033192,
+        "alertlevel": "Green",
+        "country": "Burkina Faso",
+        "name": "Wild Fires - Burkina Faso",
+        "fromdate": "2026-10-21T00:00:00",
+        "todate": "2026-10-27T00:00:00",
+        "affectedcountries": [
+          {
+            "iso3": "BFA",
+            "countryname": "Burkina Faso"
+          }
+        ]
+      }
+    },
+    {
+      "geometry": {
+        "coordinates": [
+          129.4417,
+          -15.6934
+        ]
+      },
+      "properties": {
+        "eventtype": "WF",
+        "eventid": 1033250,
+        "alertlevel": "Green",
+        "country": "Australia",
+        "name": "Wild Fires - Australia",
+        "fromdate": "2026-10-21T00:00:00",
+        "todate": "2026-10-27T00:00:00",
+        "affectedcountries": [
+          {
+            "iso3": "AUS",
+            "countryname": "Australia"
+          }
+        ]
+      }
+    },
+    {
+      "geometry": {
+        "coordinates": [
+          135.884,
+          -13.9
+        ]
+      },
+      "properties": {
+        "eventtype": "WF",
+        "eventid": 1032810,
+        "alertlevel": "Green",
+        "country": "Australia",
+        "name": "Wild Fires - Australia",
+        "fromdate": "2026-10-12T00:00:00",
+        "todate": "2026-10-27T00:00:00",
+        "affectedcountries": [
+          {
+            "iso3": "AUS",
+            "countryname": "Australia"
+          }
+        ]
+      }
+    },
+    {
+      "geometry": {
+        "coordinates": [
+          135.6808,
+          -14.1034
+        ]
+      },
+      "properties": {
+        "eventtype": "WF",
+        "eventid": 1032923,
+        "alertlevel": "Green",
+        "country": "Australia",
+        "name": "Wild Fires - Australia",
+        "fromdate": "2026-10-12T00:00:00",
+        "todate": "2026-10-27T00:00:00",
+        "affectedcountries": [
+          {
+            "iso3": "AUS",
+            "countryname": "Australia"
+          }
+        ]
+      }
+    },
+    {
+      "geometry": {
+        "coordinates": [
+          -48.8742,
+          -3.3566
+        ]
+      },
+      "properties": {
+        "eventtype": "WF",
+        "eventid": 1033081,
+        "alertlevel": "Green",
+        "country": "Brazil",
+        "name": "Wild Fires - Brazil",
+        "fromdate": "2026-10-13T00:00:00",
+        "todate": "2026-10-27T00:00:00",
+        "affectedcountries": [
+          {
+            "iso3": "BRA",
+            "countryname": "Brazil"
+          }
+        ]
+      }
+    },
+    {
+      "geometry": {
+        "coordinates": [
+          30.3381,
+          -15.8538
+        ]
+      },
+      "properties": {
+        "eventtype": "WF",
+        "eventid": 1033083,
+        "alertlevel": "Green",
+        "country": "Zimbabwe",
+        "name": "Wild Fires - Zimbabwe, Mozambique, Zambia",
+        "fromdate": "2026-10-13T00:00:00",
+        "todate": "2026-10-27T00:00:00",
+        "affectedcountries": [
+          {
+            "iso3": "ZWE",
+            "countryname": "Zimbabwe"
+          },
+          {
+            "iso3": "MOZ",
+            "countryname": "Mozambique"
+          },
+          {
+            "iso3": "ZMB",
+            "countryname": "Zambia"
+          }
+        ]
+      }
+    },
+    {
+      "geometry": {
+        "coordinates": [
+          -55.9406,
+          1.7998
+        ]
+      },
+      "properties": {
+        "eventtype": "WF",
+        "eventid": 1033084,
+        "alertlevel": "Green",
+        "country": "Suriname",
+        "name": "Wild Fires - Suriname, Brazil",
+        "fromdate": "2026-10-13T00:00:00",
+        "todate": "2026-10-27T00:00:00",
+        "affectedcountries": [
+          {
+            "iso3": "SUR",
+            "countryname": "Suriname"
+          },
+          {
+            "iso3": "BRA",
+            "countryname": "Brazil"
+          }
+        ]
+      }
+    },
+    {
+      "geometry": {
+        "coordinates": [
+          29.6292,
+          -15.3396
+        ]
+      },
+      "properties": {
+        "eventtype": "WF",
+        "eventid": 1033035,
+        "alertlevel": "Green",
+        "country": "Zambia",
+        "name": "Wild Fires - Zambia, Zimbabwe",
+        "fromdate": "2026-10-14T00:00:00",
+        "todate": "2026-10-27T00:00:00",
+        "affectedcountries": [
+          {
+            "iso3": "ZMB",
+            "countryname": "Zambia"
+          },
+          {
+            "iso3": "ZWE",
+            "countryname": "Zimbabwe"
+          }
+        ]
+      }
+    },
+    {
+      "geometry": {
+        "coordinates": [
+          142.286,
+          -8.7247
+        ]
+      },
+      "properties": {
+        "eventtype": "WF",
+        "eventid": 1033216,
+        "alertlevel": "Green",
+        "country": "Papua New Guinea",
+        "name": "Wild Fires - Papua New Guinea",
+        "fromdate": "2026-10-14T00:00:00",
+        "todate": "2026-10-27T00:00:00",
+        "affectedcountries": [
+          {
+            "iso3": "PNG",
+            "countryname": "Papua New Guinea"
+          }
+        ]
+      }
+    },
+    {
+      "geometry": {
+        "coordinates": [
+          142.1362,
+          -8.6056
+        ]
+      },
+      "properties": {
+        "eventtype": "WF",
+        "eventid": 1033255,
+        "alertlevel": "Green",
+        "country": "Papua New Guinea",
+        "name": "Wild Fires - Papua New Guinea",
+        "fromdate": "2026-10-14T00:00:00",
+        "todate": "2026-10-27T00:00:00",
+        "affectedcountries": [
+          {
+            "iso3": "PNG",
+            "countryname": "Papua New Guinea"
+          }
+        ]
+      }
+    },
+    {
+      "geometry": {
+        "coordinates": [
+          135.2033,
+          -15.8613
+        ]
+      },
+      "properties": {
+        "eventtype": "WF",
+        "eventid": 1032862,
+        "alertlevel": "Green",
+        "country": "Australia",
+        "name": "Wild Fires - Australia",
+        "fromdate": "2026-10-16T00:00:00",
+        "todate": "2026-10-27T00:00:00",
+        "affectedcountries": [
+          {
+            "iso3": "AUS",
+            "countryname": "Australia"
+          }
+        ]
+      }
+    },
+    {
+      "geometry": {
+        "coordinates": [
+          125.4896,
+          -14.8409
+        ]
+      },
+      "properties": {
+        "eventtype": "WF",
+        "eventid": 1033254,
+        "alertlevel": "Green",
+        "country": "Australia",
+        "name": "Wild Fires - Australia",
+        "fromdate": "2026-10-16T00:00:00",
+        "todate": "2026-10-27T00:00:00",
+        "affectedcountries": [
+          {
+            "iso3": "AUS",
+            "countryname": "Australia"
+          }
+        ]
+      }
+    },
+    {
+      "geometry": {
+        "coordinates": [
+          -54.5681,
+          -3.4264
+        ]
+      },
+      "properties": {
+        "eventtype": "WF",
+        "eventid": 1033211,
+        "alertlevel": "Green",
+        "country": "Brazil",
+        "name": "Wild Fires - Brazil",
+        "fromdate": "2026-10-17T00:00:00",
+        "todate": "2026-10-27T00:00:00",
+        "affectedcountries": [
+          {
+            "iso3": "BRA",
+            "countryname": "Brazil"
+          }
+        ]
+      }
+    },
+    {
+      "geometry": {
+        "coordinates": [
+          134.2225,
+          -12.5
+        ]
+      },
+      "properties": {
+        "eventtype": "WF",
+        "eventid": 1033186,
+        "alertlevel": "Green",
+        "country": "Australia",
+        "name": "Wild Fires - Australia",
+        "fromdate": "2026-10-18T00:00:00",
+        "todate": "2026-10-27T00:00:00",
+        "affectedcountries": [
+          {
+            "iso3": "AUS",
+            "countryname": "Australia"
+          }
+        ]
+      }
+    },
+    {
+      "geometry": {
+        "coordinates": [
+          13.5587,
+          13.3139
+        ]
+      },
+      "properties": {
+        "eventtype": "WF",
+        "eventid": 1033198,
+        "alertlevel": "Green",
+        "country": "Nigeria",
+        "name": "Wild Fires - Nigeria",
+        "fromdate": "2026-10-18T00:00:00",
+        "todate": "2026-10-27T00:00:00",
+        "affectedcountries": [
+          {
+            "iso3": "NGA",
+            "countryname": "Nigeria"
+          }
+        ]
+      }
+    },
+    {
+      "geometry": {
+        "coordinates": [
+          -68.6903,
+          -20.3438
+        ]
+      },
+      "properties": {
+        "eventtype": "EQ",
+        "eventid": 1574007,
+        "alertlevel": "Green",
+        "country": "Chile",
+        "name": "Earthquakes - Chile",
+        "fromdate": "2026-10-26T19:36:16",
+        "todate": "2026-10-26T19:36:16",
+        "affectedcountries": [
+          {
+            "iso3": "CHL",
+            "countryname": "Chile"
+          }
+        ]
+      }
+    },
+    {
+      "geometry": {
+        "coordinates": [
+          71.0764,
+          38.6442
+        ]
+      },
+      "properties": {
+        "eventtype": "EQ",
+        "eventid": 1573997,
+        "alertlevel": "Green",
+        "country": "Tajikistan",
+        "name": "Earthquakes - Tajikistan",
+        "fromdate": "2026-10-26T18:07:04",
+        "todate": "2026-10-26T18:07:04",
+        "affectedcountries": [
+          {
+            "iso3": "TJK",
+            "countryname": "Tajikistan"
+          }
+        ]
+      }
+    },
+    {
+      "geometry": {
+        "coordinates": [
+          77.9297,
+          40.2886
+        ]
+      },
+      "properties": {
+        "eventtype": "EQ",
+        "eventid": 1573936,
+        "alertlevel": "Green",
+        "country": "China",
+        "name": "Earthquakes - China",
+        "fromdate": "2026-10-26T07:48:16",
+        "todate": "2026-10-26T07:48:16",
+        "affectedcountries": [
+          {
+            "iso3": "CHN",
+            "countryname": "China"
+          }
+        ]
+      }
+    },
+    {
+      "geometry": {
+        "coordinates": [
+          121.5729,
+          -8.443
+        ]
+      },
+      "properties": {
+        "eventtype": "EQ",
+        "eventid": 1573911,
+        "alertlevel": "Green",
+        "country": "Indonesia",
+        "name": "Earthquakes - Indonesia",
+        "fromdate": "2026-10-26T04:53:40",
+        "todate": "2026-10-26T04:53:40",
+        "affectedcountries": [
+          {
+            "iso3": "IDN",
+            "countryname": "Indonesia"
+          }
+        ]
+      }
+    }
+  ]
+}

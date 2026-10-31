@@ -240,8 +240,7 @@
                                     <form class="attraction-edit-form d-none" novalidate>
                                         <!-- Edit attraction name -->
                                         <div class="form-group mb-2 position-relative location-autocomplete-wrapper">
-                                            <label class="text-xs font-weight-bold text-uppercase mb-1">Attraction
-                                                Name</label>
+                                            <label class="text-xs font-weight-bold text-uppercase mb-1">Attraction Name</label>
 
                                             <input type="text"
                                                 class="form-control form-control-sm edit-attraction-name location-autocomplete-input"
@@ -260,8 +259,7 @@
                                             <label class="text-xs font-weight-bold text-uppercase mb-1">Visit
                                                 Date</label>
                                             <input type="datetime-local"
-                                                class="form-control form-control-sm edit-attraction-date"
-                                                data-min-datetime="now">
+                                                class="form-control form-control-sm edit-attraction-date">
                                             <div class="invalid-feedback edit-attraction-date-error"></div>
                                         </div>
                                         <!-- Action button -->
@@ -509,24 +507,24 @@
                                             </div>
                                         </div>
 
-                                        <div class="form-group mb-2">
-                                            <!-- Edit flight departure time -->
-                                            <label class="text-xs font-weight-bold text-uppercase mb-1">Departure
-                                                Time</label>
-                                            <input type="datetime-local"
-                                                class="form-control form-control-sm edit-flight-dep-time" required
-                                                data-min-datetime="now">
-                                            <div class="invalid-feedback edit-flight-dep-time-error"></div>
-                                        </div>
+                                        <div class="form-row">
+                                            <div class="form-group col-md-6 mb-2">
+                                                <!-- Edit flight departure time -->
+                                                <label class="text-xs font-weight-bold text-uppercase mb-1">Departure
+                                                    Time</label>
+                                                <input type="datetime-local"
+                                                    class="form-control form-control-sm edit-flight-dep-time" required>
+                                                <div class="invalid-feedback edit-flight-dep-time-error"></div>
+                                            </div>
 
-                                        <div class="form-group mb-3">
-                                            <!-- Edit flight arrival time -->
-                                            <label class="text-xs font-weight-bold text-uppercase mb-1">Arrival
-                                                Time</label>
-                                            <input type="datetime-local"
-                                                class="form-control form-control-sm edit-flight-arr-time" required
-                                                data-min-datetime="now">
-                                            <div class="invalid-feedback edit-flight-arr-time-error"></div>
+                                            <div class="form-group col-md-6 mb-2">
+                                                <!-- Edit flight arrival time -->
+                                                <label class="text-xs font-weight-bold text-uppercase mb-1">Arrival
+                                                    Time</label>
+                                                <input type="datetime-local"
+                                                    class="form-control form-control-sm edit-flight-arr-time" required>
+                                                <div class="invalid-feedback edit-flight-arr-time-error"></div>
+                                            </div>
                                         </div>
 
                                         <!-- Action button -->

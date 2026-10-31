@@ -5,6 +5,7 @@ import com.TravelBuddy.model.User;
 import com.TravelBuddy.service.SabreService;
 import jakarta.validation.Valid;
 import org.springframework.ai.chat.client.ChatClient;
+import org.springframework.ai.ollama.OllamaChatModel;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
@@ -16,8 +17,8 @@ public class ChatController {
     private final ChatClient chatClient;
     private final SabreService sabreService;
 
-    public ChatController(ChatClient.Builder chatClientBuilder, SabreService sabreService) {
-        this.chatClient = chatClientBuilder.build();
+    public ChatController(OllamaChatModel ollamaChatModel, SabreService sabreService) {
+        this.chatClient = ChatClient.builder(ollamaChatModel).build();
         this.sabreService = sabreService;
     }
 

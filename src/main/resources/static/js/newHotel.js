@@ -1,4 +1,4 @@
-document.addEventListener("DOMContentLoaded", () => {
+document.addEventListener("DOMContentLoaded", async () => {
     const hotelForm = document.getElementById("hotelForm");
     const nameInput = document.getElementById("hotelName");
     const checkInInput = document.getElementById("checkIn");
@@ -10,6 +10,18 @@ document.addEventListener("DOMContentLoaded", () => {
     
     const hotelError = document.getElementById("hotelError");
     const saveButton = document.getElementById("saveHotelBtn");
+
+    const itineraryId = hotelForm.dataset.itineraryId;
+    let itinerary = null;
+    try {
+        itinerary = await getItinerary(itineraryId);
+        if (itinerary) {
+            DateTimeValidation.setItineraryLimits(checkInInput, itinerary.startDate, itinerary.endDate);
+            DateTimeValidation.setItineraryLimits(checkOutInput, itinerary.startDate, itinerary.endDate);
+        }
+    } catch (e) {
+        console.error("Unable to load itinerary for hotel date validation:", e);
+    }
 
     // Display an error under a specific field
     function showFieldError(input, errorId, message) {
@@ -41,7 +53,6 @@ document.addEventListener("DOMContentLoaded", () => {
         
         clearValidationErrors();
 
-        const itineraryId = hotelForm.dataset.itineraryId;
         const hotelName = nameInput.value.trim();
         const checkIn = checkInInput.value;
         const checkOut = checkOutInput.value;
@@ -67,8 +78,8 @@ document.addEventListener("DOMContentLoaded", () => {
         } else if (Number.isNaN(new Date(checkIn).getTime())) {
             showFieldError(checkInInput, "checkInError", "Please enter a valid check-in date and time.");
             isValid = false;
-        } else if (!DateTimeValidation.isNowOrLater(checkIn)) {
-            showFieldError(checkInInput, "checkInError", "Check-in must be now or later.");
+        } else if (itinerary && !DateTimeValidation.isWithinItinerary(checkIn, itinerary.startDate, itinerary.endDate)) {
+            showFieldError(checkInInput, "checkInError", "Check-in must be within the itinerary dates.");
             isValid = false;
         }
 
@@ -78,6 +89,9 @@ document.addEventListener("DOMContentLoaded", () => {
             isValid = false;
         } else if (Number.isNaN(new Date(checkOut).getTime())) {
             showFieldError(checkOutInput, "checkOutError", "Please enter a valid check-out date and time.");
+            isValid = false;
+        } else if (itinerary && !DateTimeValidation.isWithinItinerary(checkOut, itinerary.startDate, itinerary.endDate)) {
+            showFieldError(checkOutInput, "checkOutError", "Check-out must be within the itinerary dates.");
             isValid = false;
         } else if (checkIn && !Number.isNaN(new Date(checkIn).getTime()) && new Date(checkOut) <= new Date(checkIn)) {
             showFieldError(checkOutInput, "checkOutError", "Check-out must be later than check-in.");

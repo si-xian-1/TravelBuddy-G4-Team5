@@ -18,6 +18,13 @@ document.addEventListener("DOMContentLoaded", async function () {
     const deleteConfirmButton = document.getElementById("confirmDeleteModalBtn");
     let hotelPendingDelete = null;
 
+    let itinerary = null;
+    try {
+        itinerary = await getItinerary(itineraryId);
+    } catch (e) {
+        console.error("Unable to load itinerary for hotel date validation:", e);
+    }
+
     // Fetches all hotels from the API and populates the UI cards
     async function loadHotels() {
         const loadingMessage = document.getElementById("hotelsLoading");
@@ -78,9 +85,11 @@ document.addEventListener("DOMContentLoaded", async function () {
                 checkInDateInput.value = toDateTimeInputValue(hotel.checkIn);
                 checkOutDateInput.value = toDateTimeInputValue(hotel.checkOut);
 
-                // Enforce time restrictions on the inputs
-                DateTimeValidation.setMinimumNow(checkInDateInput);
-                DateTimeValidation.setMinimumNow(checkOutDateInput);
+                // Enforce time restrictions on the inputs based on itinerary dates
+                if (itinerary) {
+                    DateTimeValidation.setItineraryLimits(checkInDateInput, itinerary.startDate, itinerary.endDate);
+                    DateTimeValidation.setItineraryLimits(checkOutDateInput, itinerary.startDate, itinerary.endDate);
+                }
 
                 // Handle disaster warnings
                 if (hotel.disasterWarning && hotel.disasterWarning.trim() !== "") {
@@ -129,8 +138,10 @@ document.addEventListener("DOMContentLoaded", async function () {
         checkIn.value = card.dataset.originalCheckIn;
         checkOut.value = card.dataset.originalCheckOut;
         
-        DateTimeValidation.setMinimumNow(checkIn);
-        DateTimeValidation.setMinimumNow(checkOut);
+        if (itinerary) {
+            DateTimeValidation.setItineraryLimits(checkIn, itinerary.startDate, itinerary.endDate);
+            DateTimeValidation.setItineraryLimits(checkOut, itinerary.startDate, itinerary.endDate);
+        }
 
         card.querySelector(".hotel-edit-error").classList.add("d-none");
         clearFormValidation(form);
@@ -166,6 +177,22 @@ document.addEventListener("DOMContentLoaded", async function () {
             document.getElementById("confirmDeleteModalTitle").textContent = "Delete Hotel";
             document.getElementById("confirmDeleteModalBody").textContent = `Delete "${card.querySelector(".hotel-name").textContent}"? This action cannot be undone.`;
             $(deleteModal).modal("show");
+        }
+    });
+
+    // Clear specific field errors when the user begins typing inside the inline edit form
+    hotelsList.addEventListener("input", function (event) {
+        const input = event.target;
+        if (input.classList.contains("form-control")) {
+            input.classList.remove("is-invalid");
+
+            const identifierClass = Array.from(input.classList).find(cls => cls.startsWith("edit-hotel-") && !cls.endsWith("-lat") && !cls.endsWith("-lon"));
+            if (identifierClass) {
+                const errorElement = input.closest("form").querySelector(`.${identifierClass}-error`);
+                if (errorElement) {
+                    errorElement.textContent = "";
+                }
+            }
         }
     });
 
@@ -207,14 +234,17 @@ document.addEventListener("DOMContentLoaded", async function () {
         if (!checkIn) {
             showFormFieldError(form, "edit-hotel-checkin", "Check-in date and time is required.");
             isValid = false;
-        } else if (!DateTimeValidation.isNowOrLater(checkIn)) {
-            showFormFieldError(form, "edit-hotel-checkin", "Check-in must be now or later.");
+        } else if (itinerary && !DateTimeValidation.isWithinItinerary(checkIn, itinerary.startDate, itinerary.endDate)) {
+            showFormFieldError(form, "edit-hotel-checkin", "Check-in must be within the itinerary dates.");
             isValid = false;
         }
 
         // Validate Check-out
         if (!checkOut) {
             showFormFieldError(form, "edit-hotel-checkout", "Check-out date and time is required.");
+            isValid = false;
+        } else if (itinerary && !DateTimeValidation.isWithinItinerary(checkOut, itinerary.startDate, itinerary.endDate)) {
+            showFormFieldError(form, "edit-hotel-checkout", "Check-out must be within the itinerary dates.");
             isValid = false;
         } else if (checkIn && new Date(checkOut) <= new Date(checkIn)) {
             showFormFieldError(form, "edit-hotel-checkout", "Check-out must be later than check-in.");
