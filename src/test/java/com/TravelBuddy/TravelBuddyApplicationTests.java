@@ -1,24 +1,13 @@
 package com.TravelBuddy;
 
-import javax.sql.DataSource;
-
-import org.flywaydb.core.Flyway;
-import org.flywaydb.core.internal.jdbc.JdbcTemplate;
 import org.junit.jupiter.api.Test;
-import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.test.context.bean.override.mockito.MockitoBean;
+import org.springframework.boot.test.context.TestConfiguration;
+import org.springframework.context.annotation.Import;
+import org.springframework.test.context.ActiveProfiles;
 
-@SpringBootTest(properties = {
-    "spring.sql.init.mode=never",
-    "spring.flyway.enabled=false"
-})
+@ActiveProfiles("test")
+@Import(TestConfiguration.class)
 class TravelBuddyApplicationTests {
-
-    @MockitoBean
-    private DataSource dataSource;
-
-    @MockitoBean
-    private JdbcTemplate jdbcTemplate;
 
     @Test
     void contextLoads() {
