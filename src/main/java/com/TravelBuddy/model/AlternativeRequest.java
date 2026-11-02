@@ -32,6 +32,9 @@ public class AlternativeRequest {
     // Optional user prompt refinement
     private String userPrompt;
 
+    // JSON containing the affected itinerary items and their current booking details
+    private String context;
+
     public Integer getItineraryId() {
         return itineraryId;
     }
@@ -104,5 +107,12 @@ public class AlternativeRequest {
         this.userPrompt = userPrompt;
     }
 
+    public String getContext() {
+        return context;
+    }
+
+    public void setContext(String context) {
+        this.context = context;
+    }
 
 }

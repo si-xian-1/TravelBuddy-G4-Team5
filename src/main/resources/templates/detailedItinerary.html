@@ -573,9 +573,6 @@
 
                 <!-- Body -->
                 <div class="modal-body">
-                    <!-- Context banner shown above results -->
-                    <div id="alternativesContext" class="alert alert-warning text-sm mb-3" role="alert"></div>
-
                     <!-- Loading spinner -->
                     <div id="alternativesLoading" class="text-center py-4 d-none">
                         <div class="spinner-border text-danger" role="status">
@@ -589,7 +586,7 @@
 
                     <!-- AI response content rendered here -->
                     <div id="alternativesResult" class="d-none">
-                        <div id="alternativesResultText" class="text-sm" style="white-space: pre-wrap;"></div>
+                        <div id="alternativesResultText" class="ai-alternatives-content"></div>
                     </div>
                 </div>
 
@@ -649,7 +646,6 @@
     <script th:src="@{/js/dateTimeValidation.js}"></script>
     <script th:src="@{/js/detailedItinerary.js}"></script>
     <script th:src="@{/js/attractionManagement.js}"></script>
-    <script th:src="@{/js/alternativesModal.js}"></script>
     <script th:src="@{/js/hotelManagement.js}"></script>
     <script th:src="@{/js/flightManagement.js}"></script>
 

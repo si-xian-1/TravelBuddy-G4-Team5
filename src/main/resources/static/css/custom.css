@@ -11,6 +11,53 @@ To add own customized styling to overwrite existing styling
   box-shadow: 0 0.5rem 1rem rgba(0, 0, 0, 0.15);
 }
 
+/* Consistent presentation for Gemini's selectable replan results. */
+.ai-alternatives-content {
+  color: #5a5c69;
+  line-height: 1.5;
+}
+
+.ai-alternatives-content > p:first-child {
+  margin-top: 0;
+}
+
+.ai-alternative-option {
+  margin-bottom: 0.75rem;
+  padding: 1rem !important;
+  border: 1px solid #e3e6f0 !important;
+  border-left: 4px solid #e74a3b !important;
+  border-radius: 0.35rem;
+  background-color: #fff;
+}
+
+.ai-alternative-option:hover {
+  background-color: #f8f9fc;
+}
+
+.ai-alternative-option label {
+  color: #3a3b45;
+  cursor: pointer;
+  display: inline;
+  padding-left: 0;
+  font-weight: 600;
+}
+
+.ai-alternative-option input {
+  accent-color: #e74a3b;
+  cursor: pointer;
+  float: none;
+  margin: 0.2rem 0.75rem 0 0 !important;
+  position: static !important;
+  vertical-align: middle;
+}
+
+.ai-alternative-option p {
+  clear: both;
+  margin-left: 1.8rem;
+  margin-top: 0.35rem !important;
+  color: #858796;
+}
+
 /* For sign up page */
 .bg-register-image {
   background-image: url("../img/signup.jpg") !important;

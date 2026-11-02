@@ -17,6 +17,10 @@ public class SabreHotelSearchRequest {
     @JsonPropertyDescription("Check-out date in YYYY-MM-DD format")
     private String checkOutDate;
 
+    @JsonProperty("excludedHotelName")
+    @JsonPropertyDescription("The user's current hotel name; never return this hotel unless the requested dates change")
+    private String excludedHotelName;
+
     public SabreHotelSearchRequest() {}
 
     public SabreHotelSearchRequest(String location, String checkInDate, String checkOutDate) {
@@ -33,4 +37,7 @@ public class SabreHotelSearchRequest {
 
     public String getCheckOutDate() { return checkOutDate; }
     public void setCheckOutDate(String checkOutDate) { this.checkOutDate = checkOutDate; }
+
+    public String getExcludedHotelName() { return excludedHotelName; }
+    public void setExcludedHotelName(String excludedHotelName) { this.excludedHotelName = excludedHotelName; }
 }
