@@ -32,17 +32,26 @@ public class FlightService {
         itineraryService.checkItineraryBelongToUser(itineraryId, userId);
 
         // Ensure inputted coordinate values are valid
-        if (flight.getDepartureLatitude() == 0.0 && flight.getDepartureLongitude() == 0.0) {
-            throw new InvalidInputsException("Valid coordinates must be provided for the departure airport.");
-        }
-        if (flight.getArrivalLatitude() == 0.0 && flight.getArrivalLongitude() == 0.0) {
-            throw new InvalidInputsException("Valid coordinates must be provided for the arrival airport.");
-        }
+        validateCoordinates(flight.getDepartureLatitude(), flight.getDepartureLongitude(), "departure");
+        validateCoordinates(flight.getArrivalLatitude(), flight.getArrivalLongitude(), "arrival");
 
         flight.setItineraryId(itineraryId);
 
         // Execute sql to add new flight
         return flightRepository.createFlight(itineraryId, flight);
+    }
+
+    private void validateCoordinates(double latitude, double longitude, String airport) {
+        if (latitude == 0.0 && longitude == 0.0) {
+            throw new InvalidInputsException("Valid coordinates must be provided for the " + airport + " airport.");
+        }
+
+        if (!Double.isFinite(latitude) || !Double.isFinite(longitude)
+                || latitude < -90 || latitude > 90
+                || longitude < -180 || longitude > 180) {
+            throw new InvalidInputsException("Invalid " + airport
+                    + " airport coordinates: latitude must be between -90 and 90, and longitude between -180 and 180.");
+        }
     }
 
     /**
@@ -58,9 +67,13 @@ public class FlightService {
 
         // Disaster warning
         for (Flight flight : flights) {
-            flight.setDisasterWarning(gdacsService.evaluateProximityAndDateFromDisasters(
-                    flight.getArrivalLatitude(), flight.getArrivalLongitude(),
-                    flight.getDepartureTime(), flight.getArrivalTime()));
+            try {
+                flight.setDisasterWarning(gdacsService.evaluateProximityAndDateFromDisasters(
+                        flight.getArrivalLatitude(), flight.getArrivalLongitude(),
+                        flight.getDepartureTime(), flight.getArrivalTime()));
+            } catch (IllegalStateException exception) {
+                flight.setDisasterWarning("disaster-service failure");
+            }
         }
 
         return flights;
@@ -98,12 +111,8 @@ public class FlightService {
         itineraryService.checkItineraryBelongToUser(itineraryId, userId);
 
         // Ensure inputted coordinate is valid
-        if (flight.getDepartureLatitude() == 0.0 && flight.getDepartureLongitude() == 0.0) {
-            throw new InvalidInputsException("Valid coordinates must be provided for the departure airport.");
-        }
-        if (flight.getArrivalLatitude() == 0.0 && flight.getArrivalLongitude() == 0.0) {
-            throw new InvalidInputsException("Valid coordinates must be provided for the arrival airport.");
-        }
+        validateCoordinates(flight.getDepartureLatitude(), flight.getDepartureLongitude(), "departure");
+        validateCoordinates(flight.getArrivalLatitude(), flight.getArrivalLongitude(), "arrival");
 
         flight.setItineraryId(itineraryId);
 

@@ -121,7 +121,32 @@ public class ItineraryService {
 
         checkItineraryBelongToUser(itineraryId, userId);
 
+        Itinerary existing = itineraryRepository.findSelectedItineraryByUserId(itineraryId, userId);
+        if (existing == null) {
+            throw new InvalidInputsException("Itinerary not found.");
+        }
+
+        if (existing.getHotels() != null) {
+            for (Hotel hotel : existing.getHotels()) {
+                validateBookingDate(itinerary, hotel.getCheckIn().toLocalDate());
+                validateBookingDate(itinerary, hotel.getCheckOut().toLocalDate());
+            }
+        }
+
+        if (existing.getFlights() != null) {
+            for (Flight flight : existing.getFlights()) {
+                validateBookingDate(itinerary, flight.getDepartureTime().toLocalDate());
+                validateBookingDate(itinerary, flight.getArrivalTime().toLocalDate());
+            }
+        }
+
         return itineraryRepository.updateItinerary(itineraryId, userId, itinerary);
+    }
+
+    private void validateBookingDate(Itinerary itinerary, java.time.LocalDate bookingDate) {
+        if (bookingDate.isBefore(itinerary.getStartDate()) || bookingDate.isAfter(itinerary.getEndDate())) {
+            throw new InvalidInputsException("Itinerary dates must include all existing hotel and flight bookings.");
+        }
     }
 
     /**
