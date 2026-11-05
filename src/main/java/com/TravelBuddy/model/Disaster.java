@@ -7,7 +7,7 @@ import com.TravelBuddy.model.enums.EventType;
 import com.fasterxml.jackson.annotation.JsonProperty;
 
 /**
- * For processing the JSON data returned from GDACS api
+ * For processing JSON data returned from GDACS api
  * Not saved in database as data is updated whenever new disasters happens
  */
 public class Disaster {
@@ -31,12 +31,34 @@ public class Disaster {
         @JsonProperty("properties")
         private DisasterDetails disasterDetails;
 
+        @JsonProperty("distanceKm")
+        private Double distanceKm;
+
+        @JsonProperty("inDangerZone")
+        private Boolean inDangerZone;
+
         public LocationCoordinates getLocationCoordinates() {
             return locationCoordinates;
         }
 
         public DisasterDetails getDisasterDetails() {
             return disasterDetails;
+        }
+
+        public Double getDistanceKm() {
+            return distanceKm;
+        }
+
+        public void setDistanceKm(Double distanceKm) {
+            this.distanceKm = distanceKm;
+        }
+
+        public Boolean getInDangerZone() {
+            return inDangerZone;
+        }
+
+        public void setInDangerZone(Boolean inDangerZone) {
+            this.inDangerZone = inDangerZone;
         }
     }
 

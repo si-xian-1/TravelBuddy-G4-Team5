@@ -61,6 +61,8 @@ public class SecurityConfig {
                         .requestMatchers(HttpMethod.DELETE, "/api/itinerary/**").authenticated()
                         // Requires authentication to use the location search
                         .requestMatchers(HttpMethod.GET, "/api/location").authenticated()
+                        // Requires authentication to access dashboard feature
+                        .requestMatchers(HttpMethod.GET, "/api/dashboard/**").authenticated()
                         // Frontend pages that requires authentication
                         .requestMatchers(HttpMethod.GET,
                                 "/",
