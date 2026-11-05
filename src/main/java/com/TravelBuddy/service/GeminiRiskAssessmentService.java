@@ -10,6 +10,7 @@ import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
 
 import org.springframework.ai.chat.client.ChatClient;
+import org.springframework.ai.google.genai.GoogleGenAiChatModel;
 import org.springframework.stereotype.Service;
 
 import com.TravelBuddy.model.EvacuationRouteOption;
@@ -33,13 +34,13 @@ public class GeminiRiskAssessmentService {
     /**
      * Creates the service and prepares the Gemini client and agent tools.
      *
-     * @param chatClientBuilder builder used to create the Gemini chat client
+     * @param googleGenAiChatModel Gemini model used to create the chat client
      * @param geminiAgentTools tools Gemini may call during an assessment
      */
     public GeminiRiskAssessmentService(
-            ChatClient.Builder chatClientBuilder,
+            GoogleGenAiChatModel googleGenAiChatModel,
             GeminiAgentTools geminiAgentTools) {
-        this.chatClient = chatClientBuilder.build();
+        this.chatClient = ChatClient.builder(googleGenAiChatModel).build();
         this.geminiAgentTools = geminiAgentTools;
     }
 

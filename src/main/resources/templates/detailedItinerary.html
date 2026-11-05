@@ -42,12 +42,17 @@
                 <!-- Begin Page Content -->
                 <div class="container-fluid" id="itineraryDetails" th:data-itinerary-id="${itineraryId}">
 
-                    <!-- Page Heading -->
+                    <!-- Page Heading (Only ONE heading now) -->
                     <div class="d-sm-flex align-items-center justify-content-between mb-4">
                         <h1 class="h3 mb-0 text-gray-800">Itinerary Details</h1>
-                        <a class="btn btn-secondary shadow-sm" th:href="@{/allItineraries}">
-                            <i class="fas fa-arrow-left fa-sm mr-2"></i> Back to my itineraries
-                        </a>
+                        <div>
+                            <button class="btn btn-danger shadow-sm mr-2" id="replanWithAiBtn" style="display: none;">
+                                <i class="fas fa-robot fa-sm mr-1"></i> Replan with AI
+                            </button>
+                            <a class="btn btn-secondary shadow-sm" th:href="@{/allItineraries}">
+                                <i class="fas fa-arrow-left fa-sm mr-2"></i> Back to my itineraries
+                            </a>
+                        </div>
                     </div>
 
                     <div class="card shadow mb-4">
@@ -242,7 +247,9 @@
                                                 autocomplete="off" maxlength="255">
                                             <div class="invalid-feedback edit-attraction-name-error"></div>
 
-                                            <ul class="list-group position-absolute w-100 d-none location-autocomplete-dropdown"></ul>
+                                            <ul
+                                                class="list-group position-absolute w-100 d-none location-autocomplete-dropdown">
+                                            </ul>
 
                                             <input type="hidden" class="edit-attraction-lat location-autocomplete-lat">
                                             <input type="hidden" class="edit-attraction-lon location-autocomplete-lon">
@@ -305,8 +312,13 @@
                                                 <i class="fas fa-edit"></i> Edit
                                             </button>
                                             <!-- Delete hotel -->
-                                            <button type="button" class="btn btn-sm btn-outline-danger delete-hotel">
+                                            <button type="button"
+                                                class="btn btn-sm btn-outline-danger delete-hotel mr-1">
                                                 <i class="fas fa-trash"></i>
+                                            </button>
+                                            <!-- Get AI Alternatives (shown only for Red-level alerts) -->
+                                            <button type="button" class="btn btn-sm btn-danger get-alternatives d-none">
+                                                <i class="fas fa-robot mr-1"></i>Get Alternatives
                                             </button>
                                         </div>
                                     </div>
@@ -333,7 +345,9 @@
 
                                             <div class="invalid-feedback edit-hotel-name-error"></div>
 
-                                            <ul class="list-group position-absolute w-100 d-none location-autocomplete-dropdown"></ul>
+                                            <ul
+                                                class="list-group position-absolute w-100 d-none location-autocomplete-dropdown">
+                                            </ul>
 
                                             <!-- Added hidden coordinates for saving and validation -->
                                             <input type="hidden" class="edit-hotel-lat location-autocomplete-lat">
@@ -413,8 +427,13 @@
                                                 <i class="fas fa-edit"></i> Edit
                                             </button>
                                             <!-- Delete flight -->
-                                            <button type="button" class="btn btn-sm btn-outline-danger delete-flight">
+                                            <button type="button"
+                                                class="btn btn-sm btn-outline-danger delete-flight mr-1">
                                                 <i class="fas fa-trash"></i>
+                                            </button>
+                                            <!-- Get AI Alternatives (shown only for Red-level alerts) -->
+                                            <button type="button" class="btn btn-sm btn-danger get-alternatives d-none">
+                                                <i class="fas fa-robot mr-1"></i>Get Alternatives
                                             </button>
                                         </div>
                                     </div>
@@ -448,14 +467,17 @@
                                             <!-- Edit flight departure airport-->
                                             <div
                                                 class="form-group col-md-6 mb-2 position-relative location-autocomplete-wrapper">
-                                                <label class="text-xs font-weight-bold text-uppercase mb-1">Departure Airport</label>
+                                                <label class="text-xs font-weight-bold text-uppercase mb-1">Departure
+                                                    Airport</label>
 
                                                 <input type="text"
                                                     class="form-control form-control-sm edit-flight-dep-airport location-autocomplete-input"
                                                     autocomplete="off" required>
                                                 <div class="invalid-feedback edit-flight-dep-airport-error"></div>
 
-                                                <ul class="list-group position-absolute w-100 d-none location-autocomplete-dropdown"></ul>
+                                                <ul
+                                                    class="list-group position-absolute w-100 d-none location-autocomplete-dropdown">
+                                                </ul>
 
                                                 <input type="hidden"
                                                     class="edit-flight-dep-lat location-autocomplete-lat">
@@ -466,14 +488,17 @@
                                             <!-- Edit flight arrival airport -->
                                             <div
                                                 class="form-group col-md-6 mb-2 position-relative location-autocomplete-wrapper">
-                                                <label class="text-xs font-weight-bold text-uppercase mb-1">Arrival Airport</label>
+                                                <label class="text-xs font-weight-bold text-uppercase mb-1">Arrival
+                                                    Airport</label>
 
                                                 <input type="text"
                                                     class="form-control form-control-sm edit-flight-arr-airport location-autocomplete-input"
                                                     autocomplete="off" required>
                                                 <div class="invalid-feedback edit-flight-arr-airport-error"></div>
 
-                                                <ul class="list-group position-absolute w-100 d-none location-autocomplete-dropdown"></ul>
+                                                <ul
+                                                    class="list-group position-absolute w-100 d-none location-autocomplete-dropdown">
+                                                </ul>
 
                                                 <input type="hidden"
                                                     class="edit-flight-arr-lat location-autocomplete-lat">
@@ -526,6 +551,89 @@
     </div>
 
     <div th:replace="~{fragments/deleteModal :: deleteModal}"></div>
+
+    <!-- =====================================================================
+         Alternatives Recommendation Modal
+         Shown when the user clicks "Get Alternatives" on a Red-alert hotel/flight card.
+         ===================================================================== -->
+    <div class="modal fade" id="alternativesModal" tabindex="-1" role="dialog" aria-labelledby="alternativesModalLabel"
+        aria-hidden="true">
+        <div class="modal-dialog modal-lg modal-dialog-scrollable" role="document">
+            <div class="modal-content">
+
+                <!-- Header -->
+                <div class="modal-header bg-danger text-white">
+                    <h5 class="modal-title font-weight-bold" id="alternativesModalLabel">
+                        <i class="fas fa-robot mr-2"></i>AI Alternative Recommendations
+                    </h5>
+                    <button type="button" class="close text-white" data-dismiss="modal" aria-label="Close">
+                        <span aria-hidden="true">&times;</span>
+                    </button>
+                </div>
+
+                <!-- Body -->
+                <div class="modal-body">
+                    <!-- Loading spinner -->
+                    <div id="alternativesLoading" class="text-center py-4 d-none">
+                        <div class="spinner-border text-danger" role="status">
+                            <span class="sr-only">Loading...</span>
+                        </div>
+                        <p class="mt-2 text-muted">TravelBuddy AI is searching for safe alternatives&hellip;</p>
+                    </div>
+
+                    <!-- Error message -->
+                    <div id="alternativesError" class="alert alert-danger d-none" role="alert"></div>
+
+                    <!-- AI response content rendered here -->
+                    <div id="alternativesResult" class="d-none">
+                        <div id="alternativesResultText" class="ai-alternatives-content"></div>
+                    </div>
+                </div>
+
+                <!-- Footer -->
+                <div class="modal-footer justify-content-between">
+                    <button type="button" id="alternativesMoreBtn" class="btn btn-outline-danger d-none">
+                        <i class="fas fa-sync-alt mr-1"></i>Get More Options
+                    </button>
+                    <div>
+                        <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
+                        <button type="button" class="btn btn-success d-none" id="proceedToBookingBtn">Book Selected</button>
+                    </div>
+                </div>
+
+            </div>
+        </div>
+    </div>
+    <!-- End Alternatives Recommendation Modal -->
+
+    <!-- =====================================================================
+         Replan Selection Modal (Now correctly separated)
+         ===================================================================== -->
+    <div class="modal fade" id="replanSelectionModal" tabindex="-1" role="dialog" aria-hidden="true">
+        <div class="modal-dialog" role="document">
+            <div class="modal-content">
+                <div class="modal-header bg-danger text-white">
+                    <h5 class="modal-title"><i class="fas fa-exclamation-triangle mr-2"></i>Affected Items</h5>
+                    <button type="button" class="close text-white" data-dismiss="modal" aria-label="Close">
+                        <span aria-hidden="true">&times;</span>
+                    </button>
+                </div>
+                <div class="modal-body">
+                    <p class="text-sm">The following items in your itinerary are affected by a red alert.
+                        Select the ones you want AI to find alternatives for:</p>
+                    <form id="replanSelectionForm">
+                        <div id="affectedItemsList">
+                            <!-- Checkboxes will be injected here via JS -->
+                        </div>
+                    </form>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-dismiss="modal">Cancel</button>
+                    <button type="button" class="btn btn-danger" id="confirmReplanBtn">Find Alternatives</button>
+                </div>
+            </div>
+        </div>
+    </div>
 
     <!-- Bootstrap core JavaScript-->
     <script th:src="@{/vendor/jquery/jquery.min.js}"></script>
