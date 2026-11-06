@@ -3,6 +3,29 @@
     {
       "geometry": {
         "coordinates": [
+          -97.75,
+          33.22
+        ]
+      },
+      "properties": {
+        "eventtype": "WF",
+        "eventid": 1033280,
+        "alertlevel": "Red",
+        "country": "United States",
+        "name": "Wild Fires - North Texas / Wise County Regional Fire",
+        "fromdate": "2026-11-14T00:00:00",
+        "todate": "2026-11-20T23:59:59",
+        "affectedcountries": [
+          {
+            "iso3": "USA",
+            "countryname": "United States"
+          }
+        ]
+      }
+    },
+    {
+      "geometry": {
+        "coordinates": [
           -93.817,
           16.3977
         ]
@@ -10,7 +33,7 @@
       "properties": {
         "eventtype": "EQ",
         "eventid": 1574133,
-        "alertlevel": "Green",
+        "alertlevel": "Red",
         "country": "Mexico",
         "name": "Earthquakes - Mexico",
         "fromdate": "2026-10-27T12:01:11",
@@ -33,7 +56,7 @@
       "properties": {
         "eventtype": "EQ",
         "eventid": 1574130,
-        "alertlevel": "Green",
+        "alertlevel": "Yellow",
         "country": "Argentina",
         "name": "Earthquakes - Argentina",
         "fromdate": "2026-10-27T11:41:22",
@@ -547,7 +570,7 @@
       "properties": {
         "eventtype": "WF",
         "eventid": 1033134,
-        "alertlevel": "Green",
+        "alertlevel": "Yellow",
         "country": "Australia",
         "name": "Wild Fires - Australia",
         "fromdate": "2026-10-23T00:00:00",
@@ -616,7 +639,7 @@
       "properties": {
         "eventtype": "WF",
         "eventid": 1033204,
-        "alertlevel": "Green",
+        "alertlevel": "Red",
         "country": "Australia",
         "name": "Wild Fires - Australia",
         "fromdate": "2026-10-23T00:00:00",
@@ -1034,7 +1057,7 @@
       "properties": {
         "eventtype": "WF",
         "eventid": 1033252,
-        "alertlevel": "Green",
+        "alertlevel": "Yellow",
         "country": "Brazil",
         "name": "Wild Fires - Brazil",
         "fromdate": "2026-10-20T00:00:00",
@@ -1126,7 +1149,7 @@
       "properties": {
         "eventtype": "WF",
         "eventid": 1033106,
-        "alertlevel": "Green",
+        "alertlevel": "Red",
         "country": "Zimbabwe",
         "name": "Wild Fires - Zimbabwe",
         "fromdate": "2026-10-21T00:00:00",
@@ -1441,7 +1464,7 @@
       "properties": {
         "eventtype": "WF",
         "eventid": 1033216,
-        "alertlevel": "Green",
+        "alertlevel": "Red",
         "country": "Papua New Guinea",
         "name": "Wild Fires - Papua New Guinea",
         "fromdate": "2026-10-14T00:00:00",
@@ -1487,7 +1510,7 @@
       "properties": {
         "eventtype": "WF",
         "eventid": 1032862,
-        "alertlevel": "Green",
+        "alertlevel": "Red",
         "country": "Australia",
         "name": "Wild Fires - Australia",
         "fromdate": "2026-10-16T00:00:00",

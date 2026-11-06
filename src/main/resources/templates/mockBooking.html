@@ -1,0 +1,208 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="[https://www.thymeleaf.org/](https://www.thymeleaf.org/)">
+
+<head>
+    <meta charset="utf-8">
+    <title>TravelBuddy - Secure Checkout</title>
+    <link th:href="@{/vendor/fontawesome-free/css/all.min.css}" rel="stylesheet" type="text/css">
+    <link th:href="@{/css/sb-admin-2.min.css}" rel="stylesheet">
+</head>
+
+<body class="bg-light">
+    <div class="container mt-5">
+        <div class="row justify-content-center">
+            <div class="col-lg-6">
+                <div class="card shadow-lg border-0 rounded-lg">
+                    <div class="card-header bg-primary text-white text-center py-4">
+                        <h3 class="font-weight-light mb-0"><i class="fas fa-lock mr-2"></i>Secure Mock Checkout</h3>
+                    </div>
+                    <div class="card-body p-5">
+                        <h5 class="mb-4">Selected alternatives</h5>
+                        <div id="bookingItems" class="mb-3"></div>
+                        <h5 class="text-right">Total: <strong id="bookingTotal" class="text-primary"></strong></h5>
+                        <form id="mockPaymentForm">
+                            <div class="form-group">
+                                <label>Cardholder Name</label>
+                                <input type="text" class="form-control" value="John Doe" required>
+                            </div>
+                            <div class="form-group">
+                                <label>Card Number</label>
+                                <input type="text" class="form-control" value="**** **** **** 4242" required>
+                            </div>
+                            <div class="form-row">
+                                <div class="form-group col-md-6">
+                                    <label>Expiry Date</label>
+                                    <input type="text" class="form-control" value="12/28" required>
+                                </div>
+                                <div class="form-group col-md-6">
+                                    <label>CVV</label>
+                                    <input type="text" class="form-control" value="123" required>
+                                </div>
+                            </div>
+                            <button type="button" class="btn btn-success btn-block mt-4" onclick="processPayment()">
+                                Simulate Payment
+                            </button>
+                        </form>
+                        <div id="paymentSuccess" class="alert alert-success mt-4 d-none">
+                            <i class="fas fa-check-circle mr-2"></i> Booking Confirmed! Your itinerary has been updated.
+                            <br><a href="/" class="btn btn-sm btn-outline-success mt-2">Return to Dashboard</a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <script>
+        // 1. Retrieve the saved data from sessionStorage
+        const itineraryId = sessionStorage.getItem('replanItineraryId');
+        const replanItems = JSON.parse(sessionStorage.getItem('replanItems') || '[]');
+        const selectedAlternatives = JSON.parse(
+            sessionStorage.getItem('selectedAlternatives')
+                || sessionStorage.getItem('selectedAlternative')
+                || '[]'
+        );
+        const alternatives = Array.isArray(selectedAlternatives) ? selectedAlternatives : [selectedAlternatives];
+        const itineraryStartDate = sessionStorage.getItem('replanStartDate');
+        const itineraryEndDate = sessionStorage.getItem('replanEndDate');
+
+        function priceNumber(price) {
+            const match = String(price || '').replace(/,/g, '').match(/-?\d+(?:\.\d+)?/);
+            return match ? Number(match[0]) : 0;
+        }
+
+        async function resolveCoordinates(query, isHotel, fallback) {
+            if (!query) {
+                return fallback;
+            }
+
+            const response = await fetch(
+                `/api/location/search?query=${encodeURIComponent(query)}&isHotel=${isHotel}`,
+                { credentials: "same-origin" }
+            );
+            if (!response.ok) {
+                return fallback;
+            }
+
+            const locations = await response.json();
+            const location = locations.find(candidate =>
+                Number.isFinite(Number(candidate.lat)) &&
+                Number.isFinite(Number(candidate.lon)) &&
+                Number(candidate.lat) !== 0 &&
+                Number(candidate.lon) !== 0
+            );
+            if (!location) {
+                return fallback;
+            }
+
+            return {
+                latitude: Number(location.lat),
+                longitude: Number(location.lon)
+            };
+        }
+
+        const total = alternatives.reduce((sum, alternative) => sum + priceNumber(alternative.price), 0);
+        document.getElementById('bookingItems').innerHTML = alternatives
+            .map(alternative => `<div>${alternative.itemType || 'Item'}: <strong>${alternative.newName || 'Alternative'}</strong> - ${alternative.price || 'Price unavailable'}</div>`)
+            .join('');
+        document.getElementById('bookingTotal').innerText = `USD ${total.toFixed(2)}`;
+
+        async function processPayment() {
+            // Disable button to prevent double clicks
+            const btn = document.querySelector('button.btn-success');
+            btn.disabled = true;
+            btn.innerText = "Processing...";
+
+            try {
+                // 2. Build the payload for the database update based on type
+                for (const alternative of alternatives) {
+                    const item = replanItems.find(candidate =>
+                        candidate.itemType === alternative.itemType
+                    );
+                    if (!item || !item.itemId) {
+                        throw new Error(`Missing original ${alternative.itemType || 'item'} details.`);
+                    }
+
+                    let endpoint;
+                    let payload;
+                    if (alternative.itemType === "HOTEL") {
+                        endpoint = `/api/itinerary/${itineraryId}/hotels/${item.itemId}`;
+                        const checkIn = alternative.checkIn || item.checkIn;
+                        const checkOut = alternative.checkOut || item.checkOut;
+                        if (checkIn < itineraryStartDate || checkOut > itineraryEndDate || checkIn >= checkOut) {
+                            throw new Error("The selected hotel dates must be within the itinerary period.");
+                        }
+                        const coordinates = await resolveCoordinates(
+                            alternative.address || alternative.newName,
+                            true,
+                            { latitude: item.latitude, longitude: item.longitude }
+                        );
+                        payload = {
+                            hotelName: alternative.newName,
+                            checkIn: `${checkIn}T14:00:00`,
+                            checkOut: `${checkOut}T11:00:00`,
+                            latitude: coordinates.latitude,
+                            longitude: coordinates.longitude
+                        };
+                    } else if (alternative.itemType === "FLIGHT") {
+                        endpoint = `/api/itinerary/${itineraryId}/flights/${item.itemId}`;
+                        const departureAirport = alternative.departureAirport || item.departureAirport;
+                        const arrivalAirport = alternative.arrivalAirport || item.arrivalAirport;
+                        const departureCoordinates = await resolveCoordinates(
+                            alternative.departureAirport,
+                            false,
+                            { latitude: item.departureLatitude, longitude: item.departureLongitude }
+                        );
+                        const arrivalCoordinates = await resolveCoordinates(
+                            alternative.arrivalAirport,
+                            false,
+                            { latitude: item.arrivalLatitude, longitude: item.arrivalLongitude }
+                        );
+                        payload = {
+                            airline: alternative.airline || item.airline,
+                            flightNumber: alternative.flightNumber || item.flightNumber,
+                            departureAirport,
+                            arrivalAirport,
+                            departureLatitude: departureCoordinates.latitude,
+                            departureLongitude: departureCoordinates.longitude,
+                            arrivalLatitude: arrivalCoordinates.latitude,
+                            arrivalLongitude: arrivalCoordinates.longitude,
+                            departureTime: item.departureTime,
+                            arrivalTime: item.arrivalTime
+                        };
+                    } else {
+                        throw new Error(`Unsupported alternative type: ${alternative.itemType}`);
+                    }
+
+                    const response = await fetch(endpoint, {
+                        method: 'PUT',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify(payload)
+                    });
+
+                    if (!response.ok) {
+                        const message = await response.text();
+                        throw new Error(message || "Database update failed");
+                    }
+                }
+
+                // 4. Show Success
+                document.getElementById('mockPaymentForm').classList.add('d-none');
+                document.getElementById('paymentSuccess').classList.remove('d-none');
+
+                // Clear session storage
+                sessionStorage.clear();
+                setTimeout(() => {
+                    window.location.href = `/itinerary/view/${encodeURIComponent(itineraryId)}`;
+                }, 1000);
+
+            } catch (error) {
+                console.error(error);
+                alert("Payment simulated, but failed to update database.");
+                btn.disabled = false;
+                btn.innerText = "Simulate Payment";
+            }
+        }
+    </script>
+</body>
+
+</html>
