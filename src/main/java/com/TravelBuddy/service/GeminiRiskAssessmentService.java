@@ -1,15 +1,9 @@
 package com.TravelBuddy.service;
 
 import java.util.List;
-import java.util.Map;
-import java.util.concurrent.CancellationException;
-import java.util.concurrent.CompletableFuture;
-import java.util.concurrent.ConcurrentHashMap;
-import java.util.concurrent.ExecutionException;
-import java.util.concurrent.TimeUnit;
-import java.util.concurrent.TimeoutException;
 
 import org.springframework.ai.chat.client.ChatClient;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import com.TravelBuddy.model.EvacuationRouteOption;
@@ -27,103 +21,85 @@ public class GeminiRiskAssessmentService {
 
     private final ChatClient chatClient;
     private final GeminiAgentTools geminiAgentTools;
-    private final Map<String, Thread> activeThreads = new ConcurrentHashMap<>();
-    private final Map<String, CompletableFuture<String>> activeFutures = new ConcurrentHashMap<>();
+    private final AiTaskCancellationManager cancellationManager;
 
-    /**
-     * Creates the service and prepares the Gemini client and agent tools.
-     *
-     * @param chatClientBuilder builder used to create the Gemini chat client
-     * @param geminiAgentTools tools Gemini may call during an assessment
-     */
     public GeminiRiskAssessmentService(
             ChatClient.Builder chatClientBuilder,
             GeminiAgentTools geminiAgentTools) {
+        this(chatClientBuilder, geminiAgentTools, new AiTaskCancellationManager());
+    }
+
+    @Autowired
+    public GeminiRiskAssessmentService(
+            ChatClient.Builder chatClientBuilder,
+            GeminiAgentTools geminiAgentTools,
+            AiTaskCancellationManager cancellationManager) {
         this.chatClient = chatClientBuilder.build();
         this.geminiAgentTools = geminiAgentTools;
+        this.cancellationManager = cancellationManager;
     }
 
     /**
      * Stops an AI assessment that is still running.
-     *
      * @param requestId identifier of the assessment to cancel; blank IDs are ignored
-     * @return the method updates the running task state when a request exists
      */
     public void cancelAssessment(String requestId) {
-        if (!hasRequestId(requestId)) {
-            return;
-        }
-
-        CompletableFuture<String> future = activeFutures.remove(requestId);
-        if (future != null) {
-            future.cancel(true);
-        }
-
-        Thread thread = activeThreads.remove(requestId);
-        if (thread != null && thread.isAlive()) {
-            thread.interrupt();
-        }
+        cancellationManager.cancel(requestId);
     }
 
     /**
-     * Asks Gemini to assess the traveler's current risk and, when needed, create
-     * verified evacuation route options.
-     *
+     * Asks Gemini to assess the traveler's location current risk and, when needed, provide verified evacuation route options.
      * @param userLat traveler's latitude, or null when location is unavailable
      * @param userLon traveler's longitude, or null when location is unavailable
      * @param currentUser logged-in traveler used to create the traveler label
      * @param requestId identifier used to support cancellation
-     * @return completed risk assessment, location-unavailable response, cancelled
-     *         response, or error fallback response
+     * @return completed risk assessment, location-unavailable response, cancelled response, or error fallback response
      */
-    public RiskAssessmentResponse evaluateRiskAndEscapeRoutes(
-            Double userLat,
-            Double userLon,
-            User currentUser,
-            String requestId) {
+    public RiskAssessmentResponse evaluateRiskAndEscapeRoutes(Double userLat, Double userLon,
+        User currentUser, String requestId) {
 
-        String travelerLabel = getTravelerLabel(currentUser);
+        String username = currentUser != null ? currentUser.getUsername() : "Traveler";
         if (userLat == null || userLon == null) {
-            return buildLocationUnavailableResponse(travelerLabel);
+            return buildLocationUnavailableResponse(username);
         }
 
         String systemPrompt = buildSystemPrompt();
 
         String userPrompt = String.format(
                 "Traveler '%s' current location: latitude %f, longitude %f.",
-                travelerLabel, userLat, userLon);
+                username, userLat, userLon);
 
-        registerRequest(requestId);
         try {
-            if (Thread.currentThread().isInterrupted()) {
-                throw new InterruptedException("Assessment cancelled.");
-            }
+            String jsonOutput = cancellationManager.executeWithCancellation(
+                    requestId,
+                    () -> {
+                        System.out.println("[Agent Engine] Calling Gemini for " + username);
+                        return chatClient.prompt()
+                                .system(systemPrompt)
+                                .user(userPrompt)
+                                .tools(geminiAgentTools)
+                                .call()
+                                .content();
+                    },
+                    AI_TIMEOUT_SECONDS);
 
-            CompletableFuture<String> future = requestAssessment(systemPrompt, userPrompt, travelerLabel);
-            if (hasRequestId(requestId)) {
-                activeFutures.put(requestId, future);
-            }
+            return buildAssessmentResponse(parseGeminiAdvice(jsonOutput),
+                username, userLat, userLon);
 
-            String jsonOutput = getAssessmentResult(future);
-            return buildAssessmentResponse(
-                    parseGeminiAdvice(jsonOutput),
-                    travelerLabel,
-                    userLat,
-                    userLon);
-        } catch (InterruptedException e) {
+        }
+        // Deal with errors if AI generation was stopped by user or AI generation unable to respond properly
+        catch (InterruptedException e) {
             Thread.currentThread().interrupt();
-            return buildCancelledResponse(requestId, travelerLabel);
-        } catch (Exception e) {
+            return buildCancelledResponse(requestId, username);
+        }
+        catch (Exception e) {
             System.out.println("[Agent Engine ERROR] Assessment failed: " + e.getMessage());
-            return buildErrorResponse(travelerLabel, e);
-        } finally {
-            removeRequest(requestId);
+            return buildErrorResponse(username, e);
         }
     }
 
     /**
      * Builds the instructions Gemini follows when calling disaster and routing tools.
-     *
      * @return system prompt containing the tool order and required JSON response format
      */
     private String buildSystemPrompt() {
@@ -147,7 +123,8 @@ public class GeminiRiskAssessmentService {
                 7. If getSafeShelters returns no local shelters, do not call the
                    route tool. Explain that no valid local route is available.
                 8. Never invent a shelter, distance, duration, route, or coordinate.
-                9. Return only one valid JSON object. Do not use markdown.
+                9. Return only one complete, valid JSON object. Do not use markdown.
+                10. Ensure the JSON response is fully completed, valid, and properly closed before returning.
 
                 The JSON object must contain:
                 {
@@ -183,95 +160,39 @@ public class GeminiRiskAssessmentService {
     }
 
     /**
-     * Starts the asynchronous Gemini request.
-     *
-     * @param systemPrompt instructions that define the agent's behavior
-     * @param userPrompt traveler's location message
-     * @param travelerLabel name included in diagnostic logging
-     * @return future containing Gemini's raw response text
-     */
-    private CompletableFuture<String> requestAssessment(
-            String systemPrompt,
-            String userPrompt,
-            String travelerLabel) {
-        return CompletableFuture.supplyAsync(() -> {
-            try {
-                System.out.println("[Agent Engine] Calling Gemini for " + travelerLabel);
-                return chatClient.prompt()
-                        .system(systemPrompt)
-                        .user(userPrompt)
-                        .tools(geminiAgentTools)
-                        .call()
-                        .content();
-            } catch (Exception e) {
-                throw new IllegalStateException("Gemini invocation failed.", e);
-            }
-        });
-    }
-
-    /**
-     * Waits for Gemini to finish, cancelling the future on interruption or timeout.
-     *
-     * @param future asynchronous Gemini request
-     * @return raw JSON or text returned by Gemini
-     * @throws InterruptedException when the assessment is cancelled
-     * @throws ExecutionException when Gemini fails
-     * @throws TimeoutException when the request exceeds the configured timeout
-     */
-    private String getAssessmentResult(CompletableFuture<String> future)
-            throws InterruptedException, ExecutionException, TimeoutException {
-        try {
-            return future.get(AI_TIMEOUT_SECONDS, TimeUnit.SECONDS);
-        } catch (CancellationException e) {
-            throw new InterruptedException("Assessment cancelled.");
-        } catch (InterruptedException e) {
-            future.cancel(true);
-            throw e;
-        } catch (TimeoutException e) {
-            future.cancel(true);
-            throw e;
-        }
-    }
-
-    /**
      * Converts Gemini's JSON response into the application's response model.
-     *
      * @param response parsed Gemini response
-     * @param travelerLabel display label for the traveler
+     * @param username username of the logged in traveler
      * @param userLat traveler's latitude
      * @param userLon traveler's longitude
-     * @return application-ready risk assessment response
+     * @return completed risk assessment response
      */
-    private RiskAssessmentResponse buildAssessmentResponse(
-            JsonNode response,
-            String travelerLabel,
-            double userLat,
-            double userLon) {
+    private RiskAssessmentResponse buildAssessmentResponse(JsonNode response,
+        String username, double userLat, double userLon) {
         boolean inSafeZone = response.path("inSafeZone").asBoolean(false);
-        EvacuationRouteOption footOption = readRouteOption(response, "footOption");
-        EvacuationRouteOption vehicleOption = readRouteOption(response, "vehicleOption");
+        EvacuationRouteOption footOption = formatRouteOptions(response, "footOption");
+        EvacuationRouteOption vehicleOption = formatRouteOptions(response, "vehicleOption");
 
         return new RiskAssessmentResponse(
-                response.path("riskLevel").asText("UNKNOWN"),
-                response.path("riskSummary").asText("The assessment could not be completed."),
-                response.path("recommendedAction").asText("Follow official emergency instructions."),
-                inSafeZone,
-                inSafeZone ? null : footOption,
-                inSafeZone ? null : vehicleOption,
-                readChecklist(response),
-                true,
-                "Gemini AI Agent",
-                travelerLabel);
+            response.path("riskLevel").asText("UNKNOWN"),
+            response.path("riskSummary").asText("The assessment could not be completed."),
+            response.path("recommendedAction").asText("Follow official emergency instructions."),
+            inSafeZone,
+            inSafeZone ? null : footOption,
+            inSafeZone ? null : vehicleOption,
+            formatEmergencyCheckList(response),
+            true,
+            "Gemini AI Agent",
+            username);
     }
 
     /**
-     * Reads one route option from the JSON response.
-     *
+     * Retrieve route options if any
      * @param response parsed Gemini response
      * @param fieldName JSON field containing the route option
      * @return route option, or null when the field is absent or invalid
      */
-    private EvacuationRouteOption readRouteOption(JsonNode response, String fieldName) {
+    private EvacuationRouteOption formatRouteOptions(JsonNode response, String fieldName) {
         JsonNode route = response.get(fieldName);
         if (route == null || route.isNull() || !route.isObject()) {
             return null;
@@ -280,12 +201,11 @@ public class GeminiRiskAssessmentService {
     }
 
     /**
-     * Reads the emergency checklist and safely converts it to strings.
-     *
+     * Reads the emergency checklist and safely converts it to strings
      * @param response parsed Gemini response
      * @return checklist items, or an empty list when none were returned
      */
-    private List<String> readChecklist(JsonNode response) {
+    private List<String> formatEmergencyCheckList(JsonNode response) {
         JsonNode checklist = response.get("emergencyChecklist");
         if (checklist == null || !checklist.isArray()) {
             return List.of();
@@ -296,14 +216,14 @@ public class GeminiRiskAssessmentService {
     }
 
     /**
-     * Removes optional Markdown fences and parses Gemini's response as JSON.
-     *
+     * Parse Gemini JSON response for proper result display to user
      * @param content raw Gemini response
-     * @return parsed JSON, or an UNKNOWN-risk fallback object when parsing fails
+     * @return parsed complete JSON object
+     * @throws IllegalStateException when response is null, blank, incomplete, or malformed JSON
      */
     private JsonNode parseGeminiAdvice(String content) {
         if (content == null || content.isBlank()) {
-            return OBJECT_MAPPER.createObjectNode();
+            throw new IllegalStateException("AI returned an empty response.");
         }
 
         String json = content.trim();
@@ -315,73 +235,39 @@ public class GeminiRiskAssessmentService {
         if (json.endsWith("```")) {
             json = json.substring(0, json.length() - 3);
         }
+        json = json.trim();
 
+        int firstBrace = json.indexOf('{');
+        int lastBrace = json.lastIndexOf('}');
+        if (firstBrace == -1 || lastBrace == -1 || lastBrace < firstBrace) {
+            throw new IllegalStateException("AI response does not contain a complete JSON object.");
+        }
+        json = json.substring(firstBrace, lastBrace + 1);
+
+        JsonNode root;
         try {
-            return OBJECT_MAPPER.readTree(json.trim());
+            root = OBJECT_MAPPER.readTree(json);
         } catch (Exception e) {
-            return OBJECT_MAPPER.createObjectNode()
-                    .put("riskLevel", "UNKNOWN")
-                    .put("riskSummary", content)
-                    .put("recommendedAction", "Monitor official emergency broadcasts.")
-                    .put("inSafeZone", false);
+            throw new IllegalStateException("AI returned malformed or uncompleted JSON: " + e.getMessage(), e);
         }
-    }
 
-    /**
-     * Records the current thread so a matching request can be interrupted.
-     *
-     * @param requestId request identifier
-     * @return nothing
-     */
-    private void registerRequest(String requestId) {
-        if (hasRequestId(requestId)) {
-            activeThreads.put(requestId, Thread.currentThread());
+        if (!root.isObject()
+                || !root.hasNonNull("riskLevel")
+                || !root.hasNonNull("riskSummary")
+                || !root.hasNonNull("recommendedAction")
+                || !root.has("inSafeZone")) {
+            throw new IllegalStateException("AI returned an incomplete JSON response missing required fields.");
         }
+
+        return root;
     }
 
     /**
-     * Removes a request from the cancellation tracking maps.
-     *
-     * @param requestId request identifier
-     * @return
+     * When user did not on location and AI unable to proceed with recommendation
+     * @param username username of the current logged in traveler
+     * @return location-required response
      */
-    private void removeRequest(String requestId) {
-        if (hasRequestId(requestId)) {
-            activeThreads.remove(requestId);
-            activeFutures.remove(requestId);
-        }
-    }
-
-    /**
-     * Checks whether a request identifier can be used as a map key.
-     *
-     * @param requestId request identifier to check
-     * @return true when the ID is non-null and not blank
-     */
-    private boolean hasRequestId(String requestId) {
-        return requestId != null && !requestId.isBlank();
-    }
-
-    /**
-     * Gets a safe display name for the traveler.
-     *
-     * @param user logged-in user, possibly null
-     * @return username when available, otherwise "Traveler"
-     */
-    private String getTravelerLabel(User user) {
-        if (user == null || user.getUsername() == null || user.getUsername().isBlank()) {
-            return "Traveler";
-        }
-        return user.getUsername();
-    }
-
-    /**
-     * Creates the response shown when browser location was not supplied.
-     *
-     * @param travelerLabel display label for the traveler
-     * @return location-required response with no route options
-     */
-    private RiskAssessmentResponse buildLocationUnavailableResponse(String travelerLabel) {
+    private RiskAssessmentResponse buildLocationUnavailableResponse(String username) {
         return new RiskAssessmentResponse(
                 "UNKNOWN",
                 "Current location is unavailable.",
@@ -392,17 +278,16 @@ public class GeminiRiskAssessmentService {
                 List.of("Enable GPS location access", "Check official emergency feeds"),
                 false,
                 "Location Required",
-                travelerLabel);
+                username);
     }
 
     /**
-     * Creates the response returned after the traveler cancels generation.
-     *
+     * When traveler cancels AI generation
      * @param requestId cancelled request identifier
-     * @param travelerLabel display label for the traveler
+     * @param username username of the current logged in traveler
      * @return cancelled assessment response
      */
-    private RiskAssessmentResponse buildCancelledResponse(String requestId, String travelerLabel) {
+    private RiskAssessmentResponse buildCancelledResponse(String requestId, String username) {
         return new RiskAssessmentResponse(
                 "CANCELLED",
                 "Assessment generation was cancelled.",
@@ -413,20 +298,17 @@ public class GeminiRiskAssessmentService {
                 List.of(),
                 false,
                 "User Cancelled",
-                travelerLabel);
+                username);
     }
 
     /**
-     * Creates a user-facing fallback when Gemini assessment fails.
-     *
-     * @param travelerLabel display label for the traveler
+     * Error response message builder when Gemini fails to response promptly
+     * @param username username of the current logged in traveler
      * @param exception failure that explains the fallback details
      * @return unavailable assessment response
      */
-    private RiskAssessmentResponse buildErrorResponse(String travelerLabel, Exception exception) {
-        String detail = exception.getMessage() == null
-                ? exception.getClass().getSimpleName()
-                : exception.getMessage();
+    private RiskAssessmentResponse buildErrorResponse(String username, Exception exception) {
+        String detail = exception.getMessage() == null ? exception.getClass().getSimpleName() : exception.getMessage();
 
         return new RiskAssessmentResponse(
                 "UNKNOWN",
@@ -438,6 +320,6 @@ public class GeminiRiskAssessmentService {
                 List.of("Monitor official emergency feeds"),
                 false,
                 "Error Fallback",
-                travelerLabel);
+                username);
     }
 }

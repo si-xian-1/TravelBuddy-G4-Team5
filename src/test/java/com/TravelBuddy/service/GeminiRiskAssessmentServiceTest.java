@@ -161,4 +161,84 @@ class GeminiRiskAssessmentServiceTest {
         assertEquals("Monitor official weather updates and enjoy your travel.", response.getRecommendedAction());
         assertEquals(List.of("Keep emergency numbers accessible", "Check local news daily"), response.getEmergencyChecklist());
     }
+
+    @Test
+    @DisplayName("When Gemini returns an incomplete or truncated JSON, service prevents returning raw JSON and provides error fallback")
+    void evaluateRiskAndEscapeRoutes_whenJsonIsIncomplete_preventsRawJsonResponseAndReturnsErrorFallback() {
+        // Arrange
+        Double userLat = 1.3521;
+        Double userLon = 103.8198;
+        User user = new User();
+        user.setUsername("Bob");
+        String requestId = "req-incomplete-003";
+
+        // Incomplete / truncated JSON response
+        String incompleteJson = "{\"riskLevel\": \"HIGH\", \"riskSummary\": \"Flooding detected 10 km away";
+
+        mockChatClient(incompleteJson);
+
+        // Act
+        RiskAssessmentResponse response = riskAssessmentService.evaluateRiskAndEscapeRoutes(
+                userLat, userLon, user, requestId);
+
+        // Assert
+        assertNotNull(response);
+        assertFalse(response.isAiGenerated(), "Should not be marked as successfully AI-generated");
+        assertEquals("UNKNOWN", response.getRiskLevel());
+        assertEquals("Error Fallback", response.getModelUsed());
+        assertTrue(response.getRiskSummary().contains("temporarily unavailable"),
+                "Risk summary should indicate unavailable rather than returning raw JSON");
+        assertFalse(response.getRiskSummary().contains("{\"riskLevel\""),
+                "Risk summary must NOT return uncompleted raw JSON string");
+    }
+
+    @Test
+    @DisplayName("When Gemini returns JSON missing required fields, service treats as incomplete and returns error fallback")
+    void evaluateRiskAndEscapeRoutes_whenJsonMissingRequiredFields_returnsErrorFallback() {
+        // Arrange
+        Double userLat = 1.3521;
+        Double userLon = 103.8198;
+        User user = new User();
+        user.setUsername("Charlie");
+        String requestId = "req-missing-fields-004";
+
+        // JSON missing riskSummary and inSafeZone
+        String incompleteFieldsJson = "{\"riskLevel\": \"HIGH\", \"recommendedAction\": \"Evacuate\"}";
+
+        mockChatClient(incompleteFieldsJson);
+
+        // Act
+        RiskAssessmentResponse response = riskAssessmentService.evaluateRiskAndEscapeRoutes(
+                userLat, userLon, user, requestId);
+
+        // Assert
+        assertNotNull(response);
+        assertFalse(response.isAiGenerated());
+        assertEquals("UNKNOWN", response.getRiskLevel());
+        assertEquals("Error Fallback", response.getModelUsed());
+        assertTrue(response.getRiskSummary().contains("temporarily unavailable"));
+    }
+
+    @Test
+    @DisplayName("When assessment task is cancelled, service returns CANCELLED response")
+    void evaluateRiskAndEscapeRoutes_whenCancelled_returnsCancelledResponse() {
+        // Arrange
+        Double userLat = 1.3521;
+        Double userLon = 103.8198;
+        User user = new User();
+        user.setUsername("Dave");
+        String requestId = "req-cancel-005";
+
+        Thread.currentThread().interrupt();
+
+        // Act
+        RiskAssessmentResponse response = riskAssessmentService.evaluateRiskAndEscapeRoutes(
+                userLat, userLon, user, requestId);
+
+        // Assert
+        assertNotNull(response);
+        assertEquals("CANCELLED", response.getRiskLevel());
+        assertEquals("User Cancelled", response.getModelUsed());
+        assertFalse(response.isAiGenerated());
+    }
 }
