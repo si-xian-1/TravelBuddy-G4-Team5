@@ -9,7 +9,6 @@ import org.springframework.security.core.userdetails.UserDetails;
 
 import com.fasterxml.jackson.annotation.*;
 
-import jakarta.validation.constraints.AssertTrue;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.Pattern;
 import jakarta.validation.constraints.Size;
@@ -26,7 +25,7 @@ public class User implements UserDetails {
     @Size(max = 50, message = "Username can be at most 50 characters")
     private String username;
 
-    @Size(max = 8, message = "Mobile number can be at most 8 characters")
+    @Size(min = 8, max = 8, message = "Mobile number must be exactly 8 digits")
     @Pattern(regexp = "^\\d+$", message = "Mobile number should only contain numbers")
     private String mobileNumber;
     
@@ -35,15 +34,13 @@ public class User implements UserDetails {
     private String password;
     private String role;
 
-    /* Ensure location must be checked */
-    @AssertTrue(message = "Invalid consent location")
+    // Signup requires consent in TravelerService; profile updates allow opting out.
     private Boolean hasConsentLocation;
 
     @Size(max = 50, message = "Emergency contact name can be at most 50 characters")
     private String emergencyContactName;
 
-    @Size(max = 8, message = "Emergency contact mobile number can be at most 8 characters")
-    @Pattern(regexp = "^\\d*$", message = "Emergency contact mobile number should only contain numbers")
+    @Pattern(regexp = "^(?:\\d{8})?$", message = "Emergency contact mobile number must be exactly 8 digits")
     private String emergencyContactNumber;
 
     public User() {
