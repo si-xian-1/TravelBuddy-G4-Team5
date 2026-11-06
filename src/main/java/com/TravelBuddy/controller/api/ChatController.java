@@ -1,37 +1,63 @@
 package com.TravelBuddy.controller.api;
 
-import com.TravelBuddy.model.AlternativeRequest;
-import com.TravelBuddy.model.User;
-import com.TravelBuddy.service.SabreService;
-import jakarta.validation.Valid;
+import java.util.HashMap;
+import java.util.Map;
+
 import org.springframework.ai.chat.client.ChatClient;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
-import org.springframework.web.bind.annotation.*;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.bind.annotation.RestController;
 
+import com.TravelBuddy.model.AlternativeRequest;
+import com.TravelBuddy.model.User;
+import com.TravelBuddy.service.AiTaskCancellationManager;
+import com.TravelBuddy.service.SabreService;
+
+import jakarta.validation.Valid;
+
+/**
+ * Handle alternative itinerary recommendation for travelers with affected itinerary due to disaster situation
+ */
 @RestController
 @RequestMapping("/api/chat")
 public class ChatController {
+    private static final long AI_TIMEOUT_SECONDS = 60;
 
     private final ChatClient chatClient;
     private final SabreService sabreService;
+    private final AiTaskCancellationManager cancellationManager;
 
-    /** Creates the Gemini client and registers the Sabre tool service. */
-    public ChatController(ChatClient.Builder chatClientBuilder, SabreService sabreService) {
+    public ChatController(
+            ChatClient.Builder chatClientBuilder,
+            SabreService sabreService,
+            AiTaskCancellationManager cancellationManager) {
         this.chatClient = chatClientBuilder.build();
         this.sabreService = sabreService;
+        this.cancellationManager = cancellationManager;
     }
 
     /**
-     * Builds the replan prompt, lets Gemini call Sabre tools, and returns the
-     * generated selectable HTML to the detailed itinerary modal.
+     * Builds the replan prompt, lets Gemini call Sabre tools
+     * @param request
+     * @param requestId
+     * @param currentUser
+     * @return generated selectable HTML to the Gemini generation modal
      */
     @PostMapping("/recommend-alternative")
     public ResponseEntity<String> recommendAlternative(
             @Valid @RequestBody AlternativeRequest request,
+            @RequestParam(required = false) String requestId,
             @AuthenticationPrincipal User currentUser) {
 
         System.out.println(">>> ChatController received request for item type: " + request.getItemType());
+
+        String effectiveRequestId = (request.getRequestId() != null && !request.getRequestId().isBlank())
+                ? request.getRequestId()
+                : requestId;
 
         String targetLocation = (request.getLocation() != null && !request.getLocation().isBlank())
                 ? request.getLocation()
@@ -118,29 +144,50 @@ public class ChatController {
                         """,
                 affectedItems, toolInstruction);
 
-        String aiResponse = this.chatClient.prompt()
-                .system(systemPrompt)
-                .user(userInstruction)
-                .tools(sabreService) // Automatically registers all @Tool methods inside SabreService
-                .call()
-                .content();
+        final String finalSystemPrompt = systemPrompt;
+        final String finalUserInstruction = userInstruction;
 
-        if (aiResponse == null || aiResponse.isBlank()) {
-            aiResponse = "We retrieved options, but could not format the summary. Please try refreshing.";
+        try {
+            String aiResponse = cancellationManager.executeWithCancellation(
+                    effectiveRequestId,
+                    () -> this.chatClient.prompt()
+                            .system(finalSystemPrompt)
+                            .user(finalUserInstruction)
+                            .tools(sabreService)
+                            .call()
+                            .content(),
+                    AI_TIMEOUT_SECONDS);
+
+            if (aiResponse == null || aiResponse.isBlank()) {
+                aiResponse = "Unable to display results. Please try refreshing.";
+            }
+
+            return ResponseEntity.ok(aiResponse);
+        } catch (InterruptedException e) {
+            Thread.currentThread().interrupt();
+            return ResponseEntity.ok("<div class=\"alert alert-warning\">AI alternative recommendation was cancelled.</div>");
+        } catch (Exception e) {
+            System.out.println("[ChatController ERROR] AI generation failed: " + e.getMessage());
+            return ResponseEntity.ok("<div class=\"alert alert-danger\">Failed to retrieve alternative recommendations: " + e.getMessage() + "</div>");
         }
-
-        return ResponseEntity.ok(aiResponse);
     }
 
-    /** Returns a general travel-assistance response using the Sabre tools. */
-    @GetMapping("/travel-assistance")
-    public String getTravelAssistance(
-            @RequestParam(defaultValue = "I am stranded in Taipei from 2026-10-20 to 2026-10-22 due to a typhoon. Can you recommend safe hotels?") String prompt) {
+    /**
+     * Terminate an in progress AI generation task
+     * @param requestId Unique identifier for AI generation termination
+     * @param currentUser Authenticated traveler profile
+     * @return Status confirming cancellation of AI generation task
+     */
+    @PostMapping({"/cancel"})
+    public ResponseEntity<Map<String, Object>> cancelAiGeneration(
+            @RequestParam(required = false) String requestId,
+            @AuthenticationPrincipal User currentUser) {
 
-        return this.chatClient.prompt()
-                .user(prompt)
-                .tools(sabreService)
-                .call()
-                .content();
+        cancellationManager.cancel(requestId);
+
+        Map<String, Object> response = new HashMap<>();
+        response.put("status", "cancelled");
+        response.put("requestId", requestId != null ? requestId : "");
+        return ResponseEntity.ok(response);
     }
 }

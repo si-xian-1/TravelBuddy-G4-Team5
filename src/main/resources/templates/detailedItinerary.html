@@ -552,10 +552,7 @@
 
     <div th:replace="~{fragments/deleteModal :: deleteModal}"></div>
 
-    <!-- =====================================================================
-         Alternatives Recommendation Modal
-         Shown when the user clicks "Get Alternatives" on a Red-alert hotel/flight card.
-         ===================================================================== -->
+    <!-- Start alternatives Recommendation Modal. Shown when user clicks "Replan with AI" button -->
     <div class="modal fade" id="alternativesModal" tabindex="-1" role="dialog" aria-labelledby="alternativesModalLabel"
         aria-hidden="true">
         <div class="modal-dialog modal-lg modal-dialog-scrollable" role="document">
@@ -566,7 +563,7 @@
                     <h5 class="modal-title font-weight-bold" id="alternativesModalLabel">
                         <i class="fas fa-robot mr-2"></i>AI Alternative Recommendations
                     </h5>
-                    <button type="button" class="close text-white" data-dismiss="modal" aria-label="Close">
+                    <button type="button" class="close text-white" data-dismiss="modal" aria-label="Close" id="alternativesHeaderCloseBtn">
                         <span aria-hidden="true">&times;</span>
                     </button>
                 </div>
@@ -593,10 +590,10 @@
                 <!-- Footer -->
                 <div class="modal-footer justify-content-between">
                     <button type="button" id="alternativesMoreBtn" class="btn btn-outline-danger d-none">
-                        <i class="fas fa-sync-alt mr-1"></i>Get More Options
+                        <i class="fas fa-sync-alt mr-1"></i>Regenerate Options
                     </button>
                     <div>
-                        <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
+                        <button type="button" class="btn btn-secondary" data-dismiss="modal" id="alternativesCloseBtn">Close</button>
                         <button type="button" class="btn btn-success d-none" id="proceedToBookingBtn">Book Selected</button>
                     </div>
                 </div>
@@ -606,9 +603,7 @@
     </div>
     <!-- End Alternatives Recommendation Modal -->
 
-    <!-- =====================================================================
-         Replan Selection Modal (Now correctly separated)
-         ===================================================================== -->
+    <!-- Start replan Selection Modal to ask user which itinerary should AI replan for -->
     <div class="modal fade" id="replanSelectionModal" tabindex="-1" role="dialog" aria-hidden="true">
         <div class="modal-dialog" role="document">
             <div class="modal-content">
@@ -618,15 +613,17 @@
                         <span aria-hidden="true">&times;</span>
                     </button>
                 </div>
+
                 <div class="modal-body">
-                    <p class="text-sm">The following items in your itinerary are affected by a red alert.
+                    <p class="text-sm">The following items in your itinerary are affected by the disaster situation.
                         Select the ones you want AI to find alternatives for:</p>
                     <form id="replanSelectionForm">
                         <div id="affectedItemsList">
-                            <!-- Checkboxes will be injected here via JS -->
+                            <!-- Checkboxes options will be injected here via JS -->
                         </div>
                     </form>
                 </div>
+
                 <div class="modal-footer">
                     <button type="button" class="btn btn-secondary" data-dismiss="modal">Cancel</button>
                     <button type="button" class="btn btn-danger" id="confirmReplanBtn">Find Alternatives</button>
@@ -634,6 +631,7 @@
             </div>
         </div>
     </div>
+    <!-- End replan Selection Modal -->
 
     <!-- Bootstrap core JavaScript-->
     <script th:src="@{/vendor/jquery/jquery.min.js}"></script>
@@ -648,6 +646,7 @@
     <script th:src="@{/js/attractionManagement.js}"></script>
     <script th:src="@{/js/hotelManagement.js}"></script>
     <script th:src="@{/js/flightManagement.js}"></script>
+    <script th:src="@{/js/itineraryReplan.js}"></script>
 
     <!-- Custom scripts for all pages-->
     <script th:src="@{/js/sb-admin-2.min.js}"></script>
