@@ -1,4 +1,4 @@
-/**
+﻿/**
  * Manage edit, delete and display of hotels
  * Displays disaster warning if applicable.
  */
@@ -102,7 +102,15 @@ document.addEventListener("DOMContentLoaded", async function () {
                     disasterAlert.classList.remove("alert-danger");
                 }
 
+                // Store warning text on the element so applyToCard can read it
+                cardElement.dataset.disasterWarning = hotel.disasterWarning || "";
+
                 hotelsList.appendChild(card);
+
+                // Reveal "Get Alternatives" button if this hotel has an active alert
+                if (window.AlternativesModal) {
+                    window.AlternativesModal.applyToCard(cardElement, hotel.disasterWarning || "");
+                }
             }
         } catch (error) {
             console.error("Unable to load itinerary hotels:", error);

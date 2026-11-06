@@ -1,0 +1,26 @@
+<!DOCTYPE html>
+
+<html lang="en" xmlns:th="https://www.thymeleaf.org/">
+<body>
+    <div class="modal fade" id="routeErrorModal" tabindex="-1" role="dialog"
+         aria-labelledby="routeErrorModalTitle" aria-hidden="true" th:fragment="routeErrorModal">
+        <div class="modal-dialog" role="document">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="routeErrorModalTitle">Route unavailable</h5>
+                    <button class="close" type="button" data-dismiss="modal" aria-label="Close">
+                        <span aria-hidden="true">x</span>
+                    </button>
+                </div>
+                <div class="modal-body" id="routeErrorModalBody">
+                    <span id="routeErrorModalMessage">No evacuation route is available for this selection.</span>
+                    <small class="d-block text-muted mt-2">No route recommendation is currently available.</small>
+                </div>
+                <div class="modal-footer">
+                    <button class="btn btn-primary" type="button" data-dismiss="modal">OK</button>
+                </div>
+            </div>
+        </div>
+    </div>
+</body>
+</html>
