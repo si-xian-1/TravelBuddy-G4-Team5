@@ -2,6 +2,7 @@ package com.TravelBuddy.service;
 
 import com.TravelBuddy.model.User;
 import com.TravelBuddy.repository.TravelerRepository;
+import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
@@ -27,6 +28,7 @@ class TravelerProfileTests {
     private TravelerService service;
 
     @Test
+    @DisplayName("Should fail validation when mobile number is shorter than 8 digits")
     void mobileNumberShorterThanEightDigitsIsRejected() {
         // Arrange
         try (var factory = jakarta.validation.Validation.buildDefaultValidatorFactory()) {
@@ -47,6 +49,7 @@ class TravelerProfileTests {
     }
 
     @Test
+    @DisplayName("Should fail validation when emergency contact mobile number is shorter than 8 digits")
     void emergencyContactNumberShorterThanEightDigitsIsRejected() {
         // Arrange
         try (var factory = jakarta.validation.Validation.buildDefaultValidatorFactory()) {
@@ -67,6 +70,7 @@ class TravelerProfileTests {
     }
 
     @Test
+    @DisplayName("Should pass validation when mobile number and emergency contact number are valid 8-digit numbers")
     void eightDigitPhoneNumbersAreAccepted() {
         // Arrange
         try (var factory = jakarta.validation.Validation.buildDefaultValidatorFactory()) {
@@ -86,6 +90,7 @@ class TravelerProfileTests {
     }
 
     @Test
+    @DisplayName("Should pass validation when location consent is set to false (withdrawn)")
     void locationConsentCanBeWithdrawn() {
         // Arrange
         try (var factory = jakarta.validation.Validation.buildDefaultValidatorFactory()) {
@@ -106,6 +111,7 @@ class TravelerProfileTests {
     }
 
     @Test
+    @DisplayName("Should pass validation when emergency contact mobile number is empty (optional)")
     void emptyEmergencyContactNumberIsAccepted() {
         // Arrange
         try (var factory = jakarta.validation.Validation.buildDefaultValidatorFactory()) {
@@ -126,6 +132,7 @@ class TravelerProfileTests {
     }
 
     @Test
+    @DisplayName("Should fail validation when mobile number contains non-digit characters")
     void nonDigitMobileNumberIsRejected() {
         // Arrange
         try (var factory = jakarta.validation.Validation.buildDefaultValidatorFactory()) {
@@ -146,6 +153,7 @@ class TravelerProfileTests {
     }
 
     @Test
+    @DisplayName("Should successfully update traveler profile while preserving password and location consent")
     void profileUpdatePreservesPasswordAndConsent() {
         // Arrange
         User updates = new User();
@@ -167,6 +175,7 @@ class TravelerProfileTests {
     }
 
     @Test
+    @DisplayName("Should throw CONFLICT when updated username already exists in repository")
     void duplicateUsernameReturnsConflict() {
         // Arrange
         User updates = new User();
@@ -182,6 +191,7 @@ class TravelerProfileTests {
     }
 
     @Test
+    @DisplayName("Should throw BAD_REQUEST when mobile number is blank whitespace before updating repository")
     void blankMobileIsRejectedBeforeWriting() {
         // Arrange
         User updates = new User();

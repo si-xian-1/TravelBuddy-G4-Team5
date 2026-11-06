@@ -2,6 +2,7 @@ package com.TravelBuddy.service;
 
 import com.TravelBuddy.model.User;
 import com.TravelBuddy.repository.TravelerRepository;
+import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
@@ -25,6 +26,7 @@ class ChangePasswordTests {
     private TravelerService service;
 
     @Test
+    @DisplayName("Should throw BAD_REQUEST and not update database when new password and confirm password do not match")
     void mismatchedPasswordsNeverWrite() {
         // Arrange
         String newPassword = "new";
@@ -40,6 +42,7 @@ class ChangePasswordTests {
     }
 
     @Test
+    @DisplayName("Should throw BAD_REQUEST and not update database when password is blank or whitespace")
     void blankPasswordsNeverWrite() {
         // Arrange
         String password = " ";
@@ -54,6 +57,7 @@ class ChangePasswordTests {
     }
 
     @Test
+    @DisplayName("Should throw BAD_REQUEST and not update database when password exceeds 255 characters")
     void overlyLongPasswordsNeverWrite() {
         // Arrange
         String password = "a".repeat(256);
@@ -68,6 +72,7 @@ class ChangePasswordTests {
     }
 
     @Test
+    @DisplayName("Should throw BAD_REQUEST when new password is the same as the current password")
     void rejectsExistingPasswordByCheckingHash() {
         // Arrange
         when(repository.getPasswordHash(7)).thenReturn("old-hash");
@@ -84,6 +89,7 @@ class ChangePasswordTests {
     }
 
     @Test
+    @DisplayName("Should successfully encode new password and update password in repository for valid input")
     void savesEncodedPasswordForAuthenticatedUserOnly() {
         // Arrange
         when(repository.getPasswordHash(7)).thenReturn("old-hash");
@@ -99,6 +105,7 @@ class ChangePasswordTests {
     }
 
     @Test
+    @DisplayName("Should throw BAD_REQUEST when attempting to update password directly via profile update endpoint")
     void profileEndpointCannotBypassPasswordChecks() {
         // Arrange
         User user = new User();
