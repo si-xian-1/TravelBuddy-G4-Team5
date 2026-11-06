@@ -18,6 +18,7 @@ import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.server.ResponseStatusException;
 
 import com.TravelBuddy.model.User;
+import com.TravelBuddy.model.PasswordChangeRequest;
 import com.TravelBuddy.service.TravelerService;
 
 import jakarta.servlet.http.HttpServletRequest;
@@ -95,13 +96,17 @@ public class TravelerController {
     @PutMapping("/updateProfile")
     public String updateUser(
             @AuthenticationPrincipal User currentUser,
-            @Valid @RequestBody User user) {
+            @Valid @RequestBody User user,
+            HttpServletRequest request,
+            HttpServletResponse response) {
         if (travelerService.updateUser(currentUser.getUserId(), user) == 0) {
             throw new ResponseStatusException(
                     HttpStatus.NOT_FOUND,
                     "Traveler not found");
         }
 
+        currentUser.setUsername(user.getUsername());
+        securityContextRepository.saveContext(SecurityContextHolder.getContext(), request, response);
         return "User updated successfully";
     }
 
@@ -110,6 +115,13 @@ public class TravelerController {
      * @param currentUser
      * @return User object of profile details
      */
+    @PutMapping("/changePassword")
+    public String changePassword(@AuthenticationPrincipal User currentUser,
+            @Valid @RequestBody PasswordChangeRequest passwords) {
+        travelerService.changePassword(currentUser.getUserId(), passwords.newPassword(), passwords.confirmPassword());
+        return "Password changed successfully";
+    }
+
     @GetMapping("/myProfile")
     public User getUser(@AuthenticationPrincipal User currentUser) {
         return travelerService.getUser(currentUser.getUserId());

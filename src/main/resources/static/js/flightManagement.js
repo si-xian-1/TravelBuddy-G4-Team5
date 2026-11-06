@@ -1,4 +1,4 @@
-/**
+﻿/**
  * Manage edit, delete, and display of flights.
  * Displays disaster warnings if applicable.
  */
@@ -115,7 +115,15 @@ document.addEventListener("DOMContentLoaded", async function () {
                     DateTimeValidation.setItineraryLimits(arrTimeInput, itinerary.startDate, itinerary.endDate);
                 }
 
+                // Store warning text on the element so applyToCard can read it
+                cardElement.dataset.disasterWarning = flight.disasterWarning || "";
+
                 flightsList.appendChild(card);
+
+                // Reveal "Get Alternatives" button if this flight has an active alert
+                if (window.AlternativesModal) {
+                    window.AlternativesModal.applyToCard(cardElement, flight.disasterWarning || "");
+                }
             }
         } catch (error) {
             console.error("Unable to load itinerary flights:", error);

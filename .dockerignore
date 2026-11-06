@@ -1,0 +1,23 @@
+# Git
+.git
+.gitignore
+.gitattributes
+.github
+
+# Environment files
+.env
+
+# Build outputs
+target/
+*.class
+
+# IDE and Editor files
+.idea/
+*.iml
+.vscode/
+.settings/
+.project
+.classpath
+
+# Logs
+*.log
