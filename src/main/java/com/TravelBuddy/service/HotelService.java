@@ -31,19 +31,32 @@ public class HotelService {
         // Check that user has the permission to add hotel for this selected itinerary
         itineraryService.checkItineraryBelongToUser(itineraryId, userId);
 
-        if (hotel.getCheckIn().isAfter(hotel.getCheckOut())) {
-            throw new InvalidInputsException("Check-in time cannot be after check-out time.");
+        if (!hotel.getCheckOut().toLocalDate().isAfter(hotel.getCheckIn().toLocalDate())) {
+            throw new InvalidInputsException("Check-out date must be after check-in date.");
         }
 
-        // Ensure inputted coordinate is valid
-        if (hotel.getLatitude() == 0.0 && hotel.getLongitude() == 0.0) {
-            throw new InvalidInputsException("Valid location coordinates must be provided from the search results.");
-        }
+        validateCoordinates(hotel);
         
         hotel.setItineraryId(itineraryId);
 
         // Execute sql to add new hotel
         return hotelRepository.createHotel(itineraryId, hotel);
+    }
+
+    private void validateCoordinates(Hotel hotel) {
+        double latitude = hotel.getLatitude();
+        double longitude = hotel.getLongitude();
+
+        if (latitude == 0.0 && longitude == 0.0) {
+            throw new InvalidInputsException("Valid location coordinates must be provided from the search results.");
+        }
+
+        if (!Double.isFinite(latitude) || !Double.isFinite(longitude)
+                || latitude < -90 || latitude > 90
+                || longitude < -180 || longitude > 180) {
+            throw new InvalidInputsException(
+                    "Latitude must be between -90 and 90, and longitude between -180 and 180.");
+        }
     }
 
     /**
@@ -60,11 +73,15 @@ public class HotelService {
 
         // Disaster monitoring
         for (Hotel hotel : hotels) {
-            String warning = gdacsService.evaluateProximityAndDateFromDisasters(
-                    hotel.getLatitude(), hotel.getLongitude(), 
-                    hotel.getCheckIn(), hotel.getCheckOut());
-            
-            hotel.setDisasterWarning(warning);
+            try {
+                String warning = gdacsService.evaluateProximityAndDateFromDisasters(
+                        hotel.getLatitude(), hotel.getLongitude(),
+                        hotel.getCheckIn(), hotel.getCheckOut());
+
+                hotel.setDisasterWarning(warning);
+            } catch (IllegalStateException exception) {
+                hotel.setDisasterWarning("Disaster monitoring is currently unavailable. We are doing our best to resolve this.");
+            }
         }
 
         return hotels;
@@ -93,14 +110,11 @@ public class HotelService {
     public int updateHotel(int itineraryId, int userId, int hotelId, Hotel hotel) {
         itineraryService.checkItineraryBelongToUser(itineraryId, userId);
 
-        if (hotel.getCheckIn().isAfter(hotel.getCheckOut())) {
-            throw new InvalidInputsException("Check-in time cannot be after check-out time.");
+        if (!hotel.getCheckOut().toLocalDate().isAfter(hotel.getCheckIn().toLocalDate())) {
+            throw new InvalidInputsException("Check-out date must be after check-in date.");
         }
 
-        // Ensure inputted coordinate is valid
-        if (hotel.getLatitude() == 0.0 && hotel.getLongitude() == 0.0) {
-            throw new InvalidInputsException("Valid location coordinates must be provided from the search results.");
-        }
+        validateCoordinates(hotel);
 
         hotel.setItineraryId(itineraryId);
         

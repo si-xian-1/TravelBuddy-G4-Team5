@@ -108,7 +108,8 @@ document.getElementById('itineraryForm').addEventListener('submit', async functi
             }, 1200);
         } else {
             const errorAlert = document.getElementById('itineraryModalErrorAlert');
-            errorAlert.textContent = "Failed to save itinerary. If issue persists, please contact our helpdesk.";
+            const errData = await response.json().catch(() => ({}));
+            errorAlert.textContent = errData.message || "Failed to save itinerary. Please try again.";
             errorAlert.classList.remove('d-none');
         }
     } catch (err) {
