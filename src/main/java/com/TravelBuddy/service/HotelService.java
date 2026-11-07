@@ -80,7 +80,7 @@ public class HotelService {
 
                 hotel.setDisasterWarning(warning);
             } catch (IllegalStateException exception) {
-                hotel.setDisasterWarning("disaster-service failure");
+                hotel.setDisasterWarning("Disaster monitoring is currently unavailable. We are doing our best to resolve this.");
             }
         }
 

@@ -87,7 +87,7 @@ public class AttractionService {
 
                 attraction.setDisasterWarning(warning);
             } catch (IllegalStateException exception) {
-                attraction.setDisasterWarning("disaster-service failure");
+                attraction.setDisasterWarning("Disaster monitoring is currently unavailable. We are doing our best to resolve this.");
             }
         }
 

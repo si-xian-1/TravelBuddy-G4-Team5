@@ -72,7 +72,7 @@ public class FlightService {
                         flight.getArrivalLatitude(), flight.getArrivalLongitude(),
                         flight.getDepartureTime(), flight.getArrivalTime()));
             } catch (IllegalStateException exception) {
-                flight.setDisasterWarning("disaster-service failure");
+                flight.setDisasterWarning("Disaster monitoring is currently unavailable. We are doing our best to resolve this.");
             }
         }
 

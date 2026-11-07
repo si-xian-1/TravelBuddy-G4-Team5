@@ -42,7 +42,7 @@ The existing Spring context smoke test is outside these commands. These commands
 | Deleting an itinerary deletes all associated item rows and preserves other itineraries | ItineraryAcceptanceTest.accessAndDeletion |
 | Disaster warnings use hotel coordinates/stay, flight arrival coordinates/travel times, and attraction coordinates/visit time | Isolated service warning tests; each item acceptance class: warningConsistencyAndFailure |
 | Warnings appear on selected-item, item-list and itinerary-detail responses | Each item acceptance class: warningConsistencyAndFailure |
-| Disaster-service failure retains trip data and displays exactly "disaster-service failure" | Isolated service failure tests; each item acceptance class: warningConsistencyAndFailure |
+| Disaster monitoring failure retains trip data and displays exactly "Disaster monitoring is currently unavailable. We are doing our best to resolve this." | Isolated service failure tests; each item acceptance class: warningConsistencyAndFailure |
 | Repeated reads are stable, stale warnings clear, and equivalent create/update inputs obey the same rules | Each item acceptance class: warningConsistencyAndFailure and shared create/update matrices |
 
 Out-of-range and other invalid-input API requests expect 400. Rejected requests
@@ -51,8 +51,7 @@ dates; there is no past-trip validation rule.
 
 ## Test boundaries
 
-- The four files in src/test/java/com/TravelBuddy/service are isolated unit tests.
-  Repositories and the external disaster service are mocked.
+- The four files in src/test/java/com/TravelBuddy/service are isolated unit tests. Repositories and external services are mocked.
 - The four concrete files in src/test/java/com/TravelBuddy/acceptance run shared
   acceptance scenarios. They use real controllers, Jakarta validation, services,
   JDBC repositories and the production schema.sql.
