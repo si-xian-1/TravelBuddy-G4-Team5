@@ -1,5 +1,6 @@
 package com.TravelBuddy.service;
 
+import java.time.LocalDate;
 import java.util.List;
 
 import org.springframework.stereotype.Service;
@@ -38,25 +39,37 @@ public class ItineraryService {
             // Check Hotels
             if (itinerary.getHotels() != null) {
                 for (Hotel hotel : itinerary.getHotels()) {
-                    hotel.setDisasterWarning(gdacsService.evaluateProximityAndDateFromDisasters(
-                            hotel.getLatitude(), hotel.getLongitude(), hotel.getCheckIn(), hotel.getCheckOut()));
+                    try {
+                        hotel.setDisasterWarning(gdacsService.evaluateProximityAndDateFromDisasters(
+                                hotel.getLatitude(), hotel.getLongitude(), hotel.getCheckIn(), hotel.getCheckOut()));
+                    } catch (IllegalStateException exception) {
+                        hotel.setDisasterWarning("Disaster monitoring is currently unavailable. We are doing our best to resolve this.");
+                    }
                 }
             }
 
             // Check Attractions
             if (itinerary.getAttractions() != null) {
                 for (Attraction attraction : itinerary.getAttractions()) {
-                    attraction.setDisasterWarning(gdacsService.evaluateProximityAndDateFromDisasters(
-                            attraction.getLatitude(), attraction.getLongitude(), attraction.getVisitDate(), attraction.getVisitDate()));
+                    try {
+                        attraction.setDisasterWarning(gdacsService.evaluateProximityAndDateFromDisasters(
+                                attraction.getLatitude(), attraction.getLongitude(), attraction.getVisitDate(), attraction.getVisitDate()));
+                    } catch (IllegalStateException exception) {
+                        attraction.setDisasterWarning("Disaster monitoring is currently unavailable. We are doing our best to resolve this.");
+                    }
                 }
             }
 
             // Check Flights (only check arrival location)
             if (itinerary.getFlights() != null) {
                 for (Flight flight : itinerary.getFlights()) {
-                    flight.setDisasterWarning(gdacsService.evaluateProximityAndDateFromDisasters(
-                            flight.getArrivalLatitude(), flight.getArrivalLongitude(),
-                            flight.getDepartureTime(), flight.getArrivalTime()));
+                    try {
+                        flight.setDisasterWarning(gdacsService.evaluateProximityAndDateFromDisasters(
+                                flight.getArrivalLatitude(), flight.getArrivalLongitude(),
+                                flight.getDepartureTime(), flight.getArrivalTime()));
+                    } catch (IllegalStateException exception) {
+                        flight.setDisasterWarning("Disaster monitoring is currently unavailable. We are doing our best to resolve this.");
+                    }
                 }
             }
         }
@@ -121,7 +134,32 @@ public class ItineraryService {
 
         checkItineraryBelongToUser(itineraryId, userId);
 
+        Itinerary existing = itineraryRepository.findSelectedItineraryByUserId(itineraryId, userId);
+        if (existing == null) {
+            throw new InvalidInputsException("Itinerary not found.");
+        }
+
+        if (existing.getHotels() != null) {
+            for (Hotel hotel : existing.getHotels()) {
+                validateBookingDate(itinerary, hotel.getCheckIn().toLocalDate());
+                validateBookingDate(itinerary, hotel.getCheckOut().toLocalDate());
+            }
+        }
+
+        if (existing.getFlights() != null) {
+            for (Flight flight : existing.getFlights()) {
+                validateBookingDate(itinerary, flight.getDepartureTime().toLocalDate());
+                validateBookingDate(itinerary, flight.getArrivalTime().toLocalDate());
+            }
+        }
+
         return itineraryRepository.updateItinerary(itineraryId, userId, itinerary);
+    }
+
+    private void validateBookingDate(Itinerary itinerary, LocalDate bookingDate) {
+        if (bookingDate.isBefore(itinerary.getStartDate()) || bookingDate.isAfter(itinerary.getEndDate())) {
+            throw new InvalidInputsException("Current itinerary items planned falls outside of itinerary date period. Adjust your current hotel, or flight dates before modifying your itinerary date.");
+        }
     }
 
     /**

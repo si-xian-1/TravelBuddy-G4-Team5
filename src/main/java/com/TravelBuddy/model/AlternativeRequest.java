@@ -5,6 +5,10 @@ import jakarta.validation.constraints.NotNull;
 import lombok.Getter;
 import lombok.Setter;
 
+/**
+ * Captues user's prompt, itinerary and disaster context for AI to process alternative itinerary recommendation
+ */
+
 @Getter
 @Setter
 public class AlternativeRequest {
@@ -35,84 +39,7 @@ public class AlternativeRequest {
     // JSON containing the affected itinerary items and their current booking details
     private String context;
 
-    public Integer getItineraryId() {
-        return itineraryId;
-    }
-
-    public void setItineraryId(Integer itineraryId) {
-        this.itineraryId = itineraryId;
-    }
-
-    public String getItemType() {
-        return itemType;
-    }
-
-    public void setItemType(String itemType) {
-        this.itemType = itemType;
-    }
-
-    public Integer getItemId() {
-        return itemId;
-    }
-
-    public void setItemId(Integer itemId) {
-        this.itemId = itemId;
-    }
-
-    public String getLocation() {
-        return location;
-    }
-
-    public void setLocation(String location) {
-        this.location = location;
-    }
-
-    public String getDestinationLocation() {
-        return destinationLocation;
-    }
-
-    public void setDestinationLocation(String destinationLocation) {
-        this.destinationLocation = destinationLocation;
-    }
-
-    public String getStartDate() {
-        return startDate;
-    }
-
-    public void setStartDate(String startDate) {
-        this.startDate = startDate;
-    }
-
-    public String getEndDate() {
-        return endDate;
-    }
-
-    public void setEndDate(String endDate) {
-        this.endDate = endDate;
-    }
-
-    public String getDisasterWarning() {
-        return disasterWarning;
-    }
-
-    public void setDisasterWarning(String disasterWarning) {
-        this.disasterWarning = disasterWarning;
-    }
-
-    public String getUserPrompt() {
-        return userPrompt;
-    }
-
-    public void setUserPrompt(String userPrompt) {
-        this.userPrompt = userPrompt;
-    }
-
-    public String getContext() {
-        return context;
-    }
-
-    public void setContext(String context) {
-        this.context = context;
-    }
+    // Optional request identifier for AI task cancellation
+    private String requestId;
 
 }

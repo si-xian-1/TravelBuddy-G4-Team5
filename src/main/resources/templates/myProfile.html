@@ -52,11 +52,70 @@
                     </div>
 
                     <div class="card shadow mb-4">
-                        <div class="card-header py-3">
-                            <h6 class="m-0 font-weight-bold text-primary">Traveler Details</h6>
+                        <div class="card-header py-3 d-flex align-items-center justify-content-between">
+                            <h6 id="travelerDetailsTitle" class="m-0 font-weight-bold text-primary">Traveler Details</h6>
+                            <button id="editProfile" type="button" class="btn btn-primary btn-sm" disabled>Edit Profile</button>
                         </div>
                         <div class="card-body">
-                            <div class="row">
+                            <div id="profileSuccess" class="alert alert-success d-none" role="status">Profile updated successfully.</div>
+                                <form id="passwordForm" class="d-none" novalidate>
+                                    <div>
+                                        <div id="passwordError" class="alert alert-danger d-none" role="alert"></div>
+                                        <div class="form-group">
+                                            <label for="newPassword">New Password</label>
+                                            <div class="password-field">
+                                                <input id="newPassword" type="password" class="form-control" autocomplete="new-password" required maxlength="255" aria-describedby="newPasswordErrMsg">
+                                                <button type="button" class="password-eye" data-password-toggle="newPassword" aria-controls="newPassword" aria-label="Show new password" aria-pressed="false">
+                                                    <i class="fas fa-eye" aria-hidden="true"></i>
+                                                </button>
+                                                <div id="newPasswordErrMsg" class="invalid-feedback"></div>
+                                            </div>
+                                        </div>
+                                        <div class="form-group">
+                                            <label for="confirmPassword">Confirm New Password</label>
+                                            <div class="password-field">
+                                                <input id="confirmPassword" type="password" class="form-control" autocomplete="new-password" required maxlength="255" aria-describedby="confirmPasswordErrMsg">
+                                                <button type="button" class="password-eye" data-password-toggle="confirmPassword" aria-controls="confirmPassword" aria-label="Show confirm new password" aria-pressed="false">
+                                                    <i class="fas fa-eye" aria-hidden="true"></i>
+                                                </button>
+                                                <div id="confirmPasswordErrMsg" class="invalid-feedback"></div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <button id="changePasswordButton" type="submit" class="btn btn-primary">Save Changes</button>
+                                    <button id="cancelPasswordChange" type="button" class="btn btn-secondary">Cancel</button>
+                                </form>
+                            <form id="profileForm" class="d-none" novalidate>
+                                <div id="saveError" class="alert alert-danger d-none" role="alert"></div>
+                                <div class="form-group">
+                                    <label for="editUsername">Username</label>
+                                    <input id="editUsername" class="form-control" required maxlength="50" autocomplete="username">
+                                    <div class="invalid-feedback" id="editUsernameErrMsg"></div>
+                                </div>
+                                <div class="form-group">
+                                    <label for="editMobile">Mobile Number</label>
+                                    <input id="editMobile" type="tel" class="form-control" required maxlength="8" pattern="[0-9]{8}" autocomplete="tel">
+                                    <div class="invalid-feedback" id="editMobileErrMsg"></div>
+                                </div>
+                                <div class="form-group">
+                                    <label for="editContactName">Emergency Contact Name (optional)</label>
+                                    <input id="editContactName" class="form-control" maxlength="50">
+                                    <div class="invalid-feedback" id="editContactNameErrMsg"></div>
+                                </div>
+                                <div class="form-group">
+                                    <label for="editContactNumber">Emergency Contact Number (optional)</label>
+                                    <input id="editContactNumber" type="tel" class="form-control" maxlength="8" pattern="[0-9]{8}">
+                                    <div class="invalid-feedback" id="editContactNumberErrMsg"></div>
+                                </div>
+                                <div class="form-group form-check">
+                                    <input id="editLocationConsent" type="checkbox" class="form-check-input">
+                                    <label for="editLocationConsent" class="form-check-label">Allow location sharing</label>
+                                    <div class="invalid-feedback" id="editLocationConsentErrMsg"></div>
+                                </div>
+                                <button id="saveProfile" type="submit" class="btn btn-primary">Save Changes</button>
+                                <button id="cancelEdit" type="button" class="btn btn-secondary">Cancel</button>
+                            </form>
+                            <div id="profileDetails" class="row">
                                 <div class="col-md-6">
                                     <p class="mb-3">
                                         <strong>Username:</strong>
@@ -84,6 +143,8 @@
                             </div>
                         </div>
                     </div>
+                    <div id="passwordSuccess" class="alert alert-success d-none" role="status">Password changed successfully.</div>
+                    <button id="openChangePassword" type="button" class="btn btn-primary mb-4">Change Password</button>
                 </div>
             </div>
         </div>
@@ -98,6 +159,142 @@
 
     <script>
         document.addEventListener("DOMContentLoaded", async function () {
+            let traveler;
+            const form = document.getElementById("profileForm");
+            const editButton = document.getElementById("editProfile");
+            const saveButton = document.getElementById("saveProfile");
+            const cancelButton = document.getElementById("cancelEdit");
+            const saveError = document.getElementById("saveError");
+            const fields = {
+                username: document.getElementById("editUsername"),
+                hasConsentLocation: document.getElementById("editLocationConsent"),
+                mobileNumber: document.getElementById("editMobile"),
+                emergencyContactName: document.getElementById("editContactName"),
+                emergencyContactMobileNumber: document.getElementById("editContactNumber")
+            };
+            function showFieldError(key, message) {
+                const input = fields[key];
+                input.classList.add("is-invalid");
+                input.setAttribute("aria-invalid", "true");
+                document.getElementById(input.id + "ErrMsg").textContent = message;
+            }
+            function clearErrors() {
+                saveError.classList.add("d-none");
+                Object.values(fields).forEach(input => {
+                    input.classList.remove("is-invalid");
+                    input.removeAttribute("aria-invalid");
+                    document.getElementById(input.id + "ErrMsg").textContent = "";
+                });
+            }
+            Object.values(fields).forEach(input => {
+                input.setAttribute("aria-describedby", input.id + "ErrMsg");
+                input.addEventListener("input", function () {
+                    input.classList.remove("is-invalid");
+                    input.removeAttribute("aria-invalid");
+                    document.getElementById(input.id + "ErrMsg").textContent = "";
+                    saveError.classList.add("d-none");
+                });
+            });
+            function toggleEditing(editing) {
+                clearErrors();
+                document.getElementById("passwordSuccess").classList.add("d-none");
+                form.classList.toggle("d-none", !editing);
+                document.getElementById("profileDetails").classList.toggle("d-none", editing);
+                editButton.classList.toggle("d-none", editing);
+                document.getElementById("openChangePassword").classList.toggle("d-none", editing);
+                saveError.classList.add("d-none");
+            }
+            function renderProfile() {
+                const displayValue = value => value == null || value === "" ? "Not provided" : value;
+                document.getElementById("profileUsername").textContent = displayValue(traveler.username);
+                document.getElementById("profileMobileNumber").textContent = displayValue(traveler.mobileNumber);
+                document.getElementById("profileLocationConsent").textContent =
+                    traveler.hasConsentLocation == null ? "Not provided" : traveler.hasConsentLocation ? "Yes" : "No";
+                document.getElementById("profileEmergencyContactName").textContent = displayValue(traveler.emergencyContactName);
+                document.getElementById("profileEmergencyContactNumber").textContent = displayValue(traveler.emergencyContactMobileNumber);
+                const topbarUsername = document.querySelector("#userDropdown span");
+                if (topbarUsername) topbarUsername.textContent = traveler.username;
+            }
+            editButton.addEventListener("click", function () {
+                Object.entries(fields).forEach(([key, input]) => {
+                    if (input.type === "checkbox") input.checked = traveler[key] === true;
+                    else input.value = traveler[key] || "";
+                });
+                document.getElementById("profileSuccess").classList.add("d-none");
+                toggleEditing(true);
+                fields.username.focus();
+            });
+            cancelButton.addEventListener("click", () => toggleEditing(false));
+            form.addEventListener("submit", async function (event) {
+                event.preventDefault();
+                if (saveButton.disabled) return;
+                clearErrors();
+                const updates = Object.fromEntries(Object.entries(fields).map(([key, input]) => [key, input.type === "checkbox" ? input.checked : input.value.trim()]));
+                if (!updates.username) showFieldError("username", "Username is required");
+                else if (updates.username.length > 50) showFieldError("username", "Username can be at most 50 characters");
+                if (!updates.mobileNumber) showFieldError("mobileNumber", "Mobile number is required");
+                else if (updates.mobileNumber.length !== 8) showFieldError("mobileNumber", "Mobile number must be exactly 8 digits");
+                else if (!/^\d+$/.test(updates.mobileNumber)) showFieldError("mobileNumber", "Mobile number should only contain numbers");
+                if (updates.emergencyContactName.length > 50) showFieldError("emergencyContactName", "Emergency contact name can be at most 50 characters");
+                if (updates.emergencyContactMobileNumber && updates.emergencyContactMobileNumber.length !== 8) showFieldError("emergencyContactMobileNumber", "Emergency contact mobile number must be exactly 8 digits");
+                else if (!/^\d*$/.test(updates.emergencyContactMobileNumber)) showFieldError("emergencyContactMobileNumber", "Emergency contact mobile number should only contain numbers");
+                const invalidInput = form.querySelector(".is-invalid");
+                if (invalidInput) {
+                    invalidInput.focus();
+                    return;
+                }
+                saveButton.disabled = true;
+                cancelButton.disabled = true;
+                saveButton.textContent = "Saving...";
+                saveError.classList.add("d-none");
+                try {
+                    const response = await fetch("/api/travelers/updateProfile", {
+                        method: "PUT",
+                        credentials: "same-origin",
+                        headers: { "Content-Type": "application/json" },
+                        body: JSON.stringify(updates)
+                    });
+                    if (response.redirected || response.status === 401 || response.status === 403) {
+                        throw new Error("Your session has expired. Please sign in again.");
+                    }
+                    if (!response.ok) {
+                        const error = await response.json().catch(() => ({}));
+                        if (response.status === 409) {
+                            showFieldError("username", error.message || error.detail || "Username is already in use");
+                            fields.username.focus();
+                            return;
+                        }
+                        if (response.status === 400) {
+                            let hasFieldErrors = false;
+                            for (const [field, message] of Object.entries(error)) {
+                                const key = field === "emergencyContactNumber" ? "emergencyContactMobileNumber" : field;
+                                if (Object.hasOwn(fields, key) && typeof message === "string") {
+                                    showFieldError(key, message);
+                                    hasFieldErrors = true;
+                                }
+                            }
+                            if (hasFieldErrors) {
+                                form.querySelector(".is-invalid").focus();
+                                return;
+                            }
+                        }
+                        throw new Error(error.message || error.detail || "An unexpected error occurred. Please try again later.");
+                    }
+                    traveler = { ...traveler, ...updates };
+                    renderProfile();
+                    toggleEditing(false);
+                    document.getElementById("profileSuccess").classList.remove("d-none");
+                } catch (error) {
+                    saveError.textContent = error instanceof TypeError
+                        ? "Unable to connect to the server. Please check your connection and try again."
+                        : error.message;
+                    saveError.classList.remove("d-none");
+                } finally {
+                    saveButton.disabled = false;
+                    cancelButton.disabled = false;
+                    saveButton.textContent = "Save Changes";
+                }
+            });
             try {
                 const response = await fetch("/api/travelers/myProfile", {
                     credentials: "same-origin"
@@ -107,25 +304,17 @@
                     throw new Error(`Profile request failed with status ${response.status}`);
                 }
 
-                const traveler = await response.json();
-                const displayValue = value => value == null || value === "" ? "Not provided" : value;
-
-                document.getElementById("profileUsername").textContent = displayValue(traveler.username);
-                document.getElementById("profileMobileNumber").textContent = displayValue(traveler.mobileNumber);
-                document.getElementById("profileLocationConsent").textContent =
-                    traveler.hasConsentLocation == null
-                        ? "Not provided"
-                        : traveler.hasConsentLocation ? "Yes" : "No";
-                document.getElementById("profileEmergencyContactName").textContent =
-                    displayValue(traveler.emergencyContactName);
-                document.getElementById("profileEmergencyContactNumber").textContent =
-                    displayValue(traveler.emergencyContactMobileNumber);
+                traveler = await response.json();
+                renderProfile();
+                editButton.disabled = false;
             } catch (error) {
                 console.error("Unable to load traveler profile:", error);
                 document.getElementById("profileError").classList.remove("d-none");
             }
         });
     </script>
+
+    <script th:src="@{/js/changePassword.js}"></script>
 
     <!-- Custom scripts for all pages-->
     <script th:src="@{/js/sb-admin-2.min.js}"></script>

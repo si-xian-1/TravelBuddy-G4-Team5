@@ -114,6 +114,19 @@ public class TravelerRepository {
         );
     }
 
+    public String getPasswordHash(int userId) {
+        List<String> passwords = jdbcTemplate.query(
+                "SELECT password FROM users WHERE user_id = ? AND role = 'TRAVELER'",
+                (rs, rowNum) -> rs.getString("password"), userId);
+        return passwords.isEmpty() ? null : passwords.get(0);
+    }
+
+    public int updatePassword(int userId, String oldHash, String newHash) {
+        return jdbcTemplate.update(
+                "UPDATE users SET password = ? WHERE user_id = ? AND role = 'TRAVELER' AND password = ?",
+                newHash, userId, oldHash);
+    }
+
     public int deleteUser(int userId) {
         String sql = "DELETE FROM users WHERE user_id = ? AND role = 'TRAVELER'";
         return jdbcTemplate.update(sql, userId);
