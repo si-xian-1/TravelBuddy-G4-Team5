@@ -4,7 +4,10 @@ import com.TravelBuddy.exception.InvalidInputsException;
 import com.TravelBuddy.exception.UnauthorizedUserException;
 import com.TravelBuddy.model.*;
 import com.TravelBuddy.repository.*;
-import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.InjectMocks;
+import org.mockito.Mock;
+import org.mockito.junit.jupiter.MockitoExtension;
 import org.junit.jupiter.api.Test;
 
 import java.time.LocalDateTime;
@@ -13,19 +16,16 @@ import java.util.List;
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.Mockito.*;
 
+@ExtendWith(MockitoExtension.class)
 class AttractionServiceTest {
+    @Mock
     private AttractionRepository repository;
+    @Mock
     private ItineraryRepository itineraries;
+    @Mock
     private GdacsService gdacs;
+    @InjectMocks
     private AttractionService service;
-
-    @BeforeEach
-    void setUp() {
-        repository = mock(AttractionRepository.class);
-        itineraries = mock(ItineraryRepository.class);
-        gdacs = mock(GdacsService.class);
-        service = new AttractionService(itineraries, gdacs, repository);
-    }
 
     private Attraction validAttraction() {
         Attraction item = new Attraction();

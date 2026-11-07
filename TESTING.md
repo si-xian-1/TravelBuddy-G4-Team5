@@ -1,8 +1,5 @@
 # TravelBuddy acceptance tests
 
- Expected results come from that agreement, not from the current
-implementation. Failing requirements remain enabled.
-
 ## Run
 
 From the project root:
@@ -76,37 +73,3 @@ Common item requirements live in ItemAcceptanceContract and are executed
 independently by HotelAcceptanceTest, FlightAcceptanceTest and
 AttractionAcceptanceTest. Each dynamic test has a descriptive name; failure
 messages repeat that name for the Surefire text/XML reports.
-
-## Verified result
-
-| Class | Cases | Passed | Failed |
-| --- | ---: | ---: | ---: |
-| ItineraryServiceTest | 9 | 7 | 2 |
-| HotelServiceTest | 16 | 6 | 10 |
-| FlightServiceTest | 15 | 6 | 9 |
-| AttractionServiceTest | 14 | 5 | 9 |
-| ItineraryAcceptanceTest | 40 | 30 | 10 |
-| HotelAcceptanceTest | 91 | 62 | 29 |
-| FlightAcceptanceTest | 143 | 90 | 53 |
-| AttractionAcceptanceTest | 78 | 48 | 30 |
-| **Total** | **406** | **254** | **152** |
-
-There were no skipped tests or test errors. The Maven test command exits with a
-failure because acceptance assertions fail; the suite compiles successfully.
-
-Current failures expose these implementation gaps:
-
-1. Hotel validation allows same-date check-in/check-out.
-2. Geographic range checks and some null/missing coordinate handling are absent.
-3. Item itinerary-date checks and existing hotel/flight revalidation are absent.
-4. Controllers require complete update bodies instead of allowing partial updates.
-5. Missing itineraries return 403 rather than 404; missing selected flights return
-   400 rather than 404.
-6. Selected-item reads do not attach disaster warnings, and list/detail reads
-   propagate disaster-service failure instead of returning trip data with a
-   failure indicator.
-7. Database VARCHAR limits contradict the approved absence of name and
-   flight-number length restrictions.
-
-Production behavior has not been changed to make these tests pass.
-Detailed per-case evidence is under target/surefire-reports.

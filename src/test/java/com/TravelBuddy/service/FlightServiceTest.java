@@ -4,7 +4,10 @@ import com.TravelBuddy.exception.InvalidInputsException;
 import com.TravelBuddy.exception.UnauthorizedUserException;
 import com.TravelBuddy.model.*;
 import com.TravelBuddy.repository.*;
-import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.InjectMocks;
+import org.mockito.Mock;
+import org.mockito.junit.jupiter.MockitoExtension;
 import org.junit.jupiter.api.Test;
 
 import java.time.LocalDateTime;
@@ -13,19 +16,16 @@ import java.util.List;
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.Mockito.*;
 
+@ExtendWith(MockitoExtension.class)
 class FlightServiceTest {
+    @Mock
     private FlightRepository repository;
+    @Mock
     private ItineraryService itineraries;
+    @Mock
     private GdacsService gdacs;
+    @InjectMocks
     private FlightService service;
-
-    @BeforeEach
-    void setUp() {
-        repository = mock(FlightRepository.class);
-        itineraries = mock(ItineraryService.class);
-        gdacs = mock(GdacsService.class);
-        service = new FlightService(repository, itineraries, gdacs);
-    }
 
     private Flight validFlight() {
         Flight item = new Flight();
