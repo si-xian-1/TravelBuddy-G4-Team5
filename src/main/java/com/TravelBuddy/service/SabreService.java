@@ -76,8 +76,10 @@ public class SabreService {
         String origin = normalizeIataAirportCode(request.getOrigin());
         String destination = normalizeIataAirportCode(request.getDestination());
         if (origin == null || destination == null) {
-            System.err.println("Sabre flight search rejected: origin and destination must be three-letter IATA airport codes. "
-                    + "Received origin='" + request.getOrigin() + "', destination='" + request.getDestination() + "'.");
+            System.err.println(
+                    "Sabre flight search rejected: origin and destination must be three-letter IATA airport codes. "
+                            + "Received origin='" + request.getOrigin() + "', destination='" + request.getDestination()
+                            + "'.");
             return new SabreFlightSearchResponse(List.of());
         }
 
@@ -111,12 +113,11 @@ public class SabreService {
         System.err.println("Sabre returned no flights; using configured demo flight options.");
         return new SabreFlightSearchResponse(List.of(
                 new SabreFlightSearchResponse.FlightOption(
-                        "Demo Airways", "DM101", departureDate + "T09:00:00",
+                        "Scoot", "SC101", departureDate + "T09:00:00",
                         "USD 320", origin, destination),
                 new SabreFlightSearchResponse.FlightOption(
-                        "Demo Airways", "DM202", departureDate + "T15:30:00",
-                        "USD 290", origin, destination)
-        ));
+                        "Singapore Airlines", "SQ201", departureDate + "T15:30:00",
+                        "USD 290", origin, destination)));
     }
 
     /** Normalizes and validates a three-letter IATA airport code. */
@@ -174,9 +175,13 @@ public class SabreService {
         System.err.println("Sabre returned no hotels; using configured demo hotel options.");
         List<SabreHotelSearchResponse.HotelOption> hotels = List.of(
                 new SabreHotelSearchResponse.HotelOption(
-                        "Demo Safe Harbor Hotel", "TPE Demo District", "USD 180", "4.5/5"),
+                        "Shangri-la Hotel", "555 Youyi Rd, Daoli District, Harbin", "USD 180", "4.5/5"),
                 new SabreHotelSearchResponse.HotelOption(
-                        "Demo Central Plaza", "TPE City Center", "USD 220", "4.3/5")
+                        "JW Marriott Plaza", "199 Chuangxin 1st Rd, Songbei District, Harbin", "USD 220", "4.3/5"),
+                new SabreHotelSearchResponse.HotelOption(
+                        "Junxin Hotel Qing'an", "North Ring Rd, Qing'an County, Heilongjiang", "USD 32", "4.1/5"),
+                new SabreHotelSearchResponse.HotelOption(
+                        "Bayan Forestry Hot Spring Hotel", "Bayan-Mulan Forest Corridor, Heilongjiang", "USD 45", "4.0/5")
         );
         return new SabreHotelSearchResponse(excludeCurrentHotel(hotels, excludedHotelName));
     }
@@ -186,7 +191,10 @@ public class SabreService {
         return value == null || value.isBlank() ? defaultValue : value.trim();
     }
 
-    /** Sends the Flight Shop request with one adult traveler and the requested route. */
+    /**
+     * Sends the Flight Shop request with one adult traveler and the requested
+     * route.
+     */
     private Map<?, ?> requestFlightOffers(String origin, String destination, String departureDate) {
         Map<String, Object> journey = new LinkedHashMap<>();
         journey.put("departureLocation", Map.of("airportCode", origin));
@@ -404,7 +412,8 @@ public class SabreService {
                 }
 
                 String price = "Contact for rates";
-                Map<?, ?> converted = asMap(asMap(asMap(item.get("HotelRateInfo")).get("RateInfos")).get("ConvertedRateInfo"));
+                Map<?, ?> converted = asMap(
+                        asMap(asMap(item.get("HotelRateInfo")).get("RateInfos")).get("ConvertedRateInfo"));
                 Object amt = converted.get("AmountBeforeTax");
                 Object cur = converted.get("CurrencyCode");
                 if (amt != null && cur != null) {
@@ -466,7 +475,8 @@ public class SabreService {
         }
 
         if (clientId == null || clientSecret == null || clientId.isBlank() || clientSecret.isBlank()) {
-            throw new IllegalStateException("Sabre API credentials failed to load from application properties or .env!");
+            throw new IllegalStateException(
+                    "Sabre API credentials failed to load from application properties or .env!");
         }
 
         String encodedClientId = Base64.getEncoder().encodeToString(clientId.trim().getBytes(StandardCharsets.UTF_8));
