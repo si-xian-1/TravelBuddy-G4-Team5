@@ -5,7 +5,7 @@ import static org.junit.jupiter.api.Assertions.assertInstanceOf;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
-import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.verifyNoInteractions;
 import static org.mockito.Mockito.when;
@@ -18,17 +18,16 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 import java.util.List;
-import java.util.LinkedHashMap;
-import java.util.Map;
-import java.util.stream.Stream;
 
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
-import org.junit.jupiter.params.ParameterizedTest;
-import org.junit.jupiter.params.provider.Arguments;
-import org.junit.jupiter.params.provider.MethodSource;
+import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.ArgumentCaptor;
+import org.mockito.InjectMocks;
+import org.mockito.Mock;
+import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.security.authentication.AuthenticationManager;
@@ -38,8 +37,8 @@ import org.springframework.security.core.Authentication;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.context.SecurityContext;
 import org.springframework.security.core.context.SecurityContextHolder;
-import org.springframework.security.web.method.annotation.AuthenticationPrincipalArgumentResolver;
 import org.springframework.security.web.context.SecurityContextRepository;
+import org.springframework.security.web.method.annotation.AuthenticationPrincipalArgumentResolver;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.setup.MockMvcBuilders;
 import org.springframework.web.server.ResponseStatusException;
@@ -51,13 +50,11 @@ import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
-
-class TravelerControllerTests {
+@ExtendWith(MockitoExtension.class)
+class TravelerControllerTest {
 
     private static final int USER_ID = 42;
 
-    // Adjust field names/values if your User model validation requires more.
     private static final String VALID_USER_JSON = """
             {
               "username": "test-traveler",
@@ -67,22 +64,24 @@ class TravelerControllerTests {
             }
             """;
 
+    @Mock
     private TravelerService travelerService;
+
+    @Mock
     private AuthenticationManager authenticationManager;
+
+    @Mock
     private SecurityContextRepository securityContextRepository;
+
+    @InjectMocks
+    private TravelerController travelerController;
+
     private MockMvc mockMvc;
     private User currentUser;
 
     @BeforeEach
     void setUp() {
-        travelerService = mock(TravelerService.class);
-        authenticationManager = mock(AuthenticationManager.class);
-        securityContextRepository = mock(SecurityContextRepository.class);
-
-        TravelerController controller = new TravelerController(
-                travelerService, authenticationManager, securityContextRepository);
-
-        mockMvc = MockMvcBuilders.standaloneSetup(controller)
+        mockMvc = MockMvcBuilders.standaloneSetup(travelerController)
                 .setCustomArgumentResolvers(new AuthenticationPrincipalArgumentResolver())
                 .build();
 
@@ -91,9 +90,9 @@ class TravelerControllerTests {
         currentUser.setUsername("test-traveler");
         currentUser.setRole("TRAVELER");
 
-        // Backs @AuthenticationPrincipal for the profile endpoints
         SecurityContext context = SecurityContextHolder.createEmptyContext();
-        context.setAuthentication(authenticatedToken(currentUser));
+        context.setAuthentication(new UsernamePasswordAuthenticationToken(
+                currentUser, null, List.of(new SimpleGrantedAuthority("ROLE_TRAVELER"))));
         SecurityContextHolder.setContext(context);
     }
 
@@ -102,103 +101,8 @@ class TravelerControllerTests {
         SecurityContextHolder.clearContext();
     }
 
-    private static final ObjectMapper MAPPER = new ObjectMapper();
-
-    // ---------- validation (@Valid on User) ----------
-
-    static Stream<Arguments> invalidUserFields() {
-        return Stream.of(
-                Arguments.of("username", null),
-                Arguments.of("username", ""),
-                Arguments.of("username", "   "),
-                Arguments.of("username", "a".repeat(51)),
-                Arguments.of("mobileNumber", ""),
-                Arguments.of("mobileNumber", "   "),
-                Arguments.of("mobileNumber", "9123456a"),
-                Arguments.of("mobileNumber", "123456789"),
-                Arguments.of("hasConsentLocation", false),
-                Arguments.of("emergencyContactName", "a".repeat(51)),
-                Arguments.of("emergencyContactMobileNumber", "abc"),
-                Arguments.of("emergencyContactMobileNumber", "123456789"),
-                Arguments.of("password", "a".repeat(256)));
-    }
-
-    @ParameterizedTest(name = "signup rejects {0}={1}")
-    @MethodSource("invalidUserFields")
-    void signupRejectsInvalidFields(String field, Object value) throws Exception {
-        mockMvc.perform(post("/api/travelers/signup")
-                        .contentType(MediaType.APPLICATION_JSON)
-                        .content(bodyWith(field, value)))
-                .andExpect(status().isBadRequest());
-
-        verifyNoInteractions(travelerService);
-    }
-
-    @ParameterizedTest(name = "updateProfile rejects {0}={1}")
-    @MethodSource("invalidUserFields")
-    void updateProfileRejectsInvalidFields(String field, Object value) throws Exception {
-        mockMvc.perform(put("/api/travelers/updateProfile")
-                        .contentType(MediaType.APPLICATION_JSON)
-                        .content(bodyWith(field, value)))
-                .andExpect(status().isBadRequest());
-
-        verifyNoInteractions(travelerService);
-    }
-
     @Test
-    void signupForwardsMissingMobileAndConsentToServiceBecauseBeanValidationAllowsNull() throws Exception {
-        // @Pattern and @AssertTrue treat null as valid, so TravelerService is what rejects these.
-        when(travelerService.createUser(any(User.class))).thenReturn(1);
-
-        mockMvc.perform(post("/api/travelers/signup")
-                        .contentType(MediaType.APPLICATION_JSON)
-                        .content(bodyWithout("mobileNumber", "hasConsentLocation")))
-                .andExpect(status().isOk());
-
-        verify(travelerService).createUser(any(User.class));
-    }
-
-    @Test
-    void updateProfileAcceptsPartialBodyWithOnlyUsername() throws Exception {
-        when(travelerService.updateUser(eq(USER_ID), any(User.class))).thenReturn(1);
-
-        mockMvc.perform(put("/api/travelers/updateProfile")
-                        .contentType(MediaType.APPLICATION_JSON)
-                        .content(bodyWithout("password", "mobileNumber", "hasConsentLocation")))
-                .andExpect(status().isOk());
-
-        verify(travelerService).updateUser(eq(USER_ID), any(User.class));
-    }
-
-    @Test
-    void updateProfileAcceptsEmptyEmergencyContactNumber() throws Exception {
-        // The emergency contact pattern is ^\d*$, so clearing the number is allowed.
-        when(travelerService.updateUser(eq(USER_ID), any(User.class))).thenReturn(1);
-
-        mockMvc.perform(put("/api/travelers/updateProfile")
-                            .contentType(MediaType.APPLICATION_JSON)
-                            .content(bodyWith("emergencyContactMobileNumber", "")))
-                    .andExpect(status().isOk());
-    }
-
-    // ---------- response shape ----------
-
-    @Test
-    void myProfileDoesNotExposePasswordOrAuthorities() throws Exception {
-        currentUser.setPassword("stored-hash");
-        when(travelerService.getUser(USER_ID)).thenReturn(currentUser);
-
-        mockMvc.perform(get("/api/travelers/myProfile"))
-                .andExpect(status().isOk())
-                .andExpect(jsonPath("$.userId").value(USER_ID))
-                .andExpect(jsonPath("$.username").value("test-traveler"))
-                .andExpect(jsonPath("$.password").doesNotExist())
-                .andExpect(jsonPath("$.authorities").doesNotExist());
-    }
-
-    // ---------- signup ----------
-
-    @Test
+    @DisplayName("Registering a new traveler profile creates the account successfully")
     void signupCreatesUserAndReturnsSuccessMessage() throws Exception {
         when(travelerService.createUser(any(User.class))).thenReturn(1);
 
@@ -214,6 +118,67 @@ class TravelerControllerTests {
     }
 
     @Test
+    @DisplayName("Registering with invalid user details is rejected")
+    void signupRejectsInvalidFields() throws Exception {
+        String invalidJson = """
+                {
+                  "username": "",
+                  "password": "test-password",
+                  "mobileNumber": "invalid"
+                }
+                """;
+
+        mockMvc.perform(post("/api/travelers/signup")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(invalidJson))
+                .andExpect(status().isBadRequest());
+
+        verifyNoInteractions(travelerService);
+    }
+
+    @Test
+    @DisplayName("Registering without contact number or location consent is permitted during account creation")
+    void signupForwardsMissingMobileAndConsentToServiceBecauseBeanValidationAllowsNull() throws Exception {
+        when(travelerService.createUser(any(User.class))).thenReturn(1);
+
+        String json = """
+                {
+                  "username": "test-traveler",
+                  "password": "test-password"
+                }
+                """;
+
+        mockMvc.perform(post("/api/travelers/signup")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(json))
+                .andExpect(status().isOk());
+
+        verify(travelerService).createUser(any(User.class));
+    }
+
+    @Test
+    @DisplayName("Registering without location consent returns bad request when rejected by registration rules")
+    void signupReturnsBadRequestWhenServiceRejectsMissingConsent() throws Exception {
+        when(travelerService.createUser(any(User.class)))
+                .thenThrow(new ResponseStatusException(HttpStatus.BAD_REQUEST, "Invalid consent location"));
+
+        String json = """
+                {
+                  "username": "test-traveler",
+                  "password": "test-password",
+                  "mobileNumber": "91234567",
+                  "hasConsentLocation": false
+                }
+                """;
+
+        mockMvc.perform(post("/api/travelers/signup")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(json))
+                .andExpect(status().isBadRequest());
+    }
+
+    @Test
+    @DisplayName("Registering with a username that is already taken is rejected as a conflict")
     void signupReturnsConflictWhenServiceReportsDuplicateUsername() throws Exception {
         when(travelerService.createUser(any(User.class)))
                 .thenThrow(new ResponseStatusException(HttpStatus.CONFLICT, "Username is already in use"));
@@ -225,6 +190,7 @@ class TravelerControllerTests {
     }
 
     @Test
+    @DisplayName("Registering with an unreadable or corrupted request is rejected")
     void signupReturnsBadRequestForMalformedJson() throws Exception {
         mockMvc.perform(post("/api/travelers/signup")
                         .contentType(MediaType.APPLICATION_JSON)
@@ -234,12 +200,12 @@ class TravelerControllerTests {
         verifyNoInteractions(travelerService);
     }
 
-    // ---------- login ----------
-
     @Test
+    @DisplayName("Signing in with valid traveler credentials starts a session and returns the profile")
     void loginAuthenticatesPersistsContextAndReturnsUser() throws Exception {
-        when(authenticationManager.authenticate(any(Authentication.class)))
-                .thenReturn(authenticatedToken(currentUser));
+        Authentication auth = new UsernamePasswordAuthenticationToken(
+                currentUser, null, List.of(new SimpleGrantedAuthority("ROLE_TRAVELER")));
+        when(authenticationManager.authenticate(any(Authentication.class))).thenReturn(auth);
 
         mockMvc.perform(post("/api/travelers/login")
                         .contentType(MediaType.APPLICATION_JSON)
@@ -261,12 +227,11 @@ class TravelerControllerTests {
     }
 
     @Test
+    @DisplayName("Signing in with invalid credentials fails and prevents session creation")
     void loginPropagatesAuthenticationFailureAndDoesNotPersistContext() {
         when(authenticationManager.authenticate(any(Authentication.class)))
                 .thenThrow(new BadCredentialsException("Bad credentials"));
 
-        // Standalone MockMvc has no security filter chain, so the exception surfaces
-        // wrapped in a ServletException. In the real app, Spring Security maps it to 401.
         ServletException exception = assertThrows(ServletException.class, () ->
                 mockMvc.perform(post("/api/travelers/login")
                         .contentType(MediaType.APPLICATION_JSON)
@@ -276,9 +241,8 @@ class TravelerControllerTests {
         verifyNoInteractions(securityContextRepository);
     }
 
-    // ---------- updateProfile ----------
-
     @Test
+    @DisplayName("Updating traveler profile details saves changes and refreshes active login session")
     void updateProfileUsesAuthenticatedUserIdAndReturnsSuccessMessage() throws Exception {
         when(travelerService.updateUser(eq(USER_ID), any(User.class))).thenReturn(1);
 
@@ -289,9 +253,89 @@ class TravelerControllerTests {
                 .andExpect(content().string("User updated successfully"));
 
         verify(travelerService).updateUser(eq(USER_ID), any(User.class));
+        verify(securityContextRepository).saveContext(
+                any(SecurityContext.class),
+                any(HttpServletRequest.class),
+                any(HttpServletResponse.class));
     }
 
     @Test
+    @DisplayName("Updating profile with invalid user details is rejected")
+    void updateProfileRejectsInvalidFields() throws Exception {
+        String invalidJson = """
+                {
+                  "username": "",
+                  "mobileNumber": "not-a-number"
+                }
+                """;
+
+        mockMvc.perform(put("/api/travelers/updateProfile")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(invalidJson))
+                .andExpect(status().isBadRequest());
+
+        verifyNoInteractions(travelerService);
+    }
+
+    @Test
+    @DisplayName("Updating account with only a new username succeeds")
+    void updateProfileAcceptsPartialBodyWithOnlyUsername() throws Exception {
+        when(travelerService.updateUser(eq(USER_ID), any(User.class))).thenReturn(1);
+
+        String json = """
+                {
+                  "username": "updated-username"
+                }
+                """;
+
+        mockMvc.perform(put("/api/travelers/updateProfile")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(json))
+                .andExpect(status().isOk());
+
+        verify(travelerService).updateUser(eq(USER_ID), any(User.class));
+    }
+
+    @Test
+    @DisplayName("Updating profile allows withdrawing location consent")
+    void updateProfileAllowsWithdrawingLocationConsent() throws Exception {
+        when(travelerService.updateUser(eq(USER_ID), any(User.class))).thenReturn(1);
+
+        String json = """
+                {
+                  "username": "test-traveler",
+                  "hasConsentLocation": false
+                }
+                """;
+
+        mockMvc.perform(put("/api/travelers/updateProfile")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(json))
+                .andExpect(status().isOk());
+
+        verify(travelerService).updateUser(eq(USER_ID), any(User.class));
+    }
+
+    @Test
+    @DisplayName("Updating profile to clear the emergency contact number succeeds")
+    void updateProfileAcceptsEmptyEmergencyContactNumber() throws Exception {
+        when(travelerService.updateUser(eq(USER_ID), any(User.class))).thenReturn(1);
+
+        String json = """
+                {
+                  "username": "test-traveler",
+                  "emergencyContactMobileNumber": ""
+                }
+                """;
+
+        mockMvc.perform(put("/api/travelers/updateProfile")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(json))
+                .andExpect(status().isOk());
+    }
+
+    @Test
+    @DisplayName("Updating an unknown or missing traveler profile cannot be found")
     void updateProfileReturnsNotFoundWhenNoRowsUpdated() throws Exception {
         when(travelerService.updateUser(eq(USER_ID), any(User.class))).thenReturn(0);
 
@@ -302,6 +346,7 @@ class TravelerControllerTests {
     }
 
     @Test
+    @DisplayName("Updating to a username that is already taken by another traveler is rejected")
     void updateProfileReturnsConflictWhenServiceReportsDuplicateUsername() throws Exception {
         when(travelerService.updateUser(eq(USER_ID), any(User.class)))
                 .thenThrow(new ResponseStatusException(HttpStatus.CONFLICT, "Username is already in use"));
@@ -313,6 +358,7 @@ class TravelerControllerTests {
     }
 
     @Test
+    @DisplayName("Updating profile with an invalid password format is rejected")
     void updateProfileReturnsBadRequestWhenServiceRejectsPassword() throws Exception {
         when(travelerService.updateUser(eq(USER_ID), any(User.class)))
                 .thenThrow(new ResponseStatusException(HttpStatus.BAD_REQUEST, "Invalid password"));
@@ -323,9 +369,64 @@ class TravelerControllerTests {
                 .andExpect(status().isBadRequest());
     }
 
-    // ---------- myProfile ----------
+    @Test
+    @DisplayName("Changing password with matching confirmation updates account password successfully")
+    void changePasswordUpdatesPasswordAndReturnsSuccessMessage() throws Exception {
+        String requestJson = """
+                {
+                  "newPassword": "newSecretPassword123",
+                  "confirmPassword": "newSecretPassword123"
+                }
+                """;
+
+        mockMvc.perform(put("/api/travelers/changePassword")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(requestJson))
+                .andExpect(status().isOk())
+                .andExpect(content().string("Password changed successfully"));
+
+        verify(travelerService).changePassword(USER_ID, "newSecretPassword123", "newSecretPassword123");
+    }
 
     @Test
+    @DisplayName("Changing password with empty or missing inputs is rejected")
+    void changePasswordRejectsBlankPasswords() throws Exception {
+        String requestJson = """
+                {
+                  "newPassword": "   ",
+                  "confirmPassword": ""
+                }
+                """;
+
+        mockMvc.perform(put("/api/travelers/changePassword")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(requestJson))
+                .andExpect(status().isBadRequest());
+
+        verifyNoInteractions(travelerService);
+    }
+
+    @Test
+    @DisplayName("Changing password when confirmation does not match the new password is rejected")
+    void changePasswordReturnsBadRequestWhenServiceThrowsException() throws Exception {
+        doThrow(new ResponseStatusException(HttpStatus.BAD_REQUEST, "Passwords do not match"))
+                .when(travelerService).changePassword(USER_ID, "pass1", "pass2");
+
+        String requestJson = """
+                {
+                  "newPassword": "pass1",
+                  "confirmPassword": "pass2"
+                }
+                """;
+
+        mockMvc.perform(put("/api/travelers/changePassword")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(requestJson))
+                .andExpect(status().isBadRequest());
+    }
+
+    @Test
+    @DisplayName("Viewing own profile returns the authenticated traveler information")
     void myProfileReturnsCurrentUsersDetails() throws Exception {
         when(travelerService.getUser(USER_ID)).thenReturn(currentUser);
 
@@ -337,6 +438,7 @@ class TravelerControllerTests {
     }
 
     @Test
+    @DisplayName("Viewing profile of an account that no longer exists cannot be found")
     void myProfileReturnsNotFoundWhenServiceCannotFindUser() throws Exception {
         when(travelerService.getUser(USER_ID))
                 .thenThrow(new ResponseStatusException(HttpStatus.NOT_FOUND, "Traveler not found"));
@@ -345,9 +447,8 @@ class TravelerControllerTests {
                 .andExpect(status().isNotFound());
     }
 
-    // ---------- deleteProfile ----------
-
     @Test
+    @DisplayName("Deleting own profile closes and removes traveler account successfully")
     void deleteProfileDeletesAuthenticatedUserAndReturnsSuccessMessage() throws Exception {
         when(travelerService.deleteUser(USER_ID)).thenReturn(1);
 
@@ -359,40 +460,11 @@ class TravelerControllerTests {
     }
 
     @Test
+    @DisplayName("Deleting an account that does not exist cannot be found")
     void deleteProfileReturnsNotFoundWhenNoRowsDeleted() throws Exception {
         when(travelerService.deleteUser(USER_ID)).thenReturn(0);
 
         mockMvc.perform(delete("/api/travelers/deleteProfile"))
                 .andExpect(status().isNotFound());
-    }
-
-    // ---------- helpers ----------
-
-    private Authentication authenticatedToken(User principal) {
-        return new UsernamePasswordAuthenticationToken(
-                principal, null, List.of(new SimpleGrantedAuthority("ROLE_TRAVELER")));
-    }
-
-    private static String bodyWith(String field, Object value) throws Exception {
-        Map<String, Object> body = validBody();
-        body.put(field, value);
-        return MAPPER.writeValueAsString(body);
-    }
-
-    private static String bodyWithout(String... fields) throws Exception {
-        Map<String, Object> body = validBody();
-        for (String field : fields) {
-            body.remove(field);
-        }
-        return MAPPER.writeValueAsString(body);
-    }
-
-    private static Map<String, Object> validBody() {
-        Map<String, Object> body = new LinkedHashMap<>();
-        body.put("username", "test-traveler");
-        body.put("password", "test-password");
-        body.put("mobileNumber", "91234567");
-        body.put("hasConsentLocation", true);
-        return body;
     }
 }

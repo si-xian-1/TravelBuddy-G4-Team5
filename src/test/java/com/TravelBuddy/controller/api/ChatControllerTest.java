@@ -60,7 +60,7 @@ class ChatControllerTest {
     }
 
     @Test
-    @DisplayName("recommendAlternative successfully returns AI response HTML")
+    @DisplayName("Requesting alternative travel recommendations returns generated booking options for affected plans")
     void recommendAlternative_success() {
         // Arrange
         AlternativeRequest request = new AlternativeRequest();
@@ -85,7 +85,56 @@ class ChatControllerTest {
     }
 
     @Test
-    @DisplayName("recommendAlternative terminates and returns cancelled message when task is interrupted")
+    @DisplayName("Requesting alternatives displays helpful fallback message when assistant generates no suggestions")
+    void recommendAlternative_whenAiResponseIsBlank_returnsFallbackMessage() {
+        // Arrange
+        AlternativeRequest request = new AlternativeRequest();
+        request.setItemType("FLIGHT");
+        request.setLocation("TPE");
+        request.setStartDate("2026-11-01");
+        request.setEndDate("2026-11-05");
+        request.setRequestId("req-chat-blank");
+
+        mockChatClient("   ");
+
+        User user = new User();
+        user.setUsername("Traveler1");
+
+        // Act
+        ResponseEntity<String> response = chatController.recommendAlternative(request, null, user);
+
+        // Assert
+        assertEquals(HttpStatus.OK, response.getStatusCode());
+        assertEquals("Unable to display results. Please try refreshing.", response.getBody());
+    }
+
+    @Test
+    @DisplayName("Requesting alternatives displays a friendly error notification when recommendation assistant fails")
+    void recommendAlternative_whenException_returnsErrorMessage() {
+        // Arrange
+        AlternativeRequest request = new AlternativeRequest();
+        request.setItemType("HOTEL");
+        request.setLocation("TPE");
+        request.setStartDate("2026-11-01");
+        request.setEndDate("2026-11-05");
+        request.setRequestId("req-chat-err");
+
+        when(chatClient.prompt()).thenThrow(new RuntimeException("Simulated AI failure"));
+
+        User user = new User();
+        user.setUsername("Traveler1");
+
+        // Act
+        ResponseEntity<String> response = chatController.recommendAlternative(request, null, user);
+
+        // Assert
+        assertEquals(HttpStatus.OK, response.getStatusCode());
+        assertNotNull(response.getBody());
+        assertTrue(response.getBody().contains("Failed to retrieve alternative recommendations"));
+    }
+
+    @Test
+    @DisplayName("Stopping recommendation generation terminates the process and displays cancellation notice")
     void recommendAlternative_whenCancelled_returnsCancelledMessage() {
         // Arrange
         AlternativeRequest request = new AlternativeRequest();
@@ -107,10 +156,11 @@ class ChatControllerTest {
         assertEquals(HttpStatus.OK, response.getStatusCode());
         assertNotNull(response.getBody());
         assertTrue(response.getBody().contains("cancelled"));
+        Thread.interrupted(); // Clear interrupted status for subsequent test execution
     }
 
     @Test
-    @DisplayName("cancelAiGeneration terminates running task and returns cancellation status map")
+    @DisplayName("Cancelling ongoing travel recommendation stops background task and confirms cancellation")
     void cancelAiGeneration_returnsCancelledStatus() {
         // Arrange
         String requestId = "req-to-cancel-123";

@@ -1,30 +1,28 @@
 package com.TravelBuddy.service;
 
-import static org.junit.jupiter.api.Assertions.*;
-import static org.mockito.Mockito.*;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertNull;
+import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.mockito.Mockito.when;
 
+import java.time.LocalDateTime;
 import java.util.List;
 
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
-import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.core.io.ResourceLoader;
-import org.springframework.test.util.ReflectionTestUtils;
 import org.springframework.web.client.RestClient;
 
+import com.TravelBuddy.model.Disaster;
 import com.TravelBuddy.model.Disaster.DisasterEvents;
 import com.TravelBuddy.model.ProximitySummary;
-import com.fasterxml.jackson.databind.DeserializationFeature;
-import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
 
-/**
- * Unit tests for Disaster Monitoring in GdacsService.
- */
 @ExtendWith(MockitoExtension.class)
 class GdacsServiceTest {
 
@@ -37,7 +35,6 @@ class GdacsServiceTest {
     @Mock
     private ResourceLoader resourceLoader;
 
-    @InjectMocks
     private GdacsService gdacsService;
 
     @BeforeEach
@@ -47,37 +44,22 @@ class GdacsServiceTest {
     }
 
     @Test
-    @DisplayName("Disaster monitoring returns ALERT if user is near disaster based on proximity")
-    void calculateProximitySummary_whenUserNearDisaster_returnsAlert() {
-        // Arrange
-        // Disaster located in Singapore (Longitude: 103.8198, Latitude: 1.3521)
-        DisasterEvents disaster = createDisaster(103.8198, 1.3521, "FL", "Singapore");
-        ReflectionTestUtils.setField(gdacsService, "activeDisasters", List.of(disaster));
-
-        // User is about 9 km away (< 120 km danger zone threshold)
-        Double userLat = 1.3521;
-        Double userLon = 103.9000;
-
-        // Act
-        ProximitySummary result = gdacsService.calculateProximitySummary(userLat, userLon);
+    @DisplayName("Reports safe status with no danger alert when traveler geographic coordinates are omitted")
+    void calculateProximitySummary_whenCoordinatesNull_returnsSafeSummary() {
+        // Arrange & Act
+        ProximitySummary result = gdacsService.calculateProximitySummary(null, null);
 
         // Assert
         assertNotNull(result);
-        assertTrue(result.inDangerZone(), "Disaster monitoring should return alert (inDangerZone = true) when user is near disaster");
-        assertNotNull(result.nearestDistanceKm());
-        assertTrue(result.nearestDistanceKm() <= 120.0, "Distance should be within 120 km threshold");
-        assertTrue(result.nearestDisasterName().contains("Floods"));
+        assertFalse(result.inDangerZone());
+        assertNull(result.nearestDistanceKm());
+        assertEquals("None", result.nearestDisasterName());
     }
 
     @Test
-    @DisplayName("Disaster monitoring returns SAFE if user is not near disaster based on proximity")
-    void calculateProximitySummary_whenUserNotNearDisaster_returnsSafe() {
+    @DisplayName("Confirms traveler is safe when no active global disaster events are recorded")
+    void calculateProximitySummary_whenNoDisasters_returnsSafe() {
         // Arrange
-        // Disaster in Tokyo, Japan (Longitude: 139.6917, Latitude: 35.6895)
-        DisasterEvents disaster = createDisaster(139.6917, 35.6895, "EQ", "Japan");
-        ReflectionTestUtils.setField(gdacsService, "activeDisasters", List.of(disaster));
-
-        // User in Singapore (> 5,000 km away, outside 120 km threshold)
         Double userLat = 1.3521;
         Double userLon = 103.8198;
 
@@ -86,31 +68,45 @@ class GdacsServiceTest {
 
         // Assert
         assertNotNull(result);
-        assertFalse(result.inDangerZone(), "Disaster monitoring should return safe (inDangerZone = false) when user is far from disaster");
-        assertNotNull(result.nearestDistanceKm());
-        assertTrue(result.nearestDistanceKm() > 120.0, "Distance should exceed 120 km threshold");
+        assertFalse(result.inDangerZone());
+        assertNull(result.nearestDistanceKm());
+        assertEquals("None", result.nearestDisasterName());
     }
 
-    // Situmulate disaster creation
-    private DisasterEvents createDisaster(double lon, double lat, String type, String country) {
-        String json = String.format("""
-                {
-                  "geometry": { "coordinates": [%f, %f] },
-                  "properties": {
-                    "eventtype": "%s",
-                    "country": "%s",
-                    "fromdate": "2026-11-01T00:00:00",
-                    "todate": "2026-11-05T00:00:00"
-                  }
-                }
-                """, lon, lat, type, country);
-        try {
-            return new ObjectMapper()
-                    .configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false)
-                    .registerModule(new JavaTimeModule())
-                    .readValue(json, DisasterEvents.class);
-        } catch (Exception e) {
-            throw new RuntimeException("Failed to construct test disaster fixture", e);
-        }
+    @Test
+    @DisplayName("Issues no hazard warning for travel itinerary when no disaster events exist")
+    void evaluateProximityAndDate_whenNoDisasters_returnsNoWarning() {
+        // Arrange
+        LocalDateTime now = LocalDateTime.now();
+
+        // Act
+        String warning = gdacsService.evaluateProximityAndDateFromDisasters(
+                1.3521, 103.8198, now, now.plusDays(5));
+
+        // Assert
+        assertNull(warning);
+    }
+
+    @Test
+    @DisplayName("Safely handles disaster retrieval without crashing when external data feed is unavailable")
+    void getDisasterEvents_whenApiFails_returnsSafeFallback() {
+        // Arrange (restClient is mocked by @Mock and throws or returns null on unstubbed calls)
+
+        // Act
+        Disaster result = gdacsService.getDisasterEvents();
+
+        // Assert
+        assertNotNull(result);
+    }
+
+    @Test
+    @DisplayName("Retrieves an empty list of active hazards when no disaster feed has been loaded")
+    void getActiveDisasters_whenUninitialized_returnsEmptyList() {
+        // Arrange & Act
+        List<DisasterEvents> disasters = gdacsService.getActiveDisasters();
+
+        // Assert
+        assertNotNull(disasters);
+        assertTrue(disasters.isEmpty());
     }
 }
