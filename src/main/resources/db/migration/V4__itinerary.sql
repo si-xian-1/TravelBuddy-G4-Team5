@@ -1,8 +1,3 @@
--- ==========================================
--- USER 1: Affected by China Wildfire (1033222)
--- Disaster is at 46.4690, 127.9837
--- Attraction is in Shanghai (Safe)
--- ==========================================
 INSERT INTO itineraries (itinerary_id, itinerary_name, start_date, end_date, user_id)
 SELECT 1, 'China', '2026-10-09', '2026-11-18', 1
 WHERE NOT EXISTS (SELECT 1 FROM itineraries WHERE itinerary_id = 1);
@@ -19,12 +14,7 @@ INSERT INTO attractions (attraction_id, itinerary_id, attraction_name, latitude,
 SELECT 1, 1, 'Shanghai Disneyland', 31.14626, 121.65617, '2026-11-01 13:12:00'
 WHERE NOT EXISTS (SELECT 1 FROM attractions WHERE attraction_id = 1);
 
-
--- ==========================================
--- USER 2 (Lydia): Affected by Mongolia Wildfire (1033256)
--- Disaster is at 46.4431, 114.5047
--- Attraction is in Ulaanbaatar (Safe)
--- ==========================================
+-- User 2 (Lydia)
 INSERT INTO itineraries (itinerary_id, itinerary_name, start_date, end_date, user_id)
 SELECT 2, 'Mongolia Steppe Adventure', '2026-10-25', '2026-11-05', 2
 WHERE NOT EXISTS (SELECT 1 FROM itineraries WHERE itinerary_id = 2);
@@ -41,7 +31,6 @@ INSERT INTO attractions (attraction_id, itinerary_id, attraction_name, latitude,
 SELECT 2, 2, 'Gorkhi-Terelj National Park (Ulaanbaatar)', 47.8864, 106.9057, '2026-10-27 10:00:00'
 WHERE NOT EXISTS (SELECT 1 FROM attractions WHERE attraction_id = 2);
 
--- User 2's Second Itinerary (China)
 INSERT INTO itineraries (itinerary_id, itinerary_name, start_date, end_date, user_id)
 SELECT 4, 'China', '2026-10-09', '2026-11-18', 2
 WHERE NOT EXISTS (SELECT 1 FROM itineraries WHERE itinerary_id = 4);
@@ -58,12 +47,7 @@ INSERT INTO attractions (attraction_id, itinerary_id, attraction_name, latitude,
 SELECT 4, 4, 'Shanghai Disneyland', 31.14626, 121.65617, '2026-11-01 13:12:00'
 WHERE NOT EXISTS (SELECT 1 FROM attractions WHERE attraction_id = 4);
 
-
--- ==========================================
--- USER 3 (Vincent): Affected by Xinjiang Earthquake (1573936)
--- Disaster is at 40.2886, 77.9297
--- Attraction is in Urumqi (Safe)
--- ==========================================
+-- User 3 (Vincent)
 INSERT INTO itineraries (itinerary_id, itinerary_name, start_date, end_date, user_id)
 SELECT 3, 'Xinjiang Heritage Tour', '2026-10-24', '2026-10-30', 3
 WHERE NOT EXISTS (SELECT 1 FROM itineraries WHERE itinerary_id = 3);
@@ -80,7 +64,6 @@ INSERT INTO attractions (attraction_id, itinerary_id, attraction_name, latitude,
 SELECT 3, 3, 'Xinjiang Regional Museum (Urumqi)', 43.8256, 87.6168, '2026-10-26 16:00:00'
 WHERE NOT EXISTS (SELECT 1 FROM attractions WHERE attraction_id = 3);
 
--- User 3's Second Itinerary (China)
 INSERT INTO itineraries (itinerary_id, itinerary_name, start_date, end_date, user_id)
 SELECT 5, 'China', '2026-10-09', '2026-11-18', 3
 WHERE NOT EXISTS (SELECT 1 FROM itineraries WHERE itinerary_id = 5);
