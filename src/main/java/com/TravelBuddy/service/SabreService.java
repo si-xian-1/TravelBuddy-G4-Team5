@@ -175,13 +175,17 @@ public class SabreService {
         System.err.println("Sabre returned no hotels; using configured demo hotel options.");
         List<SabreHotelSearchResponse.HotelOption> hotels = List.of(
                 new SabreHotelSearchResponse.HotelOption(
-                        "Shangri-la Hotel", "555 Youyi Rd, Daoli District, Harbin", "USD 180", "4.5/5"),
+                        "Eastern Steppe Eco Resort",
+                        "555 Xizang Middle Road, Shanghai, China", "USD 180", "4.5/5"),
                 new SabreHotelSearchResponse.HotelOption(
-                        "JW Marriott Plaza", "199 Chuangxin 1st Rd, Songbei District, Harbin", "USD 220", "4.3/5"),
+                        "Eastern Steppe Eco Resort",
+                        "398 East Beijing Road, Shanghai, China", "USD 220", "4.3/5"),
                 new SabreHotelSearchResponse.HotelOption(
-                        "Junxin Hotel Qing'an", "North Ring Rd, Qing'an County, Heilongjiang", "USD 32", "4.1/5"),
+                        "Aksu Grand Hotel",
+                        "33 Fucheng Road, Pudong, Shanghai, China", "USD 32", "4.1/5"),
                 new SabreHotelSearchResponse.HotelOption(
-                        "Bayan Forestry Hot Spring Hotel", "Bayan-Mulan Forest Corridor, Heilongjiang", "USD 45", "4.0/5")
+                        "Aksu Grand Hotel",
+                        "1288 Lujiazui Ring Road, Shanghai, China", "USD 45", "4.0/5")
         );
         return new SabreHotelSearchResponse(excludeCurrentHotel(hotels, excludedHotelName));
     }
