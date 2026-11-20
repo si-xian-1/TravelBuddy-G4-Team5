@@ -1,4 +1,4 @@
-# CS205-G4-Team5
+# CS203-G4-Team5
 
 **Things to note:**
 As the AI tokens are limited on free tier only, sometimes you might encounter fallback error messages or incomplete result. To resolve, try to regenerate the result, if still cannot can reach out to me for a new API key to generate for the AI.
